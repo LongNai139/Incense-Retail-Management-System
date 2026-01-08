@@ -1,0 +1,115 @@
+﻿@{
+    ViewBag.Title = "Đặt hàng thành công";
+}
+
+@section Styles {
+    <style>
+        .success-page {
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+
+        .success-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+            .success-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 6px;
+                background: linear-gradient(90deg, #20c997, #00a0e9);
+            }
+
+        .icon-box {
+            width: 100px;
+            height: 100px;
+            background-color: #d1e7dd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .success-icon {
+            font-size: 50px;
+            color: #198754;
+        }
+
+        
+
+        .order-id-badge {
+            background-color: #f0f9ff;
+            color: #00a0e9;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            border: 1px dashed #00a0e9;
+            display: inline-block;
+            margin: 15px 0;
+        }
+
+        .step-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+}
+
+<div class="success-page">
+    <div class="container text-center">
+        <div class="card success-card p-5 mx-auto" style="max-width: 550px;">
+
+            <div class="icon-box">
+                <i class="bi bi-check-lg success-icon"></i>
+            </div>
+
+            <h2 class="fw-bold mb-2 text-dark">Đặt hàng thành công!</h2>
+            <p class="text-secondary">Cảm ơn bạn đã tin tưởng và ủng hộ cửa hàng.</p>
+
+            <div>
+                <span class="text-muted small text-uppercase fw-bold">Mã đơn hàng của bạn</span><br />
+                <span class="order-id-badge fw-bold">#@ViewBag.OrderID</span>
+            </div>
+
+            <div class="py-4">
+                <p class="text-muted mb-3" style="font-size: 0.95rem;">
+                    Chúng tôi sẽ sớm liên hệ để xác nhận đơn hàng.<br>
+                    Bạn có thể theo dõi trạng thái đơn hàng trong phần lịch sử.
+                </p>
+
+                <div class="d-flex justify-content-center align-items-center gap-2 mb-2 opacity-50">
+                    <span class="badge bg-success rounded-circle p-1"><i class="bi bi-check"></i></span>
+                    <div style="width: 30px; height: 2px; background: #dee2e6;"></div>
+                    <span class="badge bg-secondary rounded-circle p-1" style="width: 20px; height: 20px;"></span>
+                    <div style="width: 30px; height: 2px; background: #dee2e6;"></div>
+                    <span class="badge bg-secondary rounded-circle p-1" style="width: 20px; height: 20px;"></span>
+                </div>
+                <div class="small text-muted fst-italic">Đã đặt hàng &bull; Đang xử lý &bull; Giao hàng</div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 mt-2">
+                <a href="/" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" style="background-color: #00a0e9; border: none;">
+                    <i class="bi bi-shop me-2"></i>Tiếp tục mua sắm
+                </a>
+                <a href="/Order/History" class="btn btn-light rounded-pill px-4 py-2 fw-bold border text-secondary">
+                    Xem đơn hàng
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>

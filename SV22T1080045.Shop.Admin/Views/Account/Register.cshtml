@@ -1,0 +1,109 @@
+﻿@model SV22T1080045.Shop.DomainModels.Customers
+@{
+    ViewBag.Title = "Đăng ký";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg rounded-4 border-0 overflow-hidden">
+                <div class="bg-danger bg-gradient p-4 text-center text-white" style="background: linear-gradient(135deg, #e81e25 0%, #c4181f 100%) !important;">
+                    <img src="~/images/doraemon-logo.png" onerror="this.src='https://placehold.co/80x80?text=Logo'" alt="Logo" class="img-fluid bg-white rounded-circle p-1 mb-2 shadow-sm" style="width: 80px; height: 80px; object-fit: contain;">
+                    <h3 class="fw-bold mb-0">Đăng ký tài khoản</h3>
+                    <p class="small opacity-75 mb-0">Tham gia ngay cùng chúng tôi</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-light">
+                    @if (ViewBag.Error != null)
+                    {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-octagon-fill me-2"></i> @ViewBag.Error
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                    }
+
+                    <form method="post" action="/Account/Register">
+
+                        <div class="form-floating mb-3">
+                            <input type="text" name="CustomerName" class="form-control rounded-3" id="txtName" placeholder="Họ và tên" value="@Model?.CustomerName" required />
+                            <label for="txtName"><i class="bi bi-person me-1"></i> Họ và tên</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="email" name="Email" class="form-control rounded-3" id="txtEmail" placeholder="Email" value="@Model?.Email" required />
+                            <label for="txtEmail"><i class="bi bi-envelope me-1"></i> Email</label>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="Phone" class="form-control rounded-3" id="txtPhone" placeholder="Số điện thoại" value="@Model?.Phone" />
+                                    <label for="txtPhone"><i class="bi bi-telephone me-1"></i> Số điện thoại</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="Address" class="form-control rounded-3" id="txtAddress" placeholder="Địa chỉ" value="@Model?.Address" />
+                                    <label for="txtAddress"><i class="bi bi-geo-alt me-1"></i> Địa chỉ</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <div class="form-floating flex-grow-1">
+                                <input type="password" name="Password" class="form-control rounded-3 rounded-end-0" id="regPass" placeholder="Mật khẩu" required />
+                                <label for="regPass"><i class="bi bi-lock me-1"></i> Mật khẩu</label>
+                            </div>
+                            <span class="input-group-text bg-white border-start-0 cursor-pointer" onclick="togglePassword('regPass', 'iconRegPass')" style="cursor: pointer;">
+                                <i class="bi bi-eye-slash" id="iconRegPass"></i>
+                            </span>
+                        </div>
+
+                        <div class="input-group mb-4">
+                            <div class="form-floating flex-grow-1">
+                                <input type="password" name="confirmPassword" class="form-control rounded-3 rounded-end-0" id="confirmPass" placeholder="Nhập lại mật khẩu" required />
+                                <label for="confirmPass"><i class="bi bi-check2-circle me-1"></i> Nhập lại mật khẩu</label>
+                            </div>
+                            <span class="input-group-text bg-white border-start-0 cursor-pointer" onclick="togglePassword('confirmPass', 'iconConfirmPass')" style="cursor: pointer;">
+                                <i class="bi bi-eye-slash" id="iconConfirmPass"></i>
+                            </span>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-danger btn-lg rounded-pill fw-bold shadow-sm" style="background-color: #e81e25; border: none;">
+                                <i class="bi bi-person-plus-fill me-2"></i> Đăng ký
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <p class="text-muted small mb-0">Đã có tài khoản?</p>
+                            <a href="/Account/Login" class="fw-bold text-decoration-none text-danger fs-6">
+                                Đăng nhập tại đây <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+            function togglePassword(inputId, iconId) {
+                var input = document.getElementById(inputId);
+                var icon = document.getElementById(iconId);
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.classList.remove("bi-eye-slash");
+                    icon.classList.add("bi-eye");
+                } else {
+                    input.type = "password";
+                    icon.classList.remove("bi-eye");
+                    icon.classList.add("bi-eye-slash");
+                }
+            }
+        </script>
+}
