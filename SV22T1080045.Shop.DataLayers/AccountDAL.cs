@@ -8,11 +8,11 @@ namespace SV22T1080045.Shop.DataLayers
         public AccountDAL(string connectionString) : base(connectionString) { }
 
         // Kiểm tra đăng nhập
-        public Customers? Login(string email, string password)
+        public Customer? Login(string email, string password)
         {
             using var conn = OpenConnection();
             var sql = "SELECT * FROM Customers WHERE Email = @Email AND Password = @Password";
-            return conn.QueryFirstOrDefault<Customers>(sql, new { Email = email, Password = password });
+            return conn.QueryFirstOrDefault<Customer>(sql, new { Email = email, Password = password });
         }
 
         // Kiểm tra email đã tồn tại chưa (Dùng khi đăng ký)
@@ -24,7 +24,7 @@ namespace SV22T1080045.Shop.DataLayers
         }
 
         // Đăng ký tài khoản mới
-        public bool Register(Customers data)
+        public bool Register(Customer data)
         {
             using var conn = OpenConnection();
             var sql = @"INSERT INTO Customers(CustomerName, Email, Password, Phone, Address)
@@ -33,14 +33,14 @@ namespace SV22T1080045.Shop.DataLayers
         }
 
         // Lấy thông tin khách hàng theo ID
-        public Customers? GetCustomerById(int id)
+        public Customer? GetCustomerById(int id)
         {
             using var conn = OpenConnection();
-            return conn.QueryFirstOrDefault<Customers>("SELECT * FROM Customers WHERE CustomerID = @Id", new { Id = id });
+            return conn.QueryFirstOrDefault<Customer>("SELECT * FROM Customers WHERE CustomerID = @Id", new { Id = id });
         }
 
         // Cập nhật thông tin cá nhân
-        public bool UpdateProfile(Customers data)
+        public bool UpdateProfile(Customer data)
         {
             using var conn = OpenConnection();
             var sql = @"UPDATE Customers 

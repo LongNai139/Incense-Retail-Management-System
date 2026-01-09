@@ -8,14 +8,14 @@ namespace SV22T1080045.Shop.DataLayers
         public ProductDAL(string connectionString) : base(connectionString) { }
 
         // Lấy danh sách danh mục (Để hiển thị Dropdown lọc)
-        public List<Categories> GetCategories()
+        public List<Category> GetCategories()
         {
             using var conn = OpenConnection();
-            return conn.Query<Categories>("SELECT * FROM Categories").ToList();
+            return conn.Query<Category>("SELECT * FROM Categories").ToList();
         }
 
         // Tìm kiếm và Lọc sản phẩm
-        public List<Products> ListProducts(string searchValue = "", int categoryID = 0, decimal minPrice = 0, decimal maxPrice = 0)
+        public List<Product> ListProducts(string searchValue = "", int categoryID = 0, decimal minPrice = 0, decimal maxPrice = 0)
         {
             using var conn = OpenConnection();
 
@@ -51,15 +51,15 @@ namespace SV22T1080045.Shop.DataLayers
 
             sql += " ORDER BY ProductID DESC"; // Sản phẩm mới nhất lên đầu
 
-            return conn.Query<Products>(sql, parameters).ToList();
+            return conn.Query<Product>(sql, parameters).ToList();
         }
 
         // Lấy chi tiết 1 sản phẩm
-        public Products? GetProduct(int id)
+        public Product? GetProduct(int id)
         {
             using var conn = OpenConnection();
             var sql = "SELECT * FROM Products WHERE ProductID = @Id";
-            return conn.QueryFirstOrDefault<Products>(sql, new { Id = id });
+            return conn.QueryFirstOrDefault<Product>(sql, new { Id = id });
         }
     }
 }
