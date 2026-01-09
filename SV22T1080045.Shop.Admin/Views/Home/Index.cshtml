@@ -1,260 +1,260 @@
-﻿@using SV22T1080045.Shop.DomainModels
-@model IEnumerable<Products>
+﻿@* @using SV22T1080045.Shop.DomainModels *@
+@* @model IEnumerable<Product> *@
 
-@{
-    ViewData["Title"] = "Menu Trà Sữa & Đồ Ăn";
-    var categories = ViewBag.Categories as List<Categories>;
-    int currentCategoryId = ViewBag.CategoryID ?? 0;
-}
+@* @{ *@
+@*     ViewData["Title"] = "Menu Trà Sữa & Đồ Ăn"; *@
+@*     var categories = ViewBag.Categories as List<Category>; *@
+@*     int currentCategoryId = ViewBag.CategoryID ?? 0; *@
+@* } *@
 
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="d-none d-md-block col-md-2 mb-3 mb-md-0">
-            <div class="list-group sticky-top" style="top: 20px; z-index: 1;">
-                <h5 class="text-pink mb-3 fw-bold"><i class="fas fa-bars me-2"></i> Danh mục</h5>
+@* <div class="container-fluid py-4"> *@
+@*     <div class="row"> *@
+@*         <div class="d-none d-md-block col-md-2 mb-3 mb-md-0"> *@
+@*             <div class="list-group sticky-top" style="top: 20px; z-index: 1;"> *@
+@*                 <h5 class="text-pink mb-3 fw-bold"><i class="fas fa-bars me-2"></i> Danh mục</h5> *@
 
-                <a href="/Home/Index"
-                   class="list-group-item list-group-item-action category-btn @(currentCategoryId == 0 ? "active" : "")">
-                    <i class="fas fa-th-large me-2"></i> Tất cả
-                </a>
+@*                 <a href="/Home/Index" *@
+@*                    class="list-group-item list-group-item-action category-btn @(currentCategoryId == 0 ? "active" : "")"> *@
+@*                     <i class="fas fa-th-large me-2"></i> Tất cả *@
+@*                 </a> *@
 
-                @if (categories != null)
-                {
-                    foreach (var cat in categories)
-                    {
-                        <a href="/Home/Index?categoryID=@cat.CategoryID"
-                           class="list-group-item list-group-item-action category-btn @(currentCategoryId == cat.CategoryID ? "active" : "")">
-                            <i class="fas fa-caret-right me-2"></i> @cat.CategoryName
-                        </a>
-                    }
-                }
-            </div>
-        </div>
+@*                 @if (categories != null) *@
+@*                 { *@
+@*                     foreach (var cat in categories) *@
+@*                     { *@
+@*                         <a href="/Home/Index?categoryID=@cat.CategoryID" *@
+@*                            class="list-group-item list-group-item-action category-btn @(currentCategoryId == cat.CategoryID ? "active" : "")"> *@
+@*                             <i class="fas fa-caret-right me-2"></i> @cat.CategoryName *@
+@*                         </a> *@
+@*                     } *@
+@*                 } *@
+@*             </div> *@
+@*         </div> *@
 
-        <div class="category-bar d-md-none bg-white border-bottom px-2 py-2 mb-3">
-            <div class="scrolling-tabs d-flex overflow-auto gap-2">
-                <a href="/Home/Index"
-                   class="btn btn-outline-pink flex-shrink-0 px-3 py-2 category-tab @(currentCategoryId == 0 ? "active" : "")">
-                    Tất cả
-                </a>
-                @if (categories != null)
-                {
-                    foreach (var cat in categories)
-                    {
-                        <a href="/Home/Index?categoryID=@cat.CategoryID"
-                           class="btn btn-outline-pink flex-shrink-0 px-3 py-2 category-tab @(currentCategoryId == cat.CategoryID ? "active" : "")">
-                            @cat.CategoryName
-                        </a>
-                    }
-                }
-            </div>
-        </div>
+@*         <div class="category-bar d-md-none bg-white border-bottom px-2 py-2 mb-3"> *@
+@*             <div class="scrolling-tabs d-flex overflow-auto gap-2"> *@
+@*                 <a href="/Home/Index" *@
+@*                    class="btn btn-outline-pink flex-shrink-0 px-3 py-2 category-tab @(currentCategoryId == 0 ? "active" : "")"> *@
+@*                     Tất cả *@
+@*                 </a> *@
+@*                 @if (categories != null) *@
+@*                 { *@
+@*                     foreach (var cat in categories) *@
+@*                     { *@
+@*                         <a href="/Home/Index?categoryID=@cat.CategoryID" *@
+@*                            class="btn btn-outline-pink flex-shrink-0 px-3 py-2 category-tab @(currentCategoryId == cat.CategoryID ? "active" : "")"> *@
+@*                             @cat.CategoryName *@
+@*                         </a> *@
+@*                     } *@
+@*                 } *@
+@*             </div> *@
+@*         </div> *@
 
-        <div class="col-12 col-md-10">
+@*         <div class="col-12 col-md-10"> *@
 
-            <div class="card mb-4 shadow-sm border-pink rounded-4">
-                <div class="card-body p-3">
-                    <form action="/Home/Index" method="get" class="row g-2 align-items-center">
-                        <input type="hidden" name="categoryID" value="@currentCategoryId" />
+@*             <div class="card mb-4 shadow-sm border-pink rounded-4"> *@
+@*                 <div class="card-body p-3"> *@
+@*                     <form action="/Home/Index" method="get" class="row g-2 align-items-center"> *@
+@*                         <input type="hidden" name="categoryID" value="@currentCategoryId" /> *@
 
-                        <div class="col-sm-12 col-md-5">
-                            <div class="input-group search-dark">
-                                <span class="input-group-text bg-white border-end-0 rounded-start-pill text-pink">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="text" class="form-control border-start-0 rounded-end-pill px-2"
-                                       name="searchValue"
-                                       placeholder="Bạn muốn uống gì hôm nay?..."
-                                       value="@ViewBag.SearchValue">
-                            </div>
-                        </div>
+@*                         <div class="col-sm-12 col-md-5"> *@
+@*                             <div class="input-group search-dark"> *@
+@*                                 <span class="input-group-text bg-white border-end-0 rounded-start-pill text-pink"> *@
+@*                                     <i class="fas fa-search"></i> *@
+@*                                 </span> *@
+@*                                 <input type="text" class="form-control border-start-0 rounded-end-pill px-2" *@
+@*                                        name="searchValue" *@
+@*                                        placeholder="Bạn muốn uống gì hôm nay?..." *@
+@*                                        value="@ViewBag.SearchValue"> *@
+@*                             </div> *@
+@*                         </div> *@
 
-                        <div class="col-sm-6 col-md-5">
-                            <div class="input-group">
-                                <input type="number" class="form-control rounded-start-pill" name="minPrice" placeholder="Giá thấp nhất"
-                                       value="@(ViewBag.MinPrice > 0 ? ViewBag.MinPrice.ToString("0") : "")">
-                                <span class="input-group-text bg-pink text-white border-pink">-</span>
-                                <input type="number" class="form-control rounded-end-pill" name="maxPrice" placeholder="Giá cao nhất"
-                                       value="@(ViewBag.MaxPrice > 0 ? ViewBag.MaxPrice.ToString("0") : "")">
-                            </div>
-                        </div>
+@*                         <div class="col-sm-6 col-md-5"> *@
+@*                             <div class="input-group"> *@
+@*                                 <input type="number" class="form-control rounded-start-pill" name="minPrice" placeholder="Giá thấp nhất" *@
+@*                                        value="@(ViewBag.MinPrice > 0 ? ViewBag.MinPrice.ToString("0") : "")"> *@
+@*                                 <span class="input-group-text bg-pink text-white border-pink">-</span> *@
+@*                                 <input type="number" class="form-control rounded-end-pill" name="maxPrice" placeholder="Giá cao nhất" *@
+@*                                        value="@(ViewBag.MaxPrice > 0 ? ViewBag.MaxPrice.ToString("0") : "")"> *@
+@*                             </div> *@
+@*                         </div> *@
 
-                        <div class="col-sm-6 col-md-2">
-                            <button type="submit" class="btn btn-pink w-100 rounded-pill fw-bold shadow-sm">
-                                <i class="fas fa-filter"></i> Lọc
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+@*                         <div class="col-sm-6 col-md-2"> *@
+@*                             <button type="submit" class="btn btn-pink w-100 rounded-pill fw-bold shadow-sm"> *@
+@*                                 <i class="fas fa-filter"></i> Lọc *@
+@*                             </button> *@
+@*                         </div> *@
+@*                     </form> *@
+@*                 </div> *@
+@*             </div> *@
 
-            <div class="row">
-                @if (!Model.Any())
-                {
-                    <div class="col-12 text-center py-5">
-                        <div class="text-muted fs-5 mb-3">
-                            <i class="fas fa-coffee fa-3x text-pink mb-3"></i>
-                            <p>Oop! Không tìm thấy món nào phù hợp.</p>
-                        </div>
-                        <a href="/Home/Index" class="btn btn-outline-pink rounded-pill">
-                            <i class="fas fa-sync-alt"></i> Xóa bộ lọc
-                        </a>
-                    </div>
-                }
-                else
-                {
-                    foreach (var item in Model)
-                    {
-                        string imgUrl = "https://placehold.co/300x300?text=No+Image";
-                        if (!string.IsNullOrEmpty(item.Photo))
-                        {
-                            if (item.Photo.StartsWith("/image") || item.Photo.Contains("/"))
-                            {
-                                imgUrl = item.Photo;
-                            }
-                            else
-                            {
-                                imgUrl = $"/image/{item.Photo}";
-                            }
-                        }
+@*             <div class="row"> *@
+@*                 @if (!Model.Any()) *@
+@*                 { *@
+@*                     <div class="col-12 text-center py-5"> *@
+@*                         <div class="text-muted fs-5 mb-3"> *@
+@*                             <i class="fas fa-coffee fa-3x text-pink mb-3"></i> *@
+@*                             <p>Oop! Không tìm thấy món nào phù hợp.</p> *@
+@*                         </div> *@
+@*                         <a href="/Home/Index" class="btn btn-outline-pink rounded-pill"> *@
+@*                             <i class="fas fa-sync-alt"></i> Xóa bộ lọc *@
+@*                         </a> *@
+@*                     </div> *@
+@*                 } *@
+@*                 else *@
+@*                 { *@
+@*                     foreach (var item in Model) *@
+@*                     { *@
+@*                         string imgUrl = "https://placehold.co/300x300?text=No+Image"; *@
+@*                         if (!string.IsNullOrEmpty(item.Photo)) *@
+@*                         { *@
+@*                             if (item.Photo.StartsWith("/image") || item.Photo.Contains("/")) *@
+@*                             { *@
+@*                                 imgUrl = item.Photo; *@
+@*                             } *@
+@*                             else *@
+@*                             { *@
+@*                                 imgUrl = $"/image/{item.Photo}"; *@
+@*                             } *@
+@*                         } *@
 
-                        <div class="col-6 col-md-3 mb-4">
-                            <div class="card h-100 shadow-sm border-0 rounded-4 d-flex flex-column product-card">
-                                <div class="position-relative">
-                                    <img src="@imgUrl"
-                                         class="card-img-top p-2 rounded-top-4"
-                                         style="height: 180px; object-fit: cover;"
-                                         alt="@item.ProductName" />
-                                    <span class="position-absolute top-0 end-0 bg-pink text-white px-2 py-1 m-2 rounded-3 fw-bold small shadow">
-                                        @item.Price.ToString("N0") ₫
-                                    </span>
-                                </div>
+@*                         <div class="col-6 col-md-3 mb-4"> *@
+@*                             <div class="card h-100 shadow-sm border-0 rounded-4 d-flex flex-column product-card"> *@
+@*                                 <div class="position-relative"> *@
+@*                                     <img src="@imgUrl" *@
+@*                                          class="card-img-top p-2 rounded-top-4" *@
+@*                                          style="height: 180px; object-fit: cover;" *@
+@*                                          alt="@item.ProductName" /> *@
+@*                                     <span class="position-absolute top-0 end-0 bg-pink text-white px-2 py-1 m-2 rounded-3 fw-bold small shadow"> *@
+@*                                         @item.Price.ToString("N0") ₫ *@
+@*                                     </span> *@
+@*                                 </div> *@
 
-                                <div class="card-body text-center p-2 flex-grow-1">
-                                    <h6 class="text-truncate px-2" title="@item.ProductName">
-                                        <a href="/Home/Details/@item.ProductID" class="text-decoration-none text-dark hover-pink">
-                                            @item.ProductName
-                                        </a>
-                                    </h6>
-                                    <div class="text-muted small">@item.Unit</div>
-                                </div>
+@*                                 <div class="card-body text-center p-2 flex-grow-1"> *@
+@*                                     <h6 class="text-truncate px-2" title="@item.ProductName"> *@
+@*                                         <a href="/Home/Details/@item.ProductID" class="text-decoration-none text-dark hover-pink"> *@
+@*                                             @item.ProductName *@
+@*                                         </a> *@
+@*                                     </h6> *@
+@*                                     <div class="text-muted small">@item.Unit</div> *@
+@*                                 </div> *@
 
-                                <div class="card-footer bg-white border-0 p-2 pb-3">
-                                    <a href="/Home/Details/@item.ProductID"
-                                       class="btn btn-outline-pink w-100 rounded-pill">
-                                        <i class="fas fa-shopping-basket"></i> Chi tiết
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
-            </div>
+@*                                 <div class="card-footer bg-white border-0 p-2 pb-3"> *@
+@*                                     <a href="/Home/Details/@item.ProductID" *@
+@*                                        class="btn btn-outline-pink w-100 rounded-pill"> *@
+@*                                         <i class="fas fa-shopping-basket"></i> Chi tiết *@
+@*                                     </a> *@
+@*                                 </div> *@
+@*                             </div> *@
+@*                         </div> *@
+@*                     } *@
+@*                 } *@
+@*             </div> *@
 
-            <div class="d-flex justify-content-center mt-4">
-            </div>
-        </div>
-    </div>
-</div>
+@*             <div class="d-flex justify-content-center mt-4"> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
 
-@section Styles {
-    <style>
-        .bg-pink {
-            background-color: #ff69b4;
-        }
+@* @section Styles { *@
+@*     <style> *@
+@*         .bg-pink { *@
+@*             background-color: #ff69b4; *@
+@*         } *@
 
-        .text-pink {
-            color: #ff69b4;
-        }
+@*         .text-pink { *@
+@*             color: #ff69b4; *@
+@*         } *@
 
-        .border-pink {
-            border-color: #ff69b4;
-        }
+@*         .border-pink { *@
+@*             border-color: #ff69b4; *@
+@*         } *@
 
-        .btn-pink {
-            background-color: #ff69b4;
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-        }
+@*         .btn-pink { *@
+@*             background-color: #ff69b4; *@
+@*             color: white; *@
+@*             border: none; *@
+@*             transition: all 0.3s ease; *@
+@*         } *@
 
-            .btn-pink:hover {
-                background-color: #e0529e;
-                color: white;
-                transform: translateY(-2px);
-            }
+@*             .btn-pink:hover { *@
+@*                 background-color: #e0529e; *@
+@*                 color: white; *@
+@*                 transform: translateY(-2px); *@
+@*             } *@
 
-        .btn-outline-pink {
-            border: 2px solid #ff69b4;
-            color: #ff69b4;
-            background-color: transparent;
-            font-weight: 600;
-        }
+@*         .btn-outline-pink { *@
+@*             border: 2px solid #ff69b4; *@
+@*             color: #ff69b4; *@
+@*             background-color: transparent; *@
+@*             font-weight: 600; *@
+@*         } *@
 
-            .btn-outline-pink:hover, .btn-outline-pink.active {
-                background-color: #ff69b4;
-                color: white;
-            }
+@*             .btn-outline-pink:hover, .btn-outline-pink.active { *@
+@*                 background-color: #ff69b4; *@
+@*                 color: white; *@
+@*             } *@
 
-        .category-btn {
-            border: none;
-            border-left: 4px solid transparent;
-            font-weight: 500;
-            color: #555;
-            transition: all 0.2s;
-        }
+@*         .category-btn { *@
+@*             border: none; *@
+@*             border-left: 4px solid transparent; *@
+@*             font-weight: 500; *@
+@*             color: #555; *@
+@*             transition: all 0.2s; *@
+@*         } *@
 
-            .category-btn:hover {
-                background-color: #fff0f5;
-                color: #ff69b4;
-            }
+@*             .category-btn:hover { *@
+@*                 background-color: #fff0f5; *@
+@*                 color: #ff69b4; *@
+@*             } *@
 
-            .category-btn.active {
-                background-color: #fff0f5;
-                color: #ff69b4;
-                font-weight: bold;
-                border-left: 4px solid #ff69b4;
-            }
+@*             .category-btn.active { *@
+@*                 background-color: #fff0f5; *@
+@*                 color: #ff69b4; *@
+@*                 font-weight: bold; *@
+@*                 border-left: 4px solid #ff69b4; *@
+@*             } *@
 
-        .category-bar {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(5px);
-        }
+@*         .category-bar { *@
+@*             position: sticky; *@
+@*             top: 0; *@
+@*             z-index: 1000; *@
+@*             background: rgba(255, 255, 255, 0.95); *@
+@*             backdrop-filter: blur(5px); *@
+@*         } *@
 
-        .scrolling-tabs::-webkit-scrollbar {
-            display: none;
-        }
+@*         .scrolling-tabs::-webkit-scrollbar { *@
+@*             display: none; *@
+@*         } *@
 
-        .scrolling-tabs {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+@*         .scrolling-tabs { *@
+@*             -ms-overflow-style: none; *@
+@*             scrollbar-width: none; *@
+@*         } *@
 
-        .product-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: #fff;
-        }
+@*         .product-card { *@
+@*             transition: transform 0.3s ease, box-shadow 0.3s ease; *@
+@*             background: #fff; *@
+@*         } *@
 
-            .product-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(255, 105, 180, 0.15) !important;
-                border: 1px solid #ffb6c1 !important;
-            }
+@*             .product-card:hover { *@
+@*                 transform: translateY(-5px); *@
+@*                 box-shadow: 0 10px 20px rgba(255, 105, 180, 0.15) !important; *@
+@*                 border: 1px solid #ffb6c1 !important; *@
+@*             } *@
 
-        .hover-pink:hover {
-            color: #ff69b4 !important;
-        }
+@*         .hover-pink:hover { *@
+@*             color: #ff69b4 !important; *@
+@*         } *@
 
-        .form-control:focus {
-            box-shadow: 0 0 0 0.25rem rgba(255, 105, 180, 0.25);
-            border-color: #ff69b4;
-        }
+@*         .form-control:focus { *@
+@*             box-shadow: 0 0 0 0.25rem rgba(255, 105, 180, 0.25); *@
+@*             border-color: #ff69b4; *@
+@*         } *@
 
-        body {
-            background-color: #f8f9fa;
-        }
-    </style>
-}
+@*         body { *@
+@*             background-color: #f8f9fa; *@
+@*         } *@
+@*     </style> *@
+@* } *@

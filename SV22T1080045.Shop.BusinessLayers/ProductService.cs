@@ -12,17 +12,17 @@ namespace SV22T1080045.Shop.BusinessLayers
             _productDAL = productDAL;
         }
 
-        public List<Categories> GetCategories()
+        public List<Category> GetCategories()
         {
             return _productDAL.GetCategories();
         }
 
-        public List<Products> Search(string search, int categoryID, decimal min, decimal max)
+        public List<Product> Search(string search, int categoryID, decimal min, decimal max)
         {
             return _productDAL.ListProducts(search, categoryID, min, max);
         }
 
-        public Products? GetProduct(int id)
+        public Product? GetProduct(int id)
         {
             return _productDAL.GetProduct(id);
         }

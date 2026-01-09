@@ -1,282 +1,282 @@
-﻿@using SV22T1080045.Shop.DomainModels
-@model List<OrderDetails>
-@{
-    ViewBag.Title = "Chi tiết đơn hàng";
-    var order = ViewBag.Order as Orders;
+﻿@* @using SV22T1080045.Shop.DomainModels *@
+@* @model List<OrderDetails> *@
+@* @{ *@
+@*     ViewBag.Title = "Chi tiết đơn hàng"; *@
+@*     var order = ViewBag.Order as Orders; *@
 
 
-    if (order == null)
-    {
-        <div class="container mt-5 text-center">
-            <div class="alert alert-danger">Không tìm thấy thông tin đơn hàng!</div>
-            <a href="/Order/History" class="btn btn-primary">Quay lại lịch sử</a>
-        </div>
-        return;
-    }
+@*     if (order == null) *@
+@*     { *@
+@*         <div class="container mt-5 text-center"> *@
+@*             <div class="alert alert-danger">Không tìm thấy thông tin đơn hàng!</div> *@
+@*             <a href="/Order/History" class="btn btn-primary">Quay lại lịch sử</a> *@
+@*         </div> *@
+@*         return; *@
+@*     } *@
 
-    decimal total = Model.Sum(x => x.TotalPrice);
+@*     decimal total = Model.Sum(x => x.TotalPrice); *@
 
-    string statusClass = "bg-primary-subtle text-primary";
-    string statusIcon = "fa-spinner";
-    string s = order.Status ?? "";
+@*     string statusClass = "bg-primary-subtle text-primary"; *@
+@*     string statusIcon = "fa-spinner"; *@
+@*     string s = order.Status ?? ""; *@
 
-    if (s.Contains("Chờ") || s == "Khởi tạo")
-    {
-        statusClass = "bg-warning-subtle text-warning-emphasis";
-        statusIcon = "fa-hourglass-half";
-    }
-    else if (s.Contains("Giao") || s.Contains("vận chuyển"))
-    {
-        statusClass = "bg-info-subtle text-info-emphasis";
-        statusIcon = "fa-truck-fast";
-    }
-    else if (s == "Hoàn tất" || s == "Đã giao hàng")
-    {
-        statusClass = "bg-success-subtle text-success-emphasis";
-        statusIcon = "fa-check-circle";
-    }
-    else if (s.Contains("hủy") || s == "Từ chối" || s == "Bị hủy")
-    {
-        statusClass = "bg-danger-subtle text-danger-emphasis";
-        statusIcon = "fa-circle-xmark";
-    }
-}
+@*     if (s.Contains("Chờ") || s == "Khởi tạo") *@
+@*     { *@
+@*         statusClass = "bg-warning-subtle text-warning-emphasis"; *@
+@*         statusIcon = "fa-hourglass-half"; *@
+@*     } *@
+@*     else if (s.Contains("Giao") || s.Contains("vận chuyển")) *@
+@*     { *@
+@*         statusClass = "bg-info-subtle text-info-emphasis"; *@
+@*         statusIcon = "fa-truck-fast"; *@
+@*     } *@
+@*     else if (s == "Hoàn tất" || s == "Đã giao hàng") *@
+@*     { *@
+@*         statusClass = "bg-success-subtle text-success-emphasis"; *@
+@*         statusIcon = "fa-check-circle"; *@
+@*     } *@
+@*     else if (s.Contains("hủy") || s == "Từ chối" || s == "Bị hủy") *@
+@*     { *@
+@*         statusClass = "bg-danger-subtle text-danger-emphasis"; *@
+@*         statusIcon = "fa-circle-xmark"; *@
+@*     } *@
+@* } *@
 
-@section Styles {
-    <style>
-        .detail-page-container {
-            max-width: 1200px;
-        }
+@* @section Styles { *@
+@*     <style> *@
+@*         .detail-page-container { *@
+@*             max-width: 1200px; *@
+@*         } *@
 
-        .custom-card {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            background: #fff;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
+@*         .custom-card { *@
+@*             border: none; *@
+@*             border-radius: 16px; *@
+@*             box-shadow: 0 4px 20px rgba(0,0,0,0.03); *@
+@*             background: #fff; *@
+@*             overflow: hidden; *@
+@*             transition: all 0.3s ease; *@
+@*         } *@
 
-        .card-header-custom {
-            background-color: #fff;
-            border-bottom: 1px solid #edf2f9;
-            padding: 20px 25px;
-        }
+@*         .card-header-custom { *@
+@*             background-color: #fff; *@
+@*             border-bottom: 1px solid #edf2f9; *@
+@*             padding: 20px 25px; *@
+@*         } *@
 
-        .product-img {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 10px;
-            border: 1px solid #eee;
-        }
+@*         .product-img { *@
+@*             width: 70px; *@
+@*             height: 70px; *@
+@*             object-fit: cover; *@
+@*             border-radius: 10px; *@
+@*             border: 1px solid #eee; *@
+@*         } *@
 
-        .table-products td {
-            vertical-align: middle;
-            padding: 16px 12px;
-            border-bottom: 1px dashed #edf2f9;
-        }
+@*         .table-products td { *@
+@*             vertical-align: middle; *@
+@*             padding: 16px 12px; *@
+@*             border-bottom: 1px dashed #edf2f9; *@
+@*         } *@
 
-        .table-products tr:last-child td {
-            border-bottom: none;
-        }
+@*         .table-products tr:last-child td { *@
+@*             border-bottom: none; *@
+@*         } *@
 
-        .info-box {
-            background: #fff;
-            border: 1px solid #edf2f9;
-        }
+@*         .info-box { *@
+@*             background: #fff; *@
+@*             border: 1px solid #edf2f9; *@
+@*         } *@
 
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-            font-size: 0.95rem;
-        }
+@*         .info-row { *@
+@*             display: flex; *@
+@*             justify-content: space-between; *@
+@*             align-items: center; *@
+@*             margin-bottom: 18px; *@
+@*             font-size: 0.95rem; *@
+@*         } *@
 
-        .info-label {
-            color: #8898aa;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-        }
+@*         .info-label { *@
+@*             color: #8898aa; *@
+@*             font-weight: 500; *@
+@*             display: flex; *@
+@*             align-items: center; *@
+@*         } *@
 
-            .info-label i {
-                width: 20px;
-                text-align: center;
-                margin-right: 8px;
-            }
+@*             .info-label i { *@
+@*                 width: 20px; *@
+@*                 text-align: center; *@
+@*                 margin-right: 8px; *@
+@*             } *@
 
-        .info-value {
-            font-weight: 600;
-            color: #32325d;
-            text-align: right;
-            max-width: 60%;
-        }
+@*         .info-value { *@
+@*             font-weight: 600; *@
+@*             color: #32325d; *@
+@*             text-align: right; *@
+@*             max-width: 60%; *@
+@*         } *@
 
-        .total-section {
-            background-color: #f6f9fc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 25px;
-            border: 1px dashed #dce4ec;
-        }
+@*         .total-section { *@
+@*             background-color: #f6f9fc; *@
+@*             border-radius: 12px; *@
+@*             padding: 20px; *@
+@*             margin-top: 25px; *@
+@*             border: 1px dashed #dce4ec; *@
+@*         } *@
 
-        .btn-back {
-            border-radius: 50px;
-            padding: 8px 24px;
-            transition: all 0.3s;
-            background-color: #fff;
-            border: 1px solid #e0e0e0;
-            color: #666;
-        }
+@*         .btn-back { *@
+@*             border-radius: 50px; *@
+@*             padding: 8px 24px; *@
+@*             transition: all 0.3s; *@
+@*             background-color: #fff; *@
+@*             border: 1px solid #e0e0e0; *@
+@*             color: #666; *@
+@*         } *@
 
-            .btn-back:hover {
-                background-color: #f8f9fa;
-                border-color: #ccc;
-                transform: translateX(-3px);
-                color: #333;
-            }
+@*             .btn-back:hover { *@
+@*                 background-color: #f8f9fa; *@
+@*                 border-color: #ccc; *@
+@*                 transform: translateX(-3px); *@
+@*                 color: #333; *@
+@*             } *@
 
-        .status-badge {
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-    </style>
-}
+@*         .status-badge { *@
+@*             padding: 8px 16px; *@
+@*             border-radius: 30px; *@
+@*             font-size: 0.85rem; *@
+@*             font-weight: 700; *@
+@*             display: inline-flex; *@
+@*             align-items: center; *@
+@*             gap: 6px; *@
+@*         } *@
+@*     </style> *@
+@* } *@
 
-<div class="container detail-page-container mt-4 mb-5" style="min-height: 80vh;">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h3 class="fw-bold mb-1" style="color: #32325d;">
-                Chi tiết đơn hàng <span class="text-primary">#@order.OrderID</span>
-            </h3>
-            <span class="text-muted small">
-                <i class="fa-regular fa-calendar me-1"></i>
-                Ngày đặt: @order.OrderTime.ToString("dd/MM/yyyy HH:mm")
-            </span>
-        </div>
-        <a href="/Order/History" class="btn btn-back fw-bold text-decoration-none shadow-sm">
-            <i class="fa-solid fa-arrow-left me-2"></i> Quay lại
-        </a>
-    </div>
+@* <div class="container detail-page-container mt-4 mb-5" style="min-height: 80vh;"> *@
+@*     <div class="d-flex align-items-center justify-content-between mb-4"> *@
+@*         <div> *@
+@*             <h3 class="fw-bold mb-1" style="color: #32325d;"> *@
+@*                 Chi tiết đơn hàng <span class="text-primary">#@order.OrderID</span> *@
+@*             </h3> *@
+@*             <span class="text-muted small"> *@
+@*                 <i class="fa-regular fa-calendar me-1"></i> *@
+@*                 Ngày đặt: @order.OrderTime.ToString("dd/MM/yyyy HH:mm") *@
+@*             </span> *@
+@*         </div> *@
+@*         <a href="/Order/History" class="btn btn-back fw-bold text-decoration-none shadow-sm"> *@
+@*             <i class="fa-solid fa-arrow-left me-2"></i> Quay lại *@
+@*         </a> *@
+@*     </div> *@
 
-    <div class="row gy-4">
-        <div class="col-lg-8">
-            <div class="custom-card h-100">
-                <div class="card-header-custom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-dark">
-                        <i class="fa-solid fa-box-open text-primary me-2"></i>Sản phẩm đã đặt
-                    </h5>
-                    <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
-                        @Model.Count món
-                    </span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-products mb-0">
-                            <tbody>
-                                @foreach (var item in Model)
-                                {
-                                    <tr>
-                                        <td class="ps-4" style="min-width: 300px;">
-                                            <div class="d-flex align-items-center">
-                                                <div class="position-relative flex-shrink-0">
-                                                    @{
-                                                        // --- LOGIC XỬ LÝ ẢNH CHÍNH XÁC ---
-                                                        string imgUrl = "https://placehold.co/70";
-                                                        if (!string.IsNullOrEmpty(item.Photo))
-                                                        {
-                                                            if (item.Photo.Contains("/"))
-                                                            {
-                                                                imgUrl = item.Photo;
-                                                            }
-                                                            else
-                                                            {
-                                                                imgUrl = $"/image/{item.Photo}";
-                                                            }
-                                                        }
-                                                    }
-                                                    <img src="@imgUrl" class="product-img" alt="@item.ProductName"
-                                                         onerror="this.src='https://placehold.co/70'" />
-                                                </div>
-                                                <div class="ms-3">
-                                                    <div class="fw-bold text-dark mb-1 text-wrap" style="font-size: 1rem; max-width: 350px;">
-                                                        @item.ProductName
-                                                    </div>
-                                                    <div class="text-muted small">
-                                                        Đơn giá: <span class="font-monospace text-dark fw-bold">@item.SalePrice.ToString("N0")₫</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
+@*     <div class="row gy-4"> *@
+@*         <div class="col-lg-8"> *@
+@*             <div class="custom-card h-100"> *@
+@*                 <div class="card-header-custom d-flex justify-content-between align-items-center"> *@
+@*                     <h5 class="mb-0 fw-bold text-dark"> *@
+@*                         <i class="fa-solid fa-box-open text-primary me-2"></i>Sản phẩm đã đặt *@
+@*                     </h5> *@
+@*                     <span class="badge rounded-pill bg-light text-dark border px-3 py-2"> *@
+@*                         @Model.Count món *@
+@*                     </span> *@
+@*                 </div> *@
+@*                 <div class="card-body p-0"> *@
+@*                     <div class="table-responsive"> *@
+@*                         <table class="table table-products mb-0"> *@
+@*                             <tbody> *@
+@*                                 @foreach (var item in Model) *@
+@*                                 { *@
+@*                                     <tr> *@
+@*                                         <td class="ps-4" style="min-width: 300px;"> *@
+@*                                             <div class="d-flex align-items-center"> *@
+@*                                                 <div class="position-relative flex-shrink-0"> *@
+@*                                                     @{ *@
+@*                                                         // --- LOGIC XỬ LÝ ẢNH CHÍNH XÁC --- *@
+@*                                                         string imgUrl = "https://placehold.co/70"; *@
+@*                                                         if (!string.IsNullOrEmpty(item.Photo)) *@
+@*                                                         { *@
+@*                                                             if (item.Photo.Contains("/")) *@
+@*                                                             { *@
+@*                                                                 imgUrl = item.Photo; *@
+@*                                                             } *@
+@*                                                             else *@
+@*                                                             { *@
+@*                                                                 imgUrl = $"/image/{item.Photo}"; *@
+@*                                                             } *@
+@*                                                         } *@
+@*                                                     } *@
+@*                                                     <img src="@imgUrl" class="product-img" alt="@item.ProductName" *@
+@*                                                          onerror="this.src='https://placehold.co/70'" /> *@
+@*                                                 </div> *@
+@*                                                 <div class="ms-3"> *@
+@*                                                     <div class="fw-bold text-dark mb-1 text-wrap" style="font-size: 1rem; max-width: 350px;"> *@
+@*                                                         @item.ProductName *@
+@*                                                     </div> *@
+@*                                                     <div class="text-muted small"> *@
+@*                                                         Đơn giá: <span class="font-monospace text-dark fw-bold">@item.SalePrice.ToString("N0")₫</span> *@
+@*                                                     </div> *@
+@*                                                 </div> *@
+@*                                             </div> *@
+@*                                         </td> *@
 
-                                        <td class="text-center text-muted fw-bold" style="white-space: nowrap;">
-                                            x @item.Quantity
-                                        </td>
+@*                                         <td class="text-center text-muted fw-bold" style="white-space: nowrap;"> *@
+@*                                             x @item.Quantity *@
+@*                                         </td> *@
 
-                                        <td class="text-end pe-4" style="white-space: nowrap;">
-                                            <span class="fw-bold text-primary" style="font-size: 1rem;">
-                                                @item.TotalPrice.ToString("N0")₫
-                                            </span>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="p-3 bg-light border-top text-end d-lg-none">
-                    <small class="text-muted">Tổng cộng:</small> <span class="fw-bold text-danger fs-5">@total.ToString("N0")₫</span>
-                </div>
-            </div>
-        </div>
+@*                                         <td class="text-end pe-4" style="white-space: nowrap;"> *@
+@*                                             <span class="fw-bold text-primary" style="font-size: 1rem;"> *@
+@*                                                 @item.TotalPrice.ToString("N0")₫ *@
+@*                                             </span> *@
+@*                                         </td> *@
+@*                                     </tr> *@
+@*                                 } *@
+@*                             </tbody> *@
+@*                         </table> *@
+@*                     </div> *@
+@*                 </div> *@
+@*                 <div class="p-3 bg-light border-top text-end d-lg-none"> *@
+@*                     <small class="text-muted">Tổng cộng:</small> <span class="fw-bold text-danger fs-5">@total.ToString("N0")₫</span> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </div> *@
 
-        <div class="col-lg-4">
-            <div class="custom-card info-box p-4 sticky-top" style="top: 100px; z-index: 10;">
-                <h5 class="fw-bold mb-4 text-dark border-bottom pb-3">
-                    <i class="fa-solid fa-circle-info text-info me-2"></i>Thông tin nhận hàng
-                </h5>
+@*         <div class="col-lg-4"> *@
+@*             <div class="custom-card info-box p-4 sticky-top" style="top: 100px; z-index: 10;"> *@
+@*                 <h5 class="fw-bold mb-4 text-dark border-bottom pb-3"> *@
+@*                     <i class="fa-solid fa-circle-info text-info me-2"></i>Thông tin nhận hàng *@
+@*                 </h5> *@
 
-                <div class="info-row">
-                    <span class="info-label"><i class="fa-solid fa-user"></i>Người nhận</span>
-                    <span class="info-value">Bạn</span>
-                </div>
+@*                 <div class="info-row"> *@
+@*                     <span class="info-label"><i class="fa-solid fa-user"></i>Người nhận</span> *@
+@*                     <span class="info-value">Bạn</span> *@
+@*                 </div> *@
 
-                <div class="info-row">
-                    <span class="info-label"><i class="fa-solid fa-phone"></i>Điện thoại</span>
-                    <span class="info-value font-monospace">@order.DeliveryPhone</span>
-                </div>
+@*                 <div class="info-row"> *@
+@*                     <span class="info-label"><i class="fa-solid fa-phone"></i>Điện thoại</span> *@
+@*                     <span class="info-value font-monospace">@order.DeliveryPhone</span> *@
+@*                 </div> *@
 
-                <div class="mb-4">
-                    <div class="info-label mb-2"><i class="fa-solid fa-location-dot"></i>Địa chỉ chi tiết</div>
-                    <div class="p-3 bg-white border rounded text-dark small shadow-sm" style="line-height: 1.6; background-color: #f8f9fa !important;">
-                        @order.DeliveryAddress
-                    </div>
-                </div>
+@*                 <div class="mb-4"> *@
+@*                     <div class="info-label mb-2"><i class="fa-solid fa-location-dot"></i>Địa chỉ chi tiết</div> *@
+@*                     <div class="p-3 bg-white border rounded text-dark small shadow-sm" style="line-height: 1.6; background-color: #f8f9fa !important;"> *@
+@*                         @order.DeliveryAddress *@
+@*                     </div> *@
+@*                 </div> *@
 
-                <div class="d-flex justify-content-between align-items-center mb-3 pt-2 border-top">
-                    <span class="info-label fw-bold text-dark">Trạng thái</span>
-                    <span class="status-badge @statusClass">
-                        <i class="fa-solid @statusIcon"></i> @order.Status
-                    </span>
-                </div>
+@*                 <div class="d-flex justify-content-between align-items-center mb-3 pt-2 border-top"> *@
+@*                     <span class="info-label fw-bold text-dark">Trạng thái</span> *@
+@*                     <span class="status-badge @statusClass"> *@
+@*                         <i class="fa-solid @statusIcon"></i> @order.Status *@
+@*                     </span> *@
+@*                 </div> *@
 
-                <div class="total-section">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-secondary">Tổng thanh toán</span>
-                        <span class="fs-3 fw-bold text-danger">@total.ToString("N0")₫</span>
-                    </div>
-                    <div class="text-center mt-2">
-                        <small class="text-muted fst-italic">Thanh toán khi nhận hàng (COD)</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@*                 <div class="total-section"> *@
+@*                     <div class="d-flex justify-content-between align-items-center"> *@
+@*                         <span class="fw-bold text-secondary">Tổng thanh toán</span> *@
+@*                         <span class="fs-3 fw-bold text-danger">@total.ToString("N0")₫</span> *@
+@*                     </div> *@
+@*                     <div class="text-center mt-2"> *@
+@*                         <small class="text-muted fst-italic">Thanh toán khi nhận hàng (COD)</small> *@
+@*                     </div> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
