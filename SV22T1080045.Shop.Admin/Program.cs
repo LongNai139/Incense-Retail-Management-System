@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using SV22T1080045.Shop.BusinessLayers;
+using Microsoft.Extensions.DependencyInjection;
+using SV22T1080045.Shop.BusinessLayers; // Nhớ thêm dòng này
 using SV22T1080045.Shop.DataLayers;
+// using SV22T1080045.Shop.App.Models; // Nếu cần
 
 public class Program
 {
@@ -12,6 +14,12 @@ public class Program
         builder.Services.AddControllersWithViews();
         builder.Services.AddHttpContextAccessor(); 
 
+        string connectionString = builder.Configuration.GetConnectionString("ShopConnectionString");
+        builder.Services.AddDbContext<ShopDbContext>(options =>
+        {
+            options.UseSqlServer(connectionString);
+        });
+
         builder.Services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -19,30 +27,27 @@ public class Program
             options.Cookie.IsEssential = true;
         });
 
+        // --- 4. CẤU HÌNH AUTHENTICATION ---
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
-                options.Cookie.Name = "SV22T1080045_Shop_Auth"; 
-                options.LoginPath = "/Account/Login";           
+                options.Cookie.Name = "SV22T1080045_Shop_Auth";
+                options.LoginPath = "/Account/Login";
                 options.AccessDeniedPath = "/Account/AccessDenied";
-                options.ExpireTimeSpan = TimeSpan.FromDays(30); 
+                options.ExpireTimeSpan = TimeSpan.FromDays(30);
             });
 
-        builder.Services.AddDbContext<ShopDbContext>(options =>
-        {
-            options.UseSqlServer(builder.Configuration.GetConnectionString("ShopConnectionString"));
-        });
+        // --- 5. ĐĂNG KÝ DI (DEPENDENCY INJECTION) ---
+
+        // SỬA LỖI TẠI ĐÂY: Phải truyền connectionString vào Constructor
+        builder.Services.AddScoped<IProductDAL, ProductDAL>();
+
+        // B. Business Logic Layer (BLL) - QUAN TRỌNG
+        // Phải đăng ký cái này thì Controller mới chạy được
+        builder.Services.AddScoped<IProductService, ProductService>();
 
 
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.AddSession();
-
-
-
-        builder.Services.AddScoped<ProductService>();
-
-
-
+        // --- BUILD APP ---
         var app = builder.Build();
 
         if (!app.Environment.IsDevelopment())
@@ -56,9 +61,9 @@ public class Program
 
         app.UseRouting();
 
-        app.UseSession(); 
+        app.UseSession();
         app.UseAuthentication();
-        app.UseAuthorization();
+        app.UseAuthorization(); 
 
         app.MapControllerRoute(
             name: "default",

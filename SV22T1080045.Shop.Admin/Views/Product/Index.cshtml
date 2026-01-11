@@ -10,7 +10,7 @@
                 <input type="text" name="searchValue" class="form-control" placeholder="Nhập tên sản phẩm cần tìm...">
                 <span class="input-group-btn">
                     <button type="submit" class="btn btn-info btn-flat">Tìm kiếm</button>
-                    <a href="~/Product/Create" class="btn btn-primary btn-flat" style="margin-left:5px">
+                    <a href="~/Product/Edit" class="btn btn-primary btn-flat" style="margin-left:5px">
                         <i class="fa fa-plus"></i> Bổ sung
                     </a>
                 </span>
@@ -24,7 +24,12 @@
                         <th>Ảnh</th>
                         <th>Tên sản phẩm</th>
                         <th>Đơn vị tính</th>
-                        <th>Giá</th>
+                        <th>Mô tả</th>
+                        <th>Thành phần</th>
+                        <th>Thời gian cháy</th>
+                        <th>Giá gốc</th>
+                        <th>Giá sau khi giảm</th>
+                        <th>Danh mục</th>
                         <th style="width:80px"></th>
                     </tr>
                 </thead>
@@ -43,12 +48,17 @@
                         {
                             <tr>
                                 <td>
-                                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/images/no-image.png" : item.ImageUrl)"
+                                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "images/no-image.jpg" : item.ImageUrl)"
                                          style="width:50px; height:50px; object-fit:cover" />
                                 </td>
                                 <td>@item.ProductName</td>
                                 <td>@item.UnitId</td>
+                                <td>@item.Description</td>
+                                <td>@item.Ingredient</td>
+                                <td>@item.BurningTime</td>
+                                <td>@string.Format("{0:N}", item.OriginalPrice)</td>                              
                                 <td>@string.Format("{0:N0}", item.PriceAfterDiscount)</td>
+                                <td>@item.CategoryId</td>
                                 <td class="text-right">
                                     <a href="~/Product/Edit/@item.Id" class="btn btn-xs btn-info">
                                         <i class="fa fa-edit"></i>

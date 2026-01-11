@@ -1,0 +1,80 @@
+﻿@model SV22T1080045.Shop.DomainModels.Product
+@{
+    ViewBag.Title = Model.Id == 0 ? "Bổ sung sản phẩm" : "Cập nhật sản phẩm";
+}
+
+<div class="box box-primary">
+    <div class="box-body">
+        <form action="~/Product/Save" method="post" enctype="multipart/form-data">
+
+            <input type="" name="Id" value="@Model.Id" />
+            <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Tên sản phẩm:</label>
+                        <input type="text" class="form-control" name="ProductName" value="@Model.ProductName" required autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Đơn vị tính (Nhập tạm ID):</label>
+                        <input type="number" class="form-control" name="UnitId" value="@Model.UnitId">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loại hàng (Nhập tạm ID):</label>
+                        <input type="number" class="form-control" name="CategoryId" value="@Model.CategoryId">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Giá gốc:</label>
+                        <input type="text" class="form-control number-separator" name="OriginalPrice" value="@Model.OriginalPrice">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Giá bán:</label>
+                        <input type="text" class="form-control number-separator" name="PriceAfterDiscount" value="@Model.PriceAfterDiscount">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Thời gian cháy:</label>
+                        <input type="text" class="form-control" name="BurningTime" value="@Model.BurningTime" placeholder="VD: 30 phút, 1 tiếng...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Thành phần:</label>
+                        <textarea class="form-control" name="Ingredient" rows="2" placeholder="VD: Trầm hương tự nhiên, keo bời lời...">@Model.Ingredient</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả chi tiết:</label>
+                        <textarea class="form-control" name="Description" rows="4">@Model.Description</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh minh họa:</label>
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div style="margin-bottom: 5px;">
+                                <img src="@Model.ImageUrl" style="height: 60px; border: 1px solid #ccc;" />
+                            </div>
+                        }
+                        
+                        <input type="file" name="uploadPhoto" class="form-control" accept="image/*" />
+                        <small class="text-muted">Để trống nếu không muốn thay đổi ảnh.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group text-right">
+                <a href="~/Product" class="btn btn-default">Quay lại</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-save"></i> Lưu dữ liệu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

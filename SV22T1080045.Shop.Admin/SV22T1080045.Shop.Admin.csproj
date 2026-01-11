@@ -6096,6 +6096,7 @@
     <ProjectReference Include="..\SV22T1080045.Shop.BusinessLayers\SV22T1080045.Shop.BusinessLayers.csproj" />
     <ProjectReference Include="..\SV22T1080045.Shop.DataLayers\SV22T1080045.Shop.DataLayers.csproj" />
     <ProjectReference Include="..\SV22T1080045.Shop.DomainModels\SV22T1080045.Shop.DomainModels.csproj" />
+    <ProjectReference Include="..\SV22T1080045.Shop.Models\SV22T1080045.Shop.Models.csproj" />
   </ItemGroup>
 
   <ItemGroup>

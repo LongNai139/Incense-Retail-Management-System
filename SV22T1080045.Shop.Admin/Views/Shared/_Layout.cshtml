@@ -1,265 +1,243 @@
-﻿@* @using Microsoft.AspNetCore.Http *@
-@* @using Newtonsoft.Json *@
-@* @using SV22T1080045.Shop.DomainModels *@
-@* @using SV22T1080045.Shop.BusinessLayers   *@
-@* @inject IHttpContextAccessor HttpContextAccessor *@
-@* @inject CartService CartService        *@
+﻿ @using Microsoft.AspNetCore.Http 
+ @using Newtonsoft.Json 
+ @using SV22T1080045.Shop.DomainModels 
+ @inject IHttpContextAccessor HttpContextAccessor     
 
-@* <!DOCTYPE html> *@
-@* <html lang="vi"> *@
-@* <head> *@
-@*     <meta charset="utf-8" /> *@
-@*     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> *@
-@*     <title>@ViewData["Title"] - Doraemon Tea</title> *@
+ <!DOCTYPE html> 
+ <html lang="vi"> 
+ <head> 
+     <meta charset="utf-8" /> 
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+     <title>@ViewData["Title"] - Doraemon Tea</title> 
 
-@*     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
-@*     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> *@
-@*     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"> *@
+     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> 
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"> 
 
-@*     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> *@
-@*     <link rel="stylesheet" href="~/SV22T1080045.Shop.Admin.styles.css" asp-append-version="true" /> *@
+     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> 
+     <link rel="stylesheet" href="~/SV22T1080045.Shop.Admin.styles.css" asp-append-version="true" /> 
 
-@*     <style> *@
-@*         :root { *@
-@*             --primary-color: #00a0e9; *@
-@*             --primary-hover: #0089c7; *@
-@*             --pink-accent: #ff69b4;  *@
-@*         } *@
+     <style> 
+         :root { 
+             --primary-color: #00a0e9; 
+             --primary-hover: #0089c7; 
+             --pink-accent: #ff69b4;  
+         } 
 
-@*         body { *@
-@*             font-family: 'Fredoka', sans-serif; *@
-@*             background-color: #f4f8fb; *@
-@*             color: #444; *@
-@*         } *@
+         body { 
+             font-family: 'Fredoka', sans-serif; 
+             background-color: #f4f8fb; 
+             color: #444; 
+         } 
 
-@*         .navbar { *@
-@*             background: rgba(255, 255, 255, 0.95); *@
-@*             backdrop-filter: blur(15px); *@
-@*             padding: 12px 0; *@
-@*             transition: all 0.3s ease; *@
-@*         } *@
+         .navbar { 
+             background: rgba(255, 255, 255, 0.95); 
+             backdrop-filter: blur(15px); 
+             padding: 12px 0; 
+             transition: all 0.3s ease; 
+         } 
 
-@*         .navbar-brand { *@
-@*             font-weight: 700; *@
-@*             font-size: 1.5rem; *@
-@*             color: var(--primary-color) !important; *@
-@*             letter-spacing: -0.5px; *@
-@*         } *@
+         .navbar-brand { 
+             font-weight: 700; 
+             font-size: 1.5rem; 
+             color: var(--primary-color) !important; 
+             letter-spacing: -0.5px; 
+         } 
 
-@*         .nav-link { *@
-@*             font-weight: 600; *@
-@*             color: #666 !important; *@
-@*             margin: 0 5px; *@
-@*             padding: 8px 16px !important; *@
-@*             border-radius: 50px; *@
-@*             transition: all 0.2s ease; *@
-@*         } *@
+         .nav-link { 
+             font-weight: 600; 
+             color: #666 !important; 
+             margin: 0 5px; 
+             padding: 8px 16px !important; 
+             border-radius: 50px; 
+             transition: all 0.2s ease; 
+         } 
 
-@*             .nav-link:hover, .nav-link.active { *@
-@*                 color: var(--primary-color) !important; *@
-@*                 background-color: rgba(0, 160, 233, 0.08); *@
-@*             } *@
+             .nav-link:hover, .nav-link.active { 
+                 color: var(--primary-color) !important; 
+                 background-color: rgba(0, 160, 233, 0.08); 
+             } 
 
-@*         .nav-btn-icon { *@
-@*             width: 40px; *@
-@*             height: 40px; *@
-@*             display: flex; *@
-@*             align-items: center; *@
-@*             justify-content: center; *@
-@*             border-radius: 50%; *@
-@*             background-color: #fff; *@
-@*             color: #333; *@
-@*             border: 1px solid #eee; *@
-@*             transition: all 0.2s; *@
-@*             position: relative; *@
-@*         } *@
+         .nav-btn-icon { 
+             width: 40px; 
+             height: 40px; 
+             display: flex; 
+             align-items: center; 
+             justify-content: center; 
+             border-radius: 50%; 
+             background-color: #fff; 
+             color: #333; 
+             border: 1px solid #eee; 
+             transition: all 0.2s; 
+             position: relative; 
+         } 
 
-@*             .nav-btn-icon:hover { *@
-@*                 background-color: var(--primary-color); *@
-@*                 color: #fff; *@
-@*                 border-color: var(--primary-color); *@
-@*                 transform: translateY(-2px); *@
-@*                 box-shadow: 0 4px 10px rgba(0, 160, 233, 0.3); *@
-@*             } *@
+             .nav-btn-icon:hover { 
+                 background-color: var(--primary-color); 
+                 color: #fff; 
+                 border-color: var(--primary-color); 
+                 transform: translateY(-2px); 
+                 box-shadow: 0 4px 10px rgba(0, 160, 233, 0.3); 
+             } 
 
-@*         .cart-badge { *@
-@*             position: absolute; *@
-@*             top: -5px; *@
-@*             right: -5px; *@
-@*             background-color: #ff4757; *@
-@*             color: white; *@
-@*             font-size: 0.7rem; *@
-@*             font-weight: bold; *@
-@*             padding: 4px 7px; *@
-@*             border-radius: 20px; *@
-@*             border: 2px solid #fff; *@
-@*         } *@
+         .cart-badge { 
+             position: absolute; 
+             top: -5px; 
+             right: -5px; 
+             background-color: #ff4757; 
+             color: white; 
+             font-size: 0.7rem; 
+             font-weight: bold; 
+             padding: 4px 7px; 
+             border-radius: 20px; 
+             border: 2px solid #fff; 
+         } 
 
-@*         /* --- USER DROPDOWN --- */ *@
-@*         .user-menu-btn { *@
-@*             padding: 5px 15px 5px 5px; *@
-@*             border-radius: 50px; *@
-@*             border: 1px solid #eee; *@
-@*             background: #fff; *@
-@*             transition: 0.2s; *@
-@*         } *@
+         /* --- USER DROPDOWN --- */ 
+         .user-menu-btn { 
+             padding: 5px 15px 5px 5px; 
+             border-radius: 50px; 
+             border: 1px solid #eee; 
+             background: #fff; 
+             transition: 0.2s; 
+         } 
 
-@*             .user-menu-btn:hover { *@
-@*                 border-color: var(--primary-color); *@
-@*                 box-shadow: 0 2px 8px rgba(0,0,0,0.05); *@
-@*             } *@
+             .user-menu-btn:hover { 
+                 border-color: var(--primary-color); 
+                 box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+             } 
 
-@*         .dropdown-item:active, .dropdown-item:hover { *@
-@*             background-color: var(--primary-color); *@
-@*             color: white; *@
-@*         } *@
+         .dropdown-item:active, .dropdown-item:hover { 
+             background-color: var(--primary-color); 
+             color: white; 
+         } 
 
-@*         /* --- BUTTONS --- */ *@
-@*         .btn-primary-custom { *@
-@*             background-color: var(--primary-color); *@
-@*             border: none; *@
-@*             padding: 8px 24px; *@
-@*             border-radius: 50px; *@
-@*             font-weight: 600; *@
-@*             transition: 0.3s; *@
-@*         } *@
+         /* --- BUTTONS --- */ 
+         .btn-primary-custom { 
+             background-color: var(--primary-color); 
+             border: none; 
+             padding: 8px 24px; 
+             border-radius: 50px; 
+             font-weight: 600; 
+             transition: 0.3s; 
+         } 
 
-@*             .btn-primary-custom:hover { *@
-@*                 background-color: var(--primary-hover); *@
-@*                 transform: translateY(-2px); *@
-@*                 box-shadow: 0 4px 12px rgba(0, 160, 233, 0.3); *@
-@*             } *@
-@*     </style> *@
-@*     @await RenderSectionAsync("Styles", required: false) *@
-@* </head> *@
-@* <body> *@
-@*     <header> *@
-@*         <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm"> *@
-@*             <div class="container"> *@
-@*                 <a class="navbar-brand d-flex align-items-center" href="/"> *@
-@*                     <img src="https://upload.wikimedia.org/wikipedia/en/c/c8/Doraemon_volume_1_cover.jpg" *@
-@*                          style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" *@
-@*                          class="me-2 shadow-sm border" alt="Doraemon Tea"> *@
-@*                     Doraemon Tea *@
-@*                 </a> *@
+             .btn-primary-custom:hover { 
+                 background-color: var(--primary-hover); 
+                 transform: translateY(-2px); 
+                 box-shadow: 0 4px 12px rgba(0, 160, 233, 0.3); 
+             } 
+     </style> 
+     @await RenderSectionAsync("Styles", required: false) 
+ </head> 
+ <body> 
+     <header> 
+         <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm"> 
+             <div class="container"> 
+                 <a class="navbar-brand d-flex align-items-center" href="/"> 
+                     <img src="https://upload.wikimedia.org/wikipedia/en/c/c8/Doraemon_volume_1_cover.jpg" 
+                          style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" 
+                          class="me-2 shadow-sm border" alt="Doraemon Tea"> 
+                     Doraemon Tea 
+                 </a> 
 
-@*                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"> *@
-@*                     <span class="navbar-toggler-icon"></span> *@
-@*                 </button> *@
+                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"> 
+                     <span class="navbar-toggler-icon"></span> 
+                 </button> 
 
-@*                 <div class="collapse navbar-collapse" id="navbarContent"> *@
-@*                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4"> *@
-@*                         <li class="nav-item"> *@
-@*                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" *@
-@*                                asp-controller="Home" asp-action="Index"> *@
-@*                                 Trang chủ *@
-@*                             </a> *@
-@*                         </li> *@
+                 <div class="collapse navbar-collapse" id="navbarContent"> 
+                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4"> 
+                         <li class="nav-item"> 
+                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" 
+                                asp-controller="Home" asp-action="Index"> 
+                                 Trang chủ 
+                             </a> 
+                         </li> 
                         
-@*                     </ul> *@
+                     </ul> 
 
-@*                     <ul class="navbar-nav ms-auto align-items-center gap-3"> *@
+                     <ul class="navbar-nav ms-auto align-items-center gap-3"> 
 
-@*                         <li class="nav-item"> *@
-@*                             @{ *@
-@*                                 var cart = CartService.GetCart(); *@
+                         @if (User.Identity.IsAuthenticated) 
+                         { 
+                             <li class="nav-item dropdown"> 
+                                 <a class="nav-link p-0 user-menu-btn d-flex align-items-center text-dark text-decoration-none" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> 
+                                     <div class="bg-light rounded-circle d-flex justify-content-center align-items-center border me-2" style="width: 35px; height: 35px; flex-shrink: 0;"> 
+                                         <i class="fa-solid fa-user text-primary"></i> 
+                                     </div> 
+                                     <span class="fw-bold small text-truncate" style="max-width: 100px;">@User.Identity.Name</span> 
+                                     <i class="fa-solid fa-chevron-down ms-2 small text-muted"></i> 
+                                 </a> 
+                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2" aria-labelledby="userDropdown"> 
+                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Account/Profile"><i class="fa-solid fa-id-card me-2 text-muted"></i> Hồ sơ cá nhân</a></li> 
+                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Order/History"><i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i> Lịch sử đơn hàng</a></li> 
+                                     <li><hr class="dropdown-divider opacity-50"></li> 
+                                     <li><a class="dropdown-item rounded-3 text-danger fw-bold" href="/Account/Logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li> 
+                                 </ul> 
+                             </li> 
+                         } 
+                         else 
+                         { 
+                             <li class="nav-item"> 
+                                 <a class="btn btn-outline-primary rounded-pill px-4 fw-bold me-2" href="/Account/Login" style="border-width: 2px;"> 
+                                     Đăng nhập 
+                                 </a> 
+                             </li> 
+                             <li class="nav-item"> 
+                                 <a class="btn btn-primary-custom text-white text-decoration-none" href="/Account/Register"> 
+                                     Đăng ký ngay 
+                                 </a> 
+                             </li> 
+                         } 
+                     </ul> 
+                 </div> 
+             </div> 
+         </nav> 
+     </header> 
 
-@*                                 int cartCount = 0; *@
-@*                                 if (cart != null) *@
-@*                                 { *@
-@*                                     cartCount = cart.Sum(x => x.Quantity); *@
-@*                                 } *@
-@*                             } *@
+     <div style="padding-top: 90px; min-height: 85vh;"> 
+         <main role="main" class="pb-3"> 
+             @RenderBody() 
+         </main> 
+     </div> 
 
-@*                             <a class="nav-btn-icon text-decoration-none" href="/Cart" title="Giỏ hàng"> *@
-@*                                 <i class="fa-solid fa-cart-shopping fs-5"></i> *@
-@*                                 @if (cartCount > 0) *@
-@*                                 { *@
-@*                                     <span class="cart-badge">@cartCount</span> *@
-@*                                 } *@
-@*                             </a> *@
-@*                         </li> *@
+     <footer class="bg-white border-top py-5 mt-auto"> 
+         <div class="container"> 
+             <div class="row g-4"> 
+                 <div class="col-lg-4 text-center text-lg-start"> 
+                     <a href="/" class="text-decoration-none d-inline-flex align-items-center mb-3"> 
+                         <h5 class="fw-bold text-primary m-0">Doraemon Tea Shop</h5> 
+                     </a> 
+                     <p class="text-muted small"> 
+                         Mang đến cho bạn những ly trà sữa thơm ngon nhất với công thức chuẩn Nhật Bản. Niềm vui trong từng ngụm trà. 
+                     </p> 
+                 </div> 
+                 <div class="col-lg-4 text-center"> 
+                     <h6 class="fw-bold mb-3">Liên kết nhanh</h6> 
+                     <ul class="list-unstyled small"> 
+                         <li class="mb-2"><a href="/" class="text-decoration-none text-muted hover-primary">Trang chủ</a></li> 
+                         <li class="mb-2"><a href="/Home/Search" class="text-decoration-none text-muted hover-primary">Thực đơn</a></li> 
+                         <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Về chúng tôi</a></li> 
+                     </ul> 
+                 </div> 
+                 <div class="col-lg-4 text-center text-lg-end"> 
+                     <h6 class="fw-bold mb-3">Theo dõi chúng tôi</h6> 
+                     <div class="d-flex justify-content-center justify-content-lg-end gap-3"> 
+                         <a href="#" class="text-secondary fs-5"><i class="fab fa-facebook"></i></a> 
+                         <a href="#" class="text-secondary fs-5"><i class="fab fa-instagram"></i></a> 
+                         <a href="#" class="text-secondary fs-5"><i class="fab fa-tiktok"></i></a> 
+                     </div> 
+                 </div> 
+             </div> 
+             <div class="border-top mt-4 pt-4 text-center text-muted small"> 
+                 &copy; 2026 - Doraemon Tea Shop - SV22T1080045 
+             </div> 
+         </div> 
+     </footer> 
 
-@*                         @if (User.Identity.IsAuthenticated) *@
-@*                         { *@
-@*                             <li class="nav-item dropdown"> *@
-@*                                 <a class="nav-link p-0 user-menu-btn d-flex align-items-center text-dark text-decoration-none" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> *@
-@*                                     <div class="bg-light rounded-circle d-flex justify-content-center align-items-center border me-2" style="width: 35px; height: 35px; flex-shrink: 0;"> *@
-@*                                         <i class="fa-solid fa-user text-primary"></i> *@
-@*                                     </div> *@
-@*                                     <span class="fw-bold small text-truncate" style="max-width: 100px;">@User.Identity.Name</span> *@
-@*                                     <i class="fa-solid fa-chevron-down ms-2 small text-muted"></i> *@
-@*                                 </a> *@
-@*                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2" aria-labelledby="userDropdown"> *@
-@*                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Account/Profile"><i class="fa-solid fa-id-card me-2 text-muted"></i> Hồ sơ cá nhân</a></li> *@
-@*                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Order/History"><i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i> Lịch sử đơn hàng</a></li> *@
-@*                                     <li><hr class="dropdown-divider opacity-50"></li> *@
-@*                                     <li><a class="dropdown-item rounded-3 text-danger fw-bold" href="/Account/Logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li> *@
-@*                                 </ul> *@
-@*                             </li> *@
-@*                         } *@
-@*                         else *@
-@*                         { *@
-@*                             <li class="nav-item"> *@
-@*                                 <a class="btn btn-outline-primary rounded-pill px-4 fw-bold me-2" href="/Account/Login" style="border-width: 2px;"> *@
-@*                                     Đăng nhập *@
-@*                                 </a> *@
-@*                             </li> *@
-@*                             <li class="nav-item"> *@
-@*                                 <a class="btn btn-primary-custom text-white text-decoration-none" href="/Account/Register"> *@
-@*                                     Đăng ký ngay *@
-@*                                 </a> *@
-@*                             </li> *@
-@*                         } *@
-@*                     </ul> *@
-@*                 </div> *@
-@*             </div> *@
-@*         </nav> *@
-@*     </header> *@
-
-@*     <div style="padding-top: 90px; min-height: 85vh;"> *@
-@*         <main role="main" class="pb-3"> *@
-@*             @RenderBody() *@
-@*         </main> *@
-@*     </div> *@
-
-@*     <footer class="bg-white border-top py-5 mt-auto"> *@
-@*         <div class="container"> *@
-@*             <div class="row g-4"> *@
-@*                 <div class="col-lg-4 text-center text-lg-start"> *@
-@*                     <a href="/" class="text-decoration-none d-inline-flex align-items-center mb-3"> *@
-@*                         <h5 class="fw-bold text-primary m-0">Doraemon Tea Shop</h5> *@
-@*                     </a> *@
-@*                     <p class="text-muted small"> *@
-@*                         Mang đến cho bạn những ly trà sữa thơm ngon nhất với công thức chuẩn Nhật Bản. Niềm vui trong từng ngụm trà. *@
-@*                     </p> *@
-@*                 </div> *@
-@*                 <div class="col-lg-4 text-center"> *@
-@*                     <h6 class="fw-bold mb-3">Liên kết nhanh</h6> *@
-@*                     <ul class="list-unstyled small"> *@
-@*                         <li class="mb-2"><a href="/" class="text-decoration-none text-muted hover-primary">Trang chủ</a></li> *@
-@*                         <li class="mb-2"><a href="/Home/Search" class="text-decoration-none text-muted hover-primary">Thực đơn</a></li> *@
-@*                         <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Về chúng tôi</a></li> *@
-@*                     </ul> *@
-@*                 </div> *@
-@*                 <div class="col-lg-4 text-center text-lg-end"> *@
-@*                     <h6 class="fw-bold mb-3">Theo dõi chúng tôi</h6> *@
-@*                     <div class="d-flex justify-content-center justify-content-lg-end gap-3"> *@
-@*                         <a href="#" class="text-secondary fs-5"><i class="fab fa-facebook"></i></a> *@
-@*                         <a href="#" class="text-secondary fs-5"><i class="fab fa-instagram"></i></a> *@
-@*                         <a href="#" class="text-secondary fs-5"><i class="fab fa-tiktok"></i></a> *@
-@*                     </div> *@
-@*                 </div> *@
-@*             </div> *@
-@*             <div class="border-top mt-4 pt-4 text-center text-muted small"> *@
-@*                 &copy; 2026 - Doraemon Tea Shop - SV22T1080045 *@
-@*             </div> *@
-@*         </div> *@
-@*     </footer> *@
-
-@*     <script src="~/lib/jquery/dist/jquery.min.js"></script> *@
-@*     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script> *@
-@*     <script src="~/js/site.js" asp-append-version="true"></script> *@
-@*     @await RenderSectionAsync("Scripts", required: false) *@
-@* </body> *@
-@* </html> *@
+     <script src="~/lib/jquery/dist/jquery.min.js"></script> 
+     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script> 
+     <script src="~/js/site.js" asp-append-version="true"></script> 
+     @await RenderSectionAsync("Scripts", required: false) 
+ </body> 
+ </html> 
