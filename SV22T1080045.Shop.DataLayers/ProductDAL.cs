@@ -3,63 +3,79 @@ using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.DataLayers
 {
-    public class ProductDAL : BaseDAL
+    public class ProductDAL : IProductDAL
     {
-        public ProductDAL(string connectionString) : base(connectionString) { }
-
-        // Lấy danh sách danh mục (Để hiển thị Dropdown lọc)
-        public List<Category> GetCategories()
+        private readonly ShopDbContext _context;
+        public ProductDAL(ShopDbContext context)
         {
-            using var conn = OpenConnection();
-            return conn.Query<Category>("SELECT * FROM Categories").ToList();
+            _context = context;
         }
 
-        // Tìm kiếm và Lọc sản phẩm
-        public List<Product> ListProducts(string searchValue = "", int categoryID = 0, decimal minPrice = 0, decimal maxPrice = 0)
+        public List<Product> ListProducts(string searchValue = "", int CategoryId = 0, decimal OriginalPrice = 0, decimal PriceAfterDiscount = 0)
         {
-            using var conn = OpenConnection();
-
-            // Kỹ thuật nối chuỗi SQL động
-            var sql = "SELECT * FROM Products WHERE 1=1";
-            var parameters = new DynamicParameters();
-
-            // Lọc theo tên
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                sql += " AND ProductName LIKE @Search";
-                parameters.Add("@Search", $"%{searchValue}%");
-            }
-
-            // Lọc theo loại
-            if (categoryID > 0)
-            {
-                sql += " AND CategoryID = @CategoryID";
-                parameters.Add("@CategoryID", categoryID);
-            }
-
-            // Lọc theo giá
-            if (minPrice > 0)
-            {
-                sql += " AND Price >= @MinPrice";
-                parameters.Add("@MinPrice", minPrice);
-            }
-            if (maxPrice > 0)
-            {
-                sql += " AND Price <= @MaxPrice";
-                parameters.Add("@MaxPrice", maxPrice);
-            }
-
-            sql += " ORDER BY ProductID DESC"; // Sản phẩm mới nhất lên đầu
-
-            return conn.Query<Product>(sql, parameters).ToList();
+            return _context.Products.ToList();
         }
 
-        // Lấy chi tiết 1 sản phẩm
-        public Product? GetProduct(int id)
+        public Product GetProduct(int id)
         {
-            using var conn = OpenConnection();
-            var sql = "SELECT * FROM Products WHERE ProductID = @Id";
-            return conn.QueryFirstOrDefault<Product>(sql, new { Id = id });
+            return _context.Products.Find(id);
+        }
+
+        public int AddProduct(Product data)
+        {
+            try
+            {
+                _context.Products.Add(data);
+                _context.SaveChanges();
+                return data.Id;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public bool UpdateProduct(Product data)
+        {
+            try
+            {
+                _context.Products.Update(data);
+                _context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public bool DeleteProduct(int id)
+        {
+            try
+            {
+                var data = _context.Products.Find(id);
+                if (data != null)
+                {
+                    data.IsDeleted = true;
+                    _context.SaveChanges();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public bool InUsed(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNameExists(string productName, int id)
+        {
+            return _context.Products.Any(p => p.ProductName == productName && p.Id != id);
         }
     }
 }
