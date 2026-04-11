@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thanh Toán — Trầm Hương Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1C1209;--ink-2:#3D2B1A;--ink-3:#6B4F35;--ink-4:#9C7A58;--warm-50:#FBF7F0;--warm-100:#F5ECD8;--warm-200:#E8D5B0;--gold:#B8860B;--gold-lt:#D4A827;--bg:#FAF6EF;--cream:#FFFDF7;--border:rgba(60,35,10,.12);--border-2:rgba(60,35,10,.22);--shadow:0 2px 24px rgba(60,35,10,.08);--serif:'Cormorant Garamond',Georgia,serif;--sans:'Be Vietnam Pro',sans-serif;--radius:12px;--radius-lg:20px;--tr:.22s cubic-bezier(.4,0,.2,1);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.7;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}button{cursor:pointer;font-family:var(--sans);border:none;background:none;}input,select,textarea{font-family:var(--sans);}
+
+/* HEADER */
+.site-header{background:rgba(250,246,239,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 32px;height:68px;display:flex;align-items:center;gap:24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);line-height:1.2;}
+.logo-text span{display:block;font-size:11px;font-weight:300;letter-spacing:.1em;color:var(--ink-3);}
+.nav-secure{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-4);}
+
+/* STEPS */
+.steps-wrap{background:var(--cream);border-bottom:1px solid var(--border);padding:16px 0;}
+.steps{max-width:560px;margin:0 auto;display:flex;align-items:center;}
+.step{display:flex;align-items:center;gap:8px;flex:1;}
+.step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
+.step.done .step-circle{background:var(--gold);color:var(--ink);}
+.step.active .step-circle{background:var(--ink);color:var(--warm-100);}
+.step:not(.done):not(.active) .step-circle{background:var(--warm-200);color:var(--ink-4);}
+.step-lbl{font-size:13px;font-weight:500;}
+.step.active .step-lbl{color:var(--ink);}
+.step:not(.active) .step-lbl{color:var(--ink-4);}
+.step-line{flex:1;height:1px;background:var(--border-2);margin:0 8px;}
+.step-line.done{background:var(--gold);}
+
+/* PAGE */
+.page-wrap{max-width:1200px;margin:0 auto;padding:40px 32px 80px;}
+.checkout-layout{display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:start;}
+
+/* FORM PANEL */
+.form-panel{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.panel-section{padding:24px;border-bottom:1px solid var(--border);}
+.panel-section:last-child{border-bottom:none;}
+.section-title{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+.section-num{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--warm-100);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-sub{font-size:13px;color:var(--ink-4);margin-bottom:18px;}
+
+/* FORM FIELDS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.single{grid-template-columns:1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:13px;font-weight:500;color:var(--ink-2);}
+.form-label .req{color:#c0392b;}
+.form-input,.form-select{height:44px;padding:0 14px;border:1.5px solid var(--border-2);border-radius:10px;font-size:14px;color:var(--ink);background:var(--warm-50);outline:none;transition:var(--tr);}
+.form-input:focus,.form-select:focus{border-color:var(--ink-3);background:var(--cream);}
+.form-input.error,.form-select.error{border-color:#c0392b;}
+.form-input::placeholder{color:var(--ink-4);}
+.form-hint{font-size:11px;color:var(--ink-4);}
+.form-hint.key{color:var(--gold);font-weight:500;}
+.form-textarea{padding:12px 14px;border:1.5px solid var(--border-2);border-radius:10px;font-size:14px;color:var(--ink);background:var(--warm-50);outline:none;resize:vertical;min-height:72px;transition:var(--tr);width:100%;}
+.form-textarea:focus{border-color:var(--ink-3);}
+.form-textarea::placeholder{color:var(--ink-4);}
+.err-msg{font-size:12px;color:#c0392b;display:none;}
+.form-input.error + .err-msg,.form-select.error + .err-msg{display:block;}
+
+/* PHONE highlight */
+.phone-wrap{position:relative;}
+.phone-wrap .phone-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--ink-3);pointer-events:none;}
+.phone-wrap .form-input{padding-left:48px;}
+.phone-verified{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#27ae60;font-weight:500;display:none;}
+
+/* PAYMENT OPTIONS */
+.pay-options{display:flex;flex-direction:column;gap:10px;}
+.pay-option{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--border-2);border-radius:12px;cursor:pointer;transition:var(--tr);background:var(--warm-50);}
+.pay-option:hover{border-color:var(--ink-3);background:var(--cream);}
+.pay-option.selected{border-color:var(--ink);background:var(--cream);}
+.pay-option input[type=radio]{width:18px;height:18px;accent-color:var(--ink);flex-shrink:0;cursor:pointer;}
+.pay-icon-big{width:44px;height:32px;border-radius:6px;background:var(--warm-100);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pay-info{flex:1;}
+.pay-name{font-size:14px;font-weight:500;color:var(--ink);}
+.pay-desc{font-size:12px;color:var(--ink-4);}
+.pay-tag{font-size:11px;padding:2px 8px;border-radius:99px;background:#edfaf1;color:#27ae60;font-weight:600;margin-left:8px;}
+
+/* ORDER SUMMARY PANEL */
+.summary-panel{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;position:sticky;top:20px;}
+.summary-title{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--ink);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.order-items{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+.order-item{display:flex;gap:12px;align-items:center;}
+.order-item-img{width:48px;height:48px;border-radius:8px;background:var(--warm-100);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;position:relative;}
+.order-item-qty{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--ink-3);color:white;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+.order-item-name{flex:1;font-size:13px;font-weight:500;color:var(--ink);line-height:1.4;}
+.order-item-price{font-size:14px;font-weight:600;color:var(--ink);font-family:var(--serif);flex-shrink:0;}
+.summary-rows{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:14px;}
+.summary-row{display:flex;justify-content:space-between;font-size:14px;}
+.summary-row .lbl{color:var(--ink-3);}
+.summary-row .val{font-weight:500;color:var(--ink);}
+.summary-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;}
+.total-lbl{font-size:15px;font-weight:600;}
+.total-val{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--ink);}
+
+.form-agree{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink-3);margin-bottom:16px;padding:12px;background:var(--warm-50);border-radius:8px;}
+.form-agree input{width:16px;height:16px;accent-color:var(--ink);margin-top:2px;flex-shrink:0;cursor:pointer;}
+.form-agree a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;}
+.btn-place{width:100%;height:52px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);margin-bottom:12px;}
+.btn-place:hover{background:var(--ink-2);transform:translateY(-1px);box-shadow:var(--shadow);}
+.btn-back{width:100%;height:40px;border-radius:99px;border:1px solid var(--border-2);font-size:14px;color:var(--ink-3);transition:var(--tr);}
+.btn-back:hover{background:var(--warm-100);}
+.secure-note{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--ink-4);margin-top:10px;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:var(--warm-100);padding:12px 20px;border-radius:99px;font-size:13px;font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;}
+
+@media(max-width:900px){
+  .checkout-layout{grid-template-columns:1fr;}
+  .summary-panel{position:static;order:-1;}
+}
+@media(max-width:600px){
+  .page-wrap{padding:20px 16px 60px;}
+  .form-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-icon">🌿</div>
+      <div class="logo-text">Trầm Hương Shop<span>Hương Trầm Việt Nam</span></div>
+    </a>
+    <div class="nav-secure">🔒 Thanh toán bảo mật SSL</div>
+  </nav>
+</header>
+
+<div class="steps-wrap">
+  <div class="steps">
+    <div class="step done"><div class="step-circle">✓</div><span class="step-lbl">Giỏ hàng</span></div>
+    <div class="step-line done"></div>
+    <div class="step active"><div class="step-circle">2</div><span class="step-lbl">Thông tin & Thanh toán</span></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-circle">3</div><span class="step-lbl">Hoàn tất</span></div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="checkout-layout">
+
+    <!-- FORM PANEL -->
+    <div class="form-panel">
+
+      <!-- SECTION 1: Thông tin người nhận -->
+      <div class="panel-section">
+        <div class="section-title"><span class="section-num">1</span> Thông tin người nhận</div>
+        <div class="section-sub">Thông tin dùng để giao hàng và liên hệ xác nhận đơn</div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label class="form-label">Họ và tên <span class="req">*</span></label>
+            <input class="form-input" id="fullName" type="text" placeholder="Nguyễn Văn A">
+            <span class="err-msg">Vui lòng nhập họ tên</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại <span class="req">*</span></label>
+            <div class="phone-wrap" style="position:relative;">
+              <span class="phone-prefix">🇻🇳</span>
+              <input class="form-input" id="phone" type="tel" placeholder="0901 234 567" oninput="validatePhone(this)">
+              <span class="phone-verified" id="phoneVerified">✓ Hợp lệ</span>
+            </div>
+            <span class="form-hint key">📌 Số điện thoại dùng để tra cứu lịch sử đơn hàng — không cần tạo tài khoản</span>
+          </div>
+        </div>
+
+        <div class="form-grid single" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label class="form-label">Email (không bắt buộc)</label>
+            <input class="form-input" id="email" type="email" placeholder="example@email.com">
+            <span class="form-hint">Nhận xác nhận đơn qua email (tùy chọn)</span>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label class="form-label">Tỉnh / Thành phố <span class="req">*</span></label>
+            <select class="form-select" id="province" onchange="updateDistrict()">
+              <option value="">-- Chọn Tỉnh/Thành --</option>
+              <option>Hà Nội</option><option>TP. Hồ Chí Minh</option><option>Đà Nẵng</option>
+              <option selected>Thừa Thiên Huế</option><option>Bình Định</option><option>Khánh Hòa</option>
+              <option>Quảng Nam</option><option>Cần Thơ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quận / Huyện <span class="req">*</span></label>
+            <select class="form-select" id="district">
+              <option value="">-- Chọn Quận/Huyện --</option>
+              <option>TP. Huế</option><option>Hương Thủy</option><option>Phú Vang</option><option>Hương Trà</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid single">
+          <div class="form-group">
+            <label class="form-label">Địa chỉ cụ thể <span class="req">*</span></label>
+            <input class="form-input" id="address" type="text" placeholder="Số nhà, tên đường, phường/xã...">
+          </div>
+          <div class="form-group" style="margin-top:14px;">
+            <label class="form-label">Ghi chú đơn hàng</label>
+            <textarea class="form-textarea" id="note" placeholder="VD: Giao giờ hành chính / Gói quà tặng / Gọi trước khi giao..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: Phương thức thanh toán -->
+      <div class="panel-section">
+        <div class="section-title"><span class="section-num">2</span> Phương thức thanh toán</div>
+        <div class="section-sub" style="margin-bottom:16px;">Chọn cách bạn muốn thanh toán</div>
+
+        <div class="pay-options">
+          <label class="pay-option selected" onclick="selectPay(this)">
+            <input type="radio" name="payment" value="cod" checked>
+            <div class="pay-icon-big">🚚</div>
+            <div class="pay-info">
+              <div class="pay-name">Thanh toán khi nhận hàng (COD) <span class="pay-tag">Phổ biến</span></div>
+              <div class="pay-desc">Trả tiền mặt khi nhận — Không cần thẻ ngân hàng</div>
+            </div>
+          </label>
+          <label class="pay-option" onclick="selectPay(this)">
+            <input type="radio" name="payment" value="vnpay">
+            <div class="pay-icon-big">💳</div>
+            <div class="pay-info">
+              <div class="pay-name">VNPay — Internet Banking / QR Code</div>
+              <div class="pay-desc">Tất cả ngân hàng VN, ví MoMo, ZaloPay, VNPAY-QR</div>
+            </div>
+          </label>
+          <label class="pay-option" onclick="selectPay(this)">
+            <input type="radio" name="payment" value="momo">
+            <div class="pay-icon-big">📱</div>
+            <div class="pay-info">
+              <div class="pay-name">Ví MoMo</div>
+              <div class="pay-desc">Quét mã QR bằng app MoMo — Nhanh và tiện</div>
+            </div>
+          </label>
+          <label class="pay-option" onclick="selectPay(this)">
+            <input type="radio" name="payment" value="transfer">
+            <div class="pay-icon-big">🏦</div>
+            <div class="pay-info">
+              <div class="pay-name">Chuyển khoản ngân hàng</div>
+              <div class="pay-desc">Thông tin TK sẽ hiển thị sau khi đặt hàng</div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY PANEL -->
+    <div class="summary-panel">
+      <div class="summary-title">Đơn hàng của bạn</div>
+
+      <div class="order-items" id="orderItems">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="summary-rows">
+        <div class="summary-row"><span class="lbl">Tạm tính</span><span class="val" id="subVal">—</span></div>
+        <div class="summary-row"><span class="lbl">Phí vận chuyển</span><span class="val" id="shipVal">—</span></div>
+      </div>
+
+      <div class="summary-total">
+        <span class="total-lbl">Tổng thanh toán</span>
+        <span class="total-val" id="totalVal">—</span>
+      </div>
+
+      <div class="form-agree">
+        <input type="checkbox" id="agreeCheck" checked>
+        <span>Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a> của Trầm Hương Shop</span>
+      </div>
+
+      <button class="btn-place" onclick="placeOrder()">
+        🛡️ Đặt hàng ngay
+      </button>
+      <button class="btn-back" onclick="location.href='gio-hang.html'">← Quay lại giỏ hàng</button>
+      <div class="secure-note">🔒 Thông tin của bạn được mã hoá và bảo mật</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SHIPPING_FREE = 500000, SHIP_FEE = 35000;
+const ICONS = {'sp1':'🪔','sp2':'🫙','sp3':'📿','sp4':'🎁','sp5':'🪔','sp-detail':'🪔','flash1':'🪔','flash2':'🫙','flash3':'🪵','flash4':'🏺','up1':'🏺','up2':'🫙','up3':'🎁'};
+let cart = JSON.parse(localStorage.getItem('th_cart')||'[]');
+if(!cart.length) cart = [{id:'sp-detail',name:'Nhang Trầm Kỳ Nam Hộp 50 Que',price:285000,qty:2},{id:'sp7',name:'Đế Xông Gốm Thủ Công Huế',price:145000,qty:1}];
+const fmt = n => n.toLocaleString('vi-VN')+'đ';
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';t.style.transform='translateY(0)';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(8px)';},2600);}
+
+function renderSummary(){
+  const sub = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const ship = sub>=SHIPPING_FREE?0:SHIP_FEE;
+  document.getElementById('orderItems').innerHTML = cart.map(item=>`
+    <div class="order-item">
+      <div class="order-item-img">${ICONS[item.id]||'🪔'}<span class="order-item-qty">${item.qty}</span></div>
+      <div class="order-item-name">${item.name}</div>
+      <div class="order-item-price">${fmt(item.price*item.qty)}</div>
+    </div>`).join('');
+  document.getElementById('subVal').textContent = fmt(sub);
+  document.getElementById('shipVal').textContent = ship===0?'<span style="color:#27ae60">Miễn phí</span>':fmt(ship);
+  document.getElementById('shipVal').innerHTML = ship===0?'<span style="color:#27ae60">Miễn phí</span>':fmt(ship);
+  document.getElementById('totalVal').textContent = fmt(sub+ship);
+}
+
+function selectPay(label){
+  document.querySelectorAll('.pay-option').forEach(l=>l.classList.remove('selected'));
+  label.classList.add('selected');
+}
+
+function validatePhone(inp){
+  const v = inp.value.replace(/\D/g,'');
+  const ok = /^(0[3-9]\d{8})$/.test(v) || /^(84[3-9]\d{8})$/.test(v);
+  document.getElementById('phoneVerified').style.display = ok?'block':'none';
+  return ok;
+}
+
+function validate(){
+  let ok=true;
+  const fields=[
+    {id:'fullName',msg:'Vui lòng nhập họ tên'},
+    {id:'phone',msg:'Vui lòng nhập số điện thoại hợp lệ'},
+    {id:'province',msg:'Vui lòng chọn tỉnh thành'},
+    {id:'address',msg:'Vui lòng nhập địa chỉ'},
+  ];
+  fields.forEach(f=>{
+    const el=document.getElementById(f.id);
+    const empty = !el.value.trim();
+    const phoneInvalid = f.id==='phone' && !validatePhone(el);
+    if(empty || phoneInvalid){
+      el.classList.add('error');
+      const errEl = el.nextElementSibling;
+      if(errEl && errEl.classList.contains('err-msg')) errEl.style.display='block';
+      ok=false;
+    } else {
+      el.classList.remove('error');
+      const errEl = el.nextElementSibling;
+      if(errEl && errEl.classList.contains('err-msg')) errEl.style.display='none';
+    }
+  });
+  if(!document.getElementById('agreeCheck').checked){
+    showToast('Vui lòng đồng ý với điều khoản dịch vụ'); ok=false;
+  }
+  return ok;
+}
+
+function placeOrder(){
+  if(!validate()) return;
+  const code = 'TH'+Date.now().toString().slice(-8);
+  const info = {
+    code, name:document.getElementById('fullName').value,
+    phone:document.getElementById('phone').value,
+    address:document.getElementById('address').value+', '+document.getElementById('district').value+', '+document.getElementById('province').value,
+    payment: document.querySelector('input[name=payment]:checked').value,
+  };
+  localStorage.setItem('th_last_order', JSON.stringify(info));
+  localStorage.setItem('th_cart','[]');
+  location.href = 'dat-hang-thanh-cong.html';
+}
+
+function updateDistrict(){} // placeholder for real API
+
+renderSummary();
+</script>
+</body>
+</html>
