@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tra Cứu Đơn Hàng — Trầm Hương Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1C1209;--ink-2:#3D2B1A;--ink-3:#6B4F35;--ink-4:#9C7A58;--warm-50:#FBF7F0;--warm-100:#F5ECD8;--warm-200:#E8D5B0;--gold:#B8860B;--gold-lt:#D4A827;--bg:#FAF6EF;--cream:#FFFDF7;--border:rgba(60,35,10,.12);--border-2:rgba(60,35,10,.22);--shadow:0 2px 24px rgba(60,35,10,.08);--shadow-lg:0 8px 48px rgba(60,35,10,.14);--serif:'Cormorant Garamond',Georgia,serif;--sans:'Be Vietnam Pro',sans-serif;--radius:12px;--radius-lg:20px;--tr:.22s cubic-bezier(.4,0,.2,1);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.7;}
+a{color:inherit;text-decoration:none;}button{cursor:pointer;font-family:var(--sans);border:none;background:none;}input{font-family:var(--sans);}
+
+.site-header{background:rgba(250,246,239,.95);border-bottom:1px solid var(--border);}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 32px;height:68px;display:flex;align-items:center;gap:24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);line-height:1.2;}
+.logo-text span{display:block;font-size:11px;font-weight:300;letter-spacing:.1em;color:var(--ink-3);}
+.nav-actions{margin-left:auto;display:flex;gap:10px;}
+.nav-btn{height:36px;padding:0 16px;border-radius:99px;font-size:13px;font-weight:500;border:1px solid var(--border-2);color:var(--ink-2);transition:var(--tr);}
+.nav-btn:hover{background:var(--warm-100);}
+
+/* PAGE */
+.page-wrap{max-width:640px;margin:0 auto;padding:56px 24px 80px;}
+.page-header{text-align:center;margin-bottom:40px;}
+.page-icon{font-size:48px;margin-bottom:12px;}
+.page-title{font-family:var(--serif);font-size:40px;font-weight:300;color:var(--ink);margin-bottom:8px;}
+.page-sub{font-size:15px;color:var(--ink-4);max-width:440px;margin:0 auto;}
+
+/* CARD */
+.lookup-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+
+/* STEP */
+.step-wrap{padding:32px 36px;display:none;}
+.step-wrap.active{display:block;}
+.step-title{font-family:var(--serif);font-size:24px;font-weight:400;color:var(--ink);margin-bottom:6px;}
+.step-sub{font-size:14px;color:var(--ink-4);margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:13px;font-weight:500;color:var(--ink-2);display:block;margin-bottom:6px;}
+.form-label .req{color:#c0392b;}
+
+/* Phone input */
+.phone-row{display:flex;gap:10px;}
+.phone-input-wrap{flex:1;position:relative;}
+.phone-flag{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;}
+.form-input{width:100%;height:48px;padding:0 16px;border:1.5px solid var(--border-2);border-radius:12px;font-size:15px;color:var(--ink);background:var(--warm-50);outline:none;transition:var(--tr);}
+.form-input.phone-field{padding-left:46px;}
+.form-input:focus{border-color:var(--ink-3);background:var(--cream);}
+.form-input::placeholder{color:var(--ink-4);}
+.form-input.error{border-color:#c0392b;}
+
+/* OTP */
+.otp-row{display:flex;gap:10px;justify-content:center;margin-bottom:8px;}
+.otp-box{width:52px;height:60px;border-radius:12px;border:1.5px solid var(--border-2);font-size:24px;font-weight:600;text-align:center;color:var(--ink);background:var(--warm-50);outline:none;transition:var(--tr);font-family:var(--serif);}
+.otp-box:focus{border-color:var(--ink);background:var(--cream);}
+.otp-box.filled{border-color:var(--ink);background:var(--cream);}
+.otp-box.error{border-color:#c0392b;animation:shake .3s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.otp-info{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-top:8px;}
+.countdown{color:var(--ink-4);}
+.countdown strong{color:var(--gold);font-weight:600;}
+.resend-btn{color:var(--ink-3);text-decoration:underline;text-underline-offset:2px;transition:var(--tr);display:none;}
+.resend-btn.show{display:inline;}
+.resend-btn:hover{color:var(--ink);}
+
+.btn-primary{width:100%;height:50px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);margin-top:8px;}
+.btn-primary:hover{background:var(--ink-2);}
+.btn-primary:disabled{opacity:.5;pointer-events:none;}
+.btn-back-step{width:100%;height:40px;border-radius:99px;border:1px solid var(--border-2);font-size:14px;color:var(--ink-4);margin-top:10px;transition:var(--tr);}
+.btn-back-step:hover{background:var(--warm-100);}
+.err-note{text-align:center;font-size:13px;color:#c0392b;margin-top:8px;display:none;}
+.success-note{text-align:center;font-size:13px;color:#27ae60;margin-top:8px;display:none;}
+
+/* ORDERS LIST */
+.orders-wrap{padding:0;}
+.orders-top{padding:20px 28px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.orders-title{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--ink);}
+.orders-phone{font-size:13px;color:var(--ink-4);}
+.btn-create-from-orders{padding:6px 16px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:12px;font-weight:500;transition:var(--tr);}
+.btn-create-from-orders:hover{background:var(--ink-2);}
+.orders-list{padding:16px 0 0;}
+.order-item{padding:20px 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;transition:var(--tr);flex-wrap:wrap;}
+.order-item:hover{background:var(--warm-50);}
+.order-meta{flex:1;}
+.order-code{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+.order-date{font-size:13px;color:var(--ink-4);}
+.order-items-preview{font-size:13px;color:var(--ink-3);margin-top:2px;}
+.order-right{text-align:right;flex-shrink:0;}
+.order-total{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.order-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;}
+.status-pending{background:#fff7e0;color:#b8860b;}
+.status-processing{background:#e6f0ff;color:#2563eb;}
+.status-delivering{background:#e6f9f0;color:#059669;}
+.status-done{background:#edfaf1;color:#27ae60;}
+.status-cancelled{background:#fde8e8;color:#c0392b;}
+.btn-view-detail{margin-top:6px;padding:4px 14px;border-radius:99px;border:1px solid var(--border-2);font-size:12px;color:var(--ink-3);transition:var(--tr);}
+.btn-view-detail:hover{background:var(--warm-100);}
+.orders-empty{text-align:center;padding:48px 24px;color:var(--ink-4);font-size:14px;}
+.orders-footer{padding:16px 28px;border-top:1px solid var(--border);display:flex;justify-content:center;gap:12px;}
+
+/* INFO BOX */
+.info-box{display:flex;gap:12px;background:var(--warm-50);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:20px;}
+.info-box-icon{font-size:20px;flex-shrink:0;}
+.info-box-text{font-size:13px;color:var(--ink-3);line-height:1.6;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:var(--warm-100);padding:12px 20px;border-radius:99px;font-size:13px;font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;}
+
+@media(max-width:480px){
+  .step-wrap{padding:24px 20px;}
+  .otp-box{width:44px;height:54px;font-size:20px;}
+  .orders-top{flex-direction:column;align-items:flex-start;}
+  .order-item{flex-direction:column;align-items:flex-start;}
+  .order-right{text-align:left;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-icon">🌿</div>
+      <div class="logo-text">Trầm Hương Shop<span>Hương Trầm Việt Nam</span></div>
+    </a>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-btn">← Trang chủ</a>
+      <a href="san-pham.html" class="nav-btn">Sản phẩm</a>
+    </div>
+  </nav>
+</header>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <div class="page-icon">🔍</div>
+    <h1 class="page-title">Tra cứu đơn hàng</h1>
+    <p class="page-sub">Nhập số điện thoại bạn đã dùng khi đặt hàng — không cần tài khoản</p>
+  </div>
+
+  <div class="lookup-card">
+
+    <!-- STEP 1: Nhập SĐT -->
+    <div class="step-wrap active" id="step1">
+      <div class="step-title">Nhập số điện thoại</div>
+      <div class="step-sub">Chúng tôi sẽ gửi mã OTP xác nhận về số này</div>
+
+      <div class="form-group">
+        <label class="form-label">Số điện thoại <span class="req">*</span></label>
+        <div class="phone-row">
+          <div class="phone-input-wrap">
+            <span class="phone-flag">🇻🇳</span>
+            <input class="form-input phone-field" type="tel" id="phoneInput" placeholder="0901 234 567" maxlength="11">
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <span class="info-box-icon">🔒</span>
+        <span class="info-box-text">Số điện thoại được mã hoá trong hệ thống — chúng tôi không lưu trữ hay chia sẻ thông tin của bạn. Mã OTP chỉ có hiệu lực trong 5 phút.</span>
+      </div>
+
+      <button class="btn-primary" style="margin-top:20px;" onclick="sendOTP()">
+        📱 Gửi mã OTP
+      </button>
+      <div class="err-note" id="step1Err">Số điện thoại không hợp lệ. Vui lòng kiểm tra lại.</div>
+    </div>
+
+    <!-- STEP 2: Nhập OTP -->
+    <div class="step-wrap" id="step2">
+      <div class="step-title">Nhập mã xác thực</div>
+      <div class="step-sub">Mã OTP 6 số vừa được gửi đến <strong id="otpTarget">—</strong></div>
+
+      <div class="otp-row" id="otpRow">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" oninput="otpInput(this,0)" onkeydown="otpKey(event,this)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" oninput="otpInput(this,1)" onkeydown="otpKey(event,this)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" oninput="otpInput(this,2)" onkeydown="otpKey(event,this)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" oninput="otpInput(this,3)" onkeydown="otpKey(event,this)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" oninput="otpInput(this,4)" onkeydown="otpKey(event,this)">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" oninput="otpInput(this,5)" onkeydown="otpKey(event,this)">
+      </div>
+
+      <div class="otp-info">
+        <span class="countdown">Hết hạn sau: <strong id="countdown">5:00</strong></span>
+        <button class="resend-btn" id="resendBtn" onclick="resendOTP()">Gửi lại OTP</button>
+      </div>
+
+      <div class="err-note" id="step2Err">Mã OTP không đúng. Vui lòng thử lại.</div>
+      <div class="success-note" id="step2Ok">✓ Xác thực thành công!</div>
+
+      <button class="btn-primary" onclick="verifyOTP()">✓ Xác nhận</button>
+      <button class="btn-back-step" onclick="goStep(1)">← Đổi số điện thoại</button>
+
+      <div class="info-box" style="margin-top:16px;">
+        <span class="info-box-icon">💡</span>
+        <span class="info-box-text">Demo: Nhập OTP bất kỳ 6 chữ số (VD: <strong>123456</strong>) để xem kết quả tra cứu.</span>
+      </div>
+    </div>
+
+    <!-- STEP 3: Danh sách đơn hàng -->
+    <div class="step-wrap" id="step3" style="padding:0;">
+      <div class="orders-wrap">
+        <div class="orders-top">
+          <div>
+            <div class="orders-title">Lịch sử đơn hàng</div>
+            <div class="orders-phone" id="ordersPhone">SĐT: ****1234</div>
+          </div>
+          <button class="btn-create-from-orders" onclick="showToast('Chức năng tạo tài khoản — sẽ mở form đặt mật khẩu')">
+            + Tạo tài khoản từ SĐT này
+          </button>
+        </div>
+
+        <div class="orders-list" id="ordersList"></div>
+
+        <div class="orders-footer">
+          <button class="btn-back-step" style="width:auto;padding:0 24px;" onclick="goStep(1)">← Tra cứu số khác</button>
+          <a href="san-pham.html" class="btn-create-from-orders">🛍️ Tiếp tục mua sắm</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════
+// MOCK DATA
+// ════════════════════════════════
+const MOCK_ORDERS = [
+  {code:'TH20250312',date:'12/03/2025',items:'Nhang Trầm Kỳ Nam × 2, Đế Xông Gốm × 1',total:715000,status:'done',statusLabel:'Đã giao'},
+  {code:'TH20250228',date:'28/02/2025',items:'Tinh Dầu Trầm 10ml × 1',total:450000,status:'done',statusLabel:'Đã giao'},
+  {code:'TH20250401',date:'01/04/2025',items:'Bộ Quà Tặng Cao Cấp × 1',total:750000,status:'delivering',statusLabel:'🚚 Đang giao'},
+  {code:'TH20250409',date:'09/04/2025',items:'Nhang Trầm Nụ Hội An × 3',total:540000,status:'processing',statusLabel:'⚙️ Đang chuẩn bị'},
+];
+
+let phone = '';
+let countdownTimer = null;
+let secondsLeft = 300;
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';t.style.transform='translateY(0)';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(8px)';},2600);}
+
+function goStep(n){
+  document.querySelectorAll('.step-wrap').forEach((el,i)=>{
+    el.classList.toggle('active', i===n-1);
+  });
+}
+
+function validatePhone(v){
+  return /^0[3-9]\d{8}$/.test(v.replace(/\s/g,''));
+}
+
+function maskPhone(v){
+  const clean = v.replace(/\D/g,'');
+  return clean.slice(0,4)+' ****'+' '+clean.slice(-3);
+}
+
+function sendOTP(){
+  const inp = document.getElementById('phoneInput');
+  phone = inp.value.replace(/\s/g,'');
+  const err = document.getElementById('step1Err');
+  if(!validatePhone(phone)){
+    inp.classList.add('error');
+    err.style.display='block';
+    return;
+  }
+  inp.classList.remove('error');
+  err.style.display='none';
+  document.getElementById('otpTarget').textContent = maskPhone(phone);
+  document.getElementById('ordersPhone').textContent = 'SĐT: '+maskPhone(phone);
+  startCountdown();
+  goStep(2);
+  document.querySelectorAll('.otp-box')[0].focus();
+  showToast('📱 Đã gửi OTP đến '+maskPhone(phone)+' (Demo: nhập 123456)');
+}
+
+function startCountdown(){
+  clearInterval(countdownTimer);
+  secondsLeft = 300;
+  document.getElementById('resendBtn').classList.remove('show');
+  function tick(){
+    const m = Math.floor(secondsLeft/60);
+    const s = secondsLeft%60;
+    document.getElementById('countdown').textContent = m+':'+(s<10?'0':'')+s;
+    if(secondsLeft<=0){
+      clearInterval(countdownTimer);
+      document.getElementById('resendBtn').classList.add('show');
+      document.getElementById('countdown').textContent='Hết hạn';
+    }
+    secondsLeft--;
+  }
+  tick();
+  countdownTimer = setInterval(tick,1000);
+}
+
+function resendOTP(){
+  showToast('📱 Đã gửi lại OTP');
+  document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.remove('filled');});
+  startCountdown();
+  document.querySelectorAll('.otp-box')[0].focus();
+}
+
+function otpInput(el, idx){
+  const v = el.value.replace(/\D/g,'');
+  el.value = v;
+  el.classList.toggle('filled', v.length>0);
+  if(v && idx<5) document.querySelectorAll('.otp-box')[idx+1].focus();
+  // Auto-verify when all filled
+  const all = [...document.querySelectorAll('.otp-box')].map(b=>b.value).join('');
+  if(all.length===6) setTimeout(verifyOTP,300);
+}
+
+function otpKey(e, el){
+  if(e.key==='Backspace'&&!el.value){
+    const boxes=[...document.querySelectorAll('.otp-box')];
+    const idx=boxes.indexOf(el);
+    if(idx>0) boxes[idx-1].focus();
+  }
+}
+
+function verifyOTP(){
+  const otp = [...document.querySelectorAll('.otp-box')].map(b=>b.value).join('');
+  const err = document.getElementById('step2Err');
+  const ok = document.getElementById('step2Ok');
+  if(otp.length<6){showToast('Vui lòng nhập đủ 6 chữ số OTP');return;}
+  // Demo: any 6 digits work
+  clearInterval(countdownTimer);
+  err.style.display='none';
+  ok.style.display='block';
+  renderOrders();
+  setTimeout(()=>goStep(3), 600);
+}
+
+function renderOrders(){
+  const list = document.getElementById('ordersList');
+  const statusClass = {done:'status-done',delivering:'status-delivering',processing:'status-processing',pending:'status-pending',cancelled:'status-cancelled'};
+  list.innerHTML = MOCK_ORDERS.map(o=>`
+  <div class="order-item">
+    <div class="order-meta">
+      <div class="order-code">${o.code}</div>
+      <div class="order-date">📅 ${o.date}</div>
+      <div class="order-items-preview">🛍️ ${o.items}</div>
+    </div>
+    <div class="order-right">
+      <div class="order-total">${o.total.toLocaleString('vi-VN')}đ</div>
+      <div><span class="order-status ${statusClass[o.status]||'status-pending'}">${o.statusLabel}</span></div>
+      <button class="btn-view-detail" onclick="showToast('Xem chi tiết đơn ${o.code}')">Xem chi tiết →</button>
+    </div>
+  </div>`).join('') || `<div class="orders-empty">📦 Không tìm thấy đơn hàng nào với số điện thoại này</div>`;
+}
+</script>
+</body>
+</html>
