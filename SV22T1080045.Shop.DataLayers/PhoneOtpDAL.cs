@@ -27,8 +27,8 @@ namespace SV22T1080045.Shop.DataLayers
             var code = Random.Shared.Next(100000, 999999).ToString();
 
             conn.Execute(@"
-                INSERT INTO PhoneOtps (Phone, OtpCode, Purpose, ExpiresAt, IsUsed, FailCount, CreatedAt)
-                VALUES (@phone, @code, @purpose, DATEADD(MINUTE,5,GETDATE()), 0, 0, GETDATE())",
+                INSERT INTO PhoneOtps (Phone, OtpCode, Purpose, ExpiresAt, IsUsed, FailCount, CreatedAt, CreatedTime, IsDeleted)
+                VALUES (@phone, @code, @purpose, DATEADD(MINUTE,5,GETDATE()), 0, 0, GETDATE(), GETDATE(), 0)",
                 new { phone, code, purpose });
 
             return code;
