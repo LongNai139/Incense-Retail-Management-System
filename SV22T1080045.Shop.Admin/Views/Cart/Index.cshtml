@@ -1,306 +1,78 @@
-﻿@* @model List<SV22T1080045.Shop.DomainModels.CartItem> *@
-@* @{ *@
-@*     ViewBag.Title = "Giỏ hàng của bạn"; *@
-@*     decimal totalAmount = Model.Sum(x => x.TotalPrice); *@
-@* } *@
+@model List<SV22T1080045.Shop.BusinessLayers.CartItem>
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    var totalAmount = Model.Sum(x => x.TotalPrice);
+}
 
-@* @section Styles { *@
-@*     <style> *@
-@*         :root { *@
-@*             --pink-color: #ff69b4; *@
-@*             --pink-hover: #e0529e; *@
-@*         } *@
+<section class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold mb-0">Giỏ hàng của bạn</h1>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-dark rounded-pill">Tiếp tục mua hàng</a>
+    </div>
 
-@*         .text-pink { *@
-@*             color: var(--pink-color) !important; *@
-@*         } *@
-
-@*         .bg-pink { *@
-@*             background-color: var(--pink-color) !important; *@
-@*         } *@
-
-@*         .cart-wrapper { *@
-@*             background-color: #f8f9fa; *@
-@*             min-height: 80vh; *@
-@*         } *@
-
-@*         .cart-card { *@
-@*             border: none; *@
-@*             border-radius: 16px; *@
-@*             background: #fff; *@
-@*             box-shadow: 0 4px 20px rgba(0,0,0,0.03); *@
-@*             overflow: hidden; *@
-@*         } *@
-
-@*         .cart-table thead th { *@
-@*             border: none; *@
-@*             color: #888; *@
-@*             font-weight: 600; *@
-@*             padding-bottom: 15px; *@
-@*             font-size: 0.9rem; *@
-@*             text-transform: uppercase; *@
-@*         } *@
-
-@*         .cart-table td { *@
-@*             vertical-align: middle; *@
-@*             padding: 20px 0; *@
-@*             border-bottom: 1px solid #f5f5f5; *@
-@*         } *@
-
-@*         .cart-table tr:last-child td { *@
-@*             border-bottom: none; *@
-@*         } *@
-
-@*         .product-img-box { *@
-@*             width: 80px; *@
-@*             height: 80px; *@
-@*             border-radius: 12px; *@
-@*             overflow: hidden; *@
-@*             border: 1px solid #eee; *@
-@*             background: #fff; *@
-@*         } *@
-
-@*         .product-img { *@
-@*             width: 100%; *@
-@*             height: 100%; *@
-@*             object-fit: cover;  *@
-@*         } *@
-
-@*         .qty-input { *@
-@*             width: 50px; *@
-@*             border: 1px solid #e0e0e0; *@
-@*             border-radius: 8px; *@
-@*             text-align: center; *@
-@*             font-weight: 600; *@
-@*             color: #333; *@
-@*             padding: 5px; *@
-@*             transition: all 0.2s; *@
-@*         } *@
-
-@*             .qty-input:focus { *@
-@*                 border-color: var(--pink-color); *@
-@*                 box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1); *@
-@*                 outline: none; *@
-@*             } *@
-
-@*         /* Summary Box */ *@
-@*         .summary-box { *@
-@*             position: sticky; *@
-@*             top: 20px; *@
-@*             background: #fff; *@
-@*             border-radius: 16px; *@
-@*             padding: 25px; *@
-@*             box-shadow: 0 4px 25px rgba(0,0,0,0.05); *@
-@*             border: 1px solid #f0f0f0; *@
-@*         } *@
-
-@*         /* Buttons */ *@
-@*         .btn-checkout { *@
-@*             background: var(--pink-color); *@
-@*             border: none; *@
-@*             border-radius: 50px; *@
-@*             padding: 12px; *@
-@*             font-weight: 700; *@
-@*             letter-spacing: 0.5px; *@
-@*             box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3); *@
-@*             transition: all 0.3s; *@
-@*             color: white; *@
-@*         } *@
-
-@*             .btn-checkout:hover { *@
-@*                 background: var(--pink-hover); *@
-@*                 transform: translateY(-2px); *@
-@*                 box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4); *@
-@*                 color: white; *@
-@*             } *@
-
-@*         .remove-btn { *@
-@*             color: #999; *@
-@*             background: none; *@
-@*             border: none; *@
-@*             padding: 0; *@
-@*             font-size: 0.9rem; *@
-@*             transition: 0.2s; *@
-@*         } *@
-
-@*             .remove-btn:hover { *@
-@*                 color: #dc3545;  *@
-@*             } *@
-
-@*         .table-responsive::-webkit-scrollbar { *@
-@*             height: 6px; *@
-@*         } *@
-
-@*         .table-responsive::-webkit-scrollbar-thumb { *@
-@*             background: #eee; *@
-@*             border-radius: 10px; *@
-@*         } *@
-@*     </style> *@
-@* } *@
-
-@* <div class="container my-5"> *@
-@*     <div class="d-flex align-items-center mb-4"> *@
-@*         <h3 class="fw-bold m-0" style="color: #333;"> *@
-@*             <i class="fas fa-shopping-bag me-2 text-pink"></i>Giỏ hàng *@
-@*         </h3> *@
-@*         @if (Model.Count > 0) *@
-@*         { *@
-@*             <span class="badge bg-pink ms-3 rounded-pill">@Model.Count món</span> *@
-@*         } *@
-@*     </div> *@
-
-@*     @if (Model.Count == 0) *@
-@*     { *@
-@*         <div class="text-center py-5 bg-white rounded-4 shadow-sm"> *@
-@*             <div class="mb-4"> *@
-@*                 <i class="fas fa-shopping-basket fa-4x text-muted opacity-25"></i> *@
-@*             </div> *@
-@*             <h4 class="fw-bold text-dark">Giỏ hàng đang trống</h4> *@
-@*             <p class="text-muted mb-4">Có vẻ như bạn chưa chọn món nào cả. Hãy thử xem thực đơn nhé!</p> *@
-@*             <a href="/" class="btn btn-checkout px-5"> *@
-@*                 <i class="fas fa-utensils me-2"></i> Xem thực đơn *@
-@*             </a> *@
-@*         </div> *@
-@*     } *@
-@*     else *@
-@*     { *@
-@*         <div class="row g-4"> *@
-@*             <div class="col-lg-8"> *@
-@*                 <div class="cart-card"> *@
-@*                     <div class="card-body p-0"> *@
-@*                         <div class="table-responsive px-4"> *@
-@*                             <table class="table cart-table mb-0"> *@
-@*                                 <thead> *@
-@*                                     <tr> *@
-@*                                         <th style="width: 45%">Sản phẩm</th> *@
-@*                                         <th class="text-center">Đơn giá</th> *@
-@*                                         <th class="text-center">Số lượng</th> *@
-@*                                         <th class="text-end">Thành tiền</th> *@
-@*                                     </tr> *@
-@*                                 </thead> *@
-@*                                 <tbody> *@
-@*                                     @foreach (var item in Model) *@
-@*                                     { *@
-@*                                         // --- LOGIC XỬ LÝ ẢNH --- *@
-@*                                         string imgUrl = "https://placehold.co/80?text=No+Img"; *@
-@*                                         if (!string.IsNullOrEmpty(item.Photo)) *@
-@*                                         { *@
-@*                                             if (item.Photo.StartsWith("/image") || item.Photo.Contains("/")) *@
-@*                                             { *@
-@*                                                 imgUrl = item.Photo; // Ảnh cũ *@
-@*                                             } *@
-@*                                             else *@
-@*                                             { *@
-@*                                                 imgUrl = $"/image/{item.Photo}"; // Ảnh mới *@
-@*                                             } *@
-@*                                         } *@
-
-@*                                         <tr> *@
-@*                                             <td> *@
-@*                                                 <div class="d-flex align-items-center"> *@
-@*                                                     <div class="product-img-box flex-shrink-0"> *@
-@*                                                         <img src="@imgUrl" *@
-@*                                                              class="product-img" *@
-@*                                                              alt="@item.ProductName" *@
-@*                                                              onerror="this.onerror=null;this.src='https://placehold.co/80?text=Error';" /> *@
-@*                                                     </div> *@
-@*                                                     <div class="ms-3"> *@
-@*                                                         <a href="/Home/Details/@item.ProductID" class="fw-bold text-dark text-decoration-none d-block mb-1 text-truncate hover-pink" style="max-width: 220px;"> *@
-@*                                                             @item.ProductName *@
-@*                                                         </a> *@
-@*                                                         <a href="/Cart/RemoveFromCart/@item.ProductID" *@
-@*                                                            class="remove-btn small text-decoration-none" *@
-@*                                                            onclick="return confirm('Xóa món này khỏi giỏ hàng?')"> *@
-@*                                                             <i class="fas fa-trash-alt me-1"></i> Xóa *@
-@*                                                         </a> *@
-@*                                                     </div> *@
-@*                                                 </div> *@
-@*                                             </td> *@
-@*                                             <td class="text-center text-muted">@item.Price.ToString("N0")₫</td> *@
-@*                                             <td class="text-center"> *@
-@*                                                 <form action="/Cart/UpdateQuantity" method="post"> *@
-@*                                                     <input type="hidden" name="id" value="@item.ProductID" /> *@
-@*                                                     <input type="number" name="quantity" value="@item.Quantity" min="1" max="99" *@
-@*                                                            class="qty-input" *@
-@*                                                            onchange="this.form.submit()" /> *@
-@*                                                 </form> *@
-@*                                             </td> *@
-@*                                             <td class="text-end fw-bold text-pink"> *@
-@*                                                 @item.TotalPrice.ToString("N0")₫ *@
-@*                                             </td> *@
-@*                                         </tr> *@
-@*                                     } *@
-@*                                 </tbody> *@
-@*                             </table> *@
-@*                         </div> *@
-@*                     </div> *@
-
-@*                     <div class="bg-light p-3 d-flex justify-content-between align-items-center border-top"> *@
-@*                         <a href="/" class="text-decoration-none fw-bold small text-secondary hover-pink"> *@
-@*                             <i class="fas fa-arrow-left me-1"></i> Tiếp tục xem món *@
-@*                         </a> *@
-@*                         <a href="/Cart/ClearCart" class="text-danger fw-bold small text-decoration-none px-3 py-1 rounded hover-bg-light" *@
-@*                            onclick="return confirm('Bạn chắc chắn muốn xóa sạch giỏ hàng?')"> *@
-@*                             <i class="fas fa-times-circle me-1"></i> Xóa tất cả *@
-@*                         </a> *@
-@*                     </div> *@
-@*                 </div> *@
-@*             </div> *@
-
-@*             <div class="col-lg-4"> *@
-@*                 <div class="summary-box"> *@
-@*                     <h5 class="fw-bold mb-4">Đơn hàng</h5> *@
-
-@*                     <div class="d-flex justify-content-between mb-3"> *@
-@*                         <span class="text-muted">Tạm tính</span> *@
-@*                         <span class="fw-bold">@totalAmount.ToString("N0")₫</span> *@
-@*                     </div> *@
-@*                     <div class="d-flex justify-content-between mb-3"> *@
-@*                         <span class="text-muted">Giảm giá</span> *@
-@*                         <span class="text-success fw-bold">- 0₫</span> *@
-@*                     </div> *@
-
-@*                     <hr class="my-3 text-muted opacity-25"> *@
-
-@*                     <div class="d-flex justify-content-between align-items-center mb-4"> *@
-@*                         <span class="h6 fw-bold mb-0">Tổng cộng</span> *@
-@*                         <span class="h4 fw-bold text-pink mb-0">@totalAmount.ToString("N0")₫</span> *@
-@*                     </div> *@
-
-@*                     @if (User.Identity.IsAuthenticated) *@
-@*                     { *@
-@*                         <a href="/Order/Checkout" class="btn btn-checkout w-100 text-uppercase"> *@
-@*                             Thanh toán ngay <i class="fas fa-arrow-right ms-2"></i> *@
-@*                         </a> *@
-@*                     } *@
-@*                     else *@
-@*                     { *@
-@*                         <a href="/Account/Login" class="btn btn-outline-secondary w-100 rounded-pill fw-bold py-2 mb-2"> *@
-@*                             <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập để đặt *@
-@*                         </a> *@
-@*                         <div class="text-center small mt-2"> *@
-@*                             <span class="text-muted">Chưa có tài khoản?</span> *@
-@*                             <a href="/Account/Register" class="text-decoration-none fw-bold ms-1 text-pink">Đăng ký</a> *@
-@*                         </div> *@
-@*                     } *@
-@*                 </div> *@
-
-@*                 <div class="mt-3 text-center text-muted small"> *@
-@*                     <i class="fas fa-shield-alt me-1 text-success"></i> Bảo mật thanh toán *@
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*     } *@
-@* </div> *@
-
-@* @section Scripts { *@
-@*     <script> *@
-@*         // Hiệu ứng hover cho link text *@
-@*         $(document).ready(function(){ *@
-@*             $('.hover-pink').hover( *@
-@*                 function() { $(this).addClass('text-pink'); }, *@
-@*                 function() { $(this).removeClass('text-pink'); } *@
-@*             ); *@
-@*         }); *@
-@*     </script> *@
-@* } *@
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning rounded-4">Giỏ hàng đang trống. Hãy thêm sản phẩm trước khi thanh toán.</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="p-4 rounded-4" style="background:#fff; border:1px solid #ead8c9;">
+                    @foreach (var item in Model)
+                    {
+                        <div class="row g-3 align-items-center py-3 border-bottom">
+                            <div class="col-md-5">
+                                <div class="fw-semibold">@item.ProductName</div>
+                                <div class="small text-secondary">Đơn giá: @item.Price.ToString("N0")đ</div>
+                            </div>
+                            <div class="col-md-3">
+                                <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" class="d-flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productID" value="@item.ProductID" />
+                                    <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control" />
+                                    <button type="submit" class="btn btn-outline-secondary">Cập nhật</button>
+                                </form>
+                            </div>
+                            <div class="col-md-2 fw-bold text-danger">
+                                @item.TotalPrice.ToString("N0")đ
+                            </div>
+                            <div class="col-md-2 text-md-end">
+                                <form asp-controller="Cart" asp-action="RemoveFromCart" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productID" value="@item.ProductID" />
+                                    <button type="submit" class="btn btn-link text-danger text-decoration-none p-0">Xóa</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="p-4 rounded-4" style="background:#fff; border:1px solid #ead8c9;">
+                    <h2 class="h5 fw-bold mb-3">Tóm tắt đơn hàng</h2>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tạm tính</span>
+                        <span>@totalAmount.ToString("N0")đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Giảm giá</span>
+                        <span>0đ</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+                        <span>Tổng cộng</span>
+                        <span class="text-danger">@totalAmount.ToString("N0")đ</span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Checkout" asp-action="Index" class="btn btn-dark rounded-pill">Tiến hành thanh toán</a>
+                        <form asp-controller="Cart" asp-action="ClearCart" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger rounded-pill w-100">Xóa toàn bộ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</section>

@@ -1,243 +1,195 @@
-﻿ @using Microsoft.AspNetCore.Http 
- @using Newtonsoft.Json 
- @using SV22T1080045.Shop.DomainModels 
- @inject IHttpContextAccessor HttpContextAccessor     
+@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@using SV22T1080045.Shop.BusinessLayers
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var cartJson = HttpContextAccessor.HttpContext?.Session.GetString("SHOP_CART");
+    var cart = string.IsNullOrWhiteSpace(cartJson)
+        ? new List<CartItem>()
+        : JsonConvert.DeserializeObject<List<CartItem>>(cartJson) ?? new List<CartItem>();
+    var cartCount = cart.Sum(x => x.Quantity);
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Trầm Hương Shop</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/SV22T1080045.Shop.Admin.styles.css" asp-append-version="true" />
+    <style>
+        :root {
+            --bg: #f6f0e8;
+            --text: #2e2018;
+            --muted: #7b6a5f;
+            --accent: #7a4b2e;
+            --accent-2: #b67a45;
+            --line: #e6d6c7;
+        }
 
- <!DOCTYPE html> 
- <html lang="vi"> 
- <head> 
-     <meta charset="utf-8" /> 
-     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
-     <title>@ViewData["Title"] - Doraemon Tea</title> 
+        body {
+            background:
+                radial-gradient(circle at top right, rgba(182, 122, 69, .18), transparent 24%),
+                linear-gradient(180deg, #fbf7f2 0%, var(--bg) 100%);
+            color: var(--text);
+        }
 
-     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> 
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
-     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"> 
+        .site-header {
+            background: rgba(255, 250, 245, .92);
+            border-bottom: 1px solid rgba(122, 75, 46, .1);
+            backdrop-filter: blur(14px);
+        }
 
-     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> 
-     <link rel="stylesheet" href="~/SV22T1080045.Shop.Admin.styles.css" asp-append-version="true" /> 
+        .navbar-brand {
+            color: var(--accent) !important;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
 
-     <style> 
-         :root { 
-             --primary-color: #00a0e9; 
-             --primary-hover: #0089c7; 
-             --pink-accent: #ff69b4;  
-         } 
+        .nav-link {
+            color: var(--muted) !important;
+            font-weight: 600;
+        }
 
-         body { 
-             font-family: 'Fredoka', sans-serif; 
-             background-color: #f4f8fb; 
-             color: #444; 
-         } 
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--accent) !important;
+        }
 
-         .navbar { 
-             background: rgba(255, 255, 255, 0.95); 
-             backdrop-filter: blur(15px); 
-             padding: 12px 0; 
-             transition: all 0.3s ease; 
-         } 
+        .nav-pill {
+            background: var(--accent);
+            color: #fff;
+            border-radius: 999px;
+            padding: .6rem 1rem;
+            text-decoration: none;
+            font-weight: 600;
+        }
 
-         .navbar-brand { 
-             font-weight: 700; 
-             font-size: 1.5rem; 
-             color: var(--primary-color) !important; 
-             letter-spacing: -0.5px; 
-         } 
+        .nav-pill:hover {
+            background: var(--accent-2);
+            color: #fff;
+        }
 
-         .nav-link { 
-             font-weight: 600; 
-             color: #666 !important; 
-             margin: 0 5px; 
-             padding: 8px 16px !important; 
-             border-radius: 50px; 
-             transition: all 0.2s ease; 
-         } 
+        .icon-link {
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            color: var(--accent);
+            background: #fff;
+            position: relative;
+            text-decoration: none;
+        }
 
-             .nav-link:hover, .nav-link.active { 
-                 color: var(--primary-color) !important; 
-                 background-color: rgba(0, 160, 233, 0.08); 
-             } 
+        .icon-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: #b93b2a;
+            color: #fff;
+            border-radius: 999px;
+            font-size: .75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-         .nav-btn-icon { 
-             width: 40px; 
-             height: 40px; 
-             display: flex; 
-             align-items: center; 
-             justify-content: center; 
-             border-radius: 50%; 
-             background-color: #fff; 
-             color: #333; 
-             border: 1px solid #eee; 
-             transition: all 0.2s; 
-             position: relative; 
-         } 
+        .page-shell {
+            min-height: calc(100vh - 180px);
+            padding-top: 88px;
+        }
 
-             .nav-btn-icon:hover { 
-                 background-color: var(--primary-color); 
-                 color: #fff; 
-                 border-color: var(--primary-color); 
-                 transform: translateY(-2px); 
-                 box-shadow: 0 4px 10px rgba(0, 160, 233, 0.3); 
-             } 
+        footer {
+            background: #2d2019;
+            color: #f3e9de;
+        }
 
-         .cart-badge { 
-             position: absolute; 
-             top: -5px; 
-             right: -5px; 
-             background-color: #ff4757; 
-             color: white; 
-             font-size: 0.7rem; 
-             font-weight: bold; 
-             padding: 4px 7px; 
-             border-radius: 20px; 
-             border: 2px solid #fff; 
-         } 
+        footer a {
+            color: #dbc7b4;
+            text-decoration: none;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header class="site-header fixed-top">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container py-2">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">Trầm Hương Shop</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#siteNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="siteNav">
+                    <ul class="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index" asp-fragment="san-pham">Sản phẩm</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="OrderLookup" asp-action="Index">Tra cứu đơn</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Product" asp-action="Index">Quản lý</a></li>
+                    </ul>
+                    <div class="d-flex align-items-center gap-2">
+                        <a class="icon-link" asp-controller="OrderLookup" asp-action="Index" title="Tra cứu đơn hàng">
+                            <i class="fa-solid fa-receipt"></i>
+                        </a>
+                        <a class="icon-link" asp-controller="Cart" asp-action="Index" title="Giỏ hàng">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                            @if (cartCount > 0)
+                            {
+                                <span class="icon-badge">@cartCount</span>
+                            }
+                        </a>
+                        <a class="nav-pill" asp-controller="Checkout" asp-action="Index">Thanh toán</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
 
-         /* --- USER DROPDOWN --- */ 
-         .user-menu-btn { 
-             padding: 5px 15px 5px 5px; 
-             border-radius: 50px; 
-             border: 1px solid #eee; 
-             background: #fff; 
-             transition: 0.2s; 
-         } 
+    <div class="page-shell">
+        <main role="main" class="pb-4">
+            @RenderBody()
+        </main>
+    </div>
 
-             .user-menu-btn:hover { 
-                 border-color: var(--primary-color); 
-                 box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-             } 
+    <footer class="py-5 mt-4">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <h5 class="mb-3">Trầm Hương Shop</h5>
+                    <p class="mb-0">Website bán hương trầm, sản phẩm trầm và quà tặng phong cách Việt Nam. Tập trung trải nghiệm mua hàng đơn giản cho khách vãng lai lẫn thành viên.</p>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="mb-3">Điều hướng</h6>
+                    <div class="d-flex flex-column gap-2">
+                        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+                        <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
+                        <a asp-controller="OrderLookup" asp-action="Index">Tra cứu đơn hàng</a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="mb-3">Liên hệ</h6>
+                    <div class="d-flex flex-column gap-2">
+                        <span>Hotline: 0909 123 456</span>
+                        <span>Zalo OA: TramHuongShop</span>
+                        <span>Địa chỉ: TP. Ho Chi Minh</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-         .dropdown-item:active, .dropdown-item:hover { 
-             background-color: var(--primary-color); 
-             color: white; 
-         } 
-
-         /* --- BUTTONS --- */ 
-         .btn-primary-custom { 
-             background-color: var(--primary-color); 
-             border: none; 
-             padding: 8px 24px; 
-             border-radius: 50px; 
-             font-weight: 600; 
-             transition: 0.3s; 
-         } 
-
-             .btn-primary-custom:hover { 
-                 background-color: var(--primary-hover); 
-                 transform: translateY(-2px); 
-                 box-shadow: 0 4px 12px rgba(0, 160, 233, 0.3); 
-             } 
-     </style> 
-     @await RenderSectionAsync("Styles", required: false) 
- </head> 
- <body> 
-     <header> 
-         <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm"> 
-             <div class="container"> 
-                 <a class="navbar-brand d-flex align-items-center" href="/"> 
-                     <img src="https://upload.wikimedia.org/wikipedia/en/c/c8/Doraemon_volume_1_cover.jpg" 
-                          style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" 
-                          class="me-2 shadow-sm border" alt="Doraemon Tea"> 
-                     Doraemon Tea 
-                 </a> 
-
-                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"> 
-                     <span class="navbar-toggler-icon"></span> 
-                 </button> 
-
-                 <div class="collapse navbar-collapse" id="navbarContent"> 
-                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4"> 
-                         <li class="nav-item"> 
-                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" 
-                                asp-controller="Home" asp-action="Index"> 
-                                 Trang chủ 
-                             </a> 
-                         </li> 
-                        
-                     </ul> 
-
-                     <ul class="navbar-nav ms-auto align-items-center gap-3"> 
-
-                         @if (User.Identity.IsAuthenticated) 
-                         { 
-                             <li class="nav-item dropdown"> 
-                                 <a class="nav-link p-0 user-menu-btn d-flex align-items-center text-dark text-decoration-none" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> 
-                                     <div class="bg-light rounded-circle d-flex justify-content-center align-items-center border me-2" style="width: 35px; height: 35px; flex-shrink: 0;"> 
-                                         <i class="fa-solid fa-user text-primary"></i> 
-                                     </div> 
-                                     <span class="fw-bold small text-truncate" style="max-width: 100px;">@User.Identity.Name</span> 
-                                     <i class="fa-solid fa-chevron-down ms-2 small text-muted"></i> 
-                                 </a> 
-                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2" aria-labelledby="userDropdown"> 
-                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Account/Profile"><i class="fa-solid fa-id-card me-2 text-muted"></i> Hồ sơ cá nhân</a></li> 
-                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Order/History"><i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i> Lịch sử đơn hàng</a></li> 
-                                     <li><hr class="dropdown-divider opacity-50"></li> 
-                                     <li><a class="dropdown-item rounded-3 text-danger fw-bold" href="/Account/Logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li> 
-                                 </ul> 
-                             </li> 
-                         } 
-                         else 
-                         { 
-                             <li class="nav-item"> 
-                                 <a class="btn btn-outline-primary rounded-pill px-4 fw-bold me-2" href="/Account/Login" style="border-width: 2px;"> 
-                                     Đăng nhập 
-                                 </a> 
-                             </li> 
-                             <li class="nav-item"> 
-                                 <a class="btn btn-primary-custom text-white text-decoration-none" href="/Account/Register"> 
-                                     Đăng ký ngay 
-                                 </a> 
-                             </li> 
-                         } 
-                     </ul> 
-                 </div> 
-             </div> 
-         </nav> 
-     </header> 
-
-     <div style="padding-top: 90px; min-height: 85vh;"> 
-         <main role="main" class="pb-3"> 
-             @RenderBody() 
-         </main> 
-     </div> 
-
-     <footer class="bg-white border-top py-5 mt-auto"> 
-         <div class="container"> 
-             <div class="row g-4"> 
-                 <div class="col-lg-4 text-center text-lg-start"> 
-                     <a href="/" class="text-decoration-none d-inline-flex align-items-center mb-3"> 
-                         <h5 class="fw-bold text-primary m-0">Doraemon Tea Shop</h5> 
-                     </a> 
-                     <p class="text-muted small"> 
-                         Mang đến cho bạn những ly trà sữa thơm ngon nhất với công thức chuẩn Nhật Bản. Niềm vui trong từng ngụm trà. 
-                     </p> 
-                 </div> 
-                 <div class="col-lg-4 text-center"> 
-                     <h6 class="fw-bold mb-3">Liên kết nhanh</h6> 
-                     <ul class="list-unstyled small"> 
-                         <li class="mb-2"><a href="/" class="text-decoration-none text-muted hover-primary">Trang chủ</a></li> 
-                         <li class="mb-2"><a href="/Home/Search" class="text-decoration-none text-muted hover-primary">Thực đơn</a></li> 
-                         <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Về chúng tôi</a></li> 
-                     </ul> 
-                 </div> 
-                 <div class="col-lg-4 text-center text-lg-end"> 
-                     <h6 class="fw-bold mb-3">Theo dõi chúng tôi</h6> 
-                     <div class="d-flex justify-content-center justify-content-lg-end gap-3"> 
-                         <a href="#" class="text-secondary fs-5"><i class="fab fa-facebook"></i></a> 
-                         <a href="#" class="text-secondary fs-5"><i class="fab fa-instagram"></i></a> 
-                         <a href="#" class="text-secondary fs-5"><i class="fab fa-tiktok"></i></a> 
-                     </div> 
-                 </div> 
-             </div> 
-             <div class="border-top mt-4 pt-4 text-center text-muted small"> 
-                 &copy; 2026 - Doraemon Tea Shop - SV22T1080045 
-             </div> 
-         </div> 
-     </footer> 
-
-     <script src="~/lib/jquery/dist/jquery.min.js"></script> 
-     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script> 
-     <script src="~/js/site.js" asp-append-version="true"></script> 
-     @await RenderSectionAsync("Scripts", required: false) 
- </body> 
- </html> 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

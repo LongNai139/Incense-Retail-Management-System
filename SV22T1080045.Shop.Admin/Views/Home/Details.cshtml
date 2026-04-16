@@ -1,130 +1,88 @@
-﻿@* @model SV22T1080045.Shop.DomainModels.Product *@
-@* @{ *@
-@*     ViewBag.Title = Model.ProductName; *@
+@model SV22T1080045.Shop.DomainModels.Product
+@using SV22T1080045.Shop.DomainModels
+@{
+    ViewData["Title"] = Model.ProductName;
+    var relatedProducts = ViewBag.RelatedProducts as List<Product> ?? new();
+    var price = Model.PriceAfterDiscount > 0 ? Model.PriceAfterDiscount : Model.OriginalPrice;
+}
 
-@*     string imgUrl = "https://placehold.co/400x400?text=No+Image"; *@
-@*     if (!string.IsNullOrEmpty(Model.Photo)) *@
-@*     { *@
-@*         if (Model.Photo.StartsWith("/image") || Model.Photo.Contains("/")) *@
-@*         { *@
-@*             imgUrl = Model.Photo; *@
-@*         } *@
-@*         else *@
-@*         { *@
-@*             imgUrl = $"/image/{Model.Photo}"; *@
-@*         } *@
-@*     } *@
-@* } *@
+<section class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-5">
+            <div class="rounded-4 overflow-hidden shadow-sm" style="background:#f3ece5;">
+                @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.ProductName" class="img-fluid w-100" style="object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-center text-secondary" style="height:420px;">Không có ảnh sản phẩm</div>
+                }
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="small text-secondary mb-2">Mã sản phẩm #@Model.Id</div>
+            <h1 class="display-6 fw-bold">@Model.ProductName</h1>
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="h3 text-danger mb-0">@price.ToString("N0")đ</div>
+                @if (Model.PriceAfterDiscount > 0)
+                {
+                    <div class="text-decoration-line-through text-secondary">@Model.OriginalPrice.ToString("N0")đ</div>
+                }
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
+                        <div class="small text-secondary">Thành phần</div>
+                        <div class="fw-semibold">@(Model.Ingredient ?? "Đang cập nhật")</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
+                        <div class="small text-secondary">Thời gian cháy</div>
+                        <div class="fw-semibold">@(Model.BurningTime ?? "Đang cập nhật")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 rounded-4 mb-4" style="background:#fff; border:1px solid #ead8c9;">
+                <h2 class="h5 fw-bold mb-3">Mô tả sản phẩm</h2>
+                <p class="mb-0 text-secondary">@(string.IsNullOrWhiteSpace(Model.Description) ? "Sản phẩm đang được cập nhật mô tả chi tiết theo đúng đặc thù trầm hương trong tài liệu đặc tả." : Model.Description)</p>
+            </div>
 
-@* <div class="container mt-5 mb-5"> *@
-@*     <div class="card border-0 shadow-sm rounded-4 overflow-hidden"> *@
-@*         <div class="row g-0"> *@
-@*             <div class="col-md-5 bg-light d-flex align-items-center justify-content-center p-4"> *@
-@*                 <div class="position-relative w-100"> *@
-@*                     <img src="@imgUrl" *@
-@*                          class="img-fluid rounded-4 shadow-sm w-100" *@
-@*                          style="object-fit: contain; max-height: 400px;" *@
-@*                          alt="@Model.ProductName" *@
-@*                          onerror="this.onerror=null;this.src='https://placehold.co/400x400?text=Error';"> *@
-@*                 </div> *@
-@*             </div> *@
+            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-flex flex-wrap gap-3 align-items-end">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productID" value="@Model.Id" />
+                <div>
+                    <label class="form-label fw-semibold">Số lượng</label>
+                    <input type="number" name="quantity" value="1" min="1" class="form-control rounded-pill" style="width:120px;" />
+                </div>
+                <button type="submit" class="btn btn-dark rounded-pill px-4 py-2">Thêm vào giỏ hàng</button>
+                <a asp-controller="Checkout" asp-action="Index" class="btn btn-outline-dark rounded-pill px-4 py-2">Mua ngay</a>
+            </form>
+        </div>
+    </div>
+</section>
 
-@*             <div class="col-md-7 p-4 p-md-5"> *@
-@*                 <nav aria-label="breadcrumb" class="mb-3"> *@
-@*                     <ol class="breadcrumb"> *@
-@*                         <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li> *@
-@*                         <li class="breadcrumb-item active text-pink" aria-current="page">Chi tiết</li> *@
-@*                     </ol> *@
-@*                 </nav> *@
-
-@*                 <h1 class="display-6 fw-bold mb-3">@Model.ProductName</h1> *@
-
-@*                 <div class="mb-4"> *@
-@*                     <h3 class="text-pink fw-bold d-inline me-3"> *@
-@*                         @Model.Price.ToString("N0") ₫ *@
-@*                     </h3> *@
-@*                     <span class="badge bg-light text-dark border rounded-pill px-3 py-2"> *@
-@*                         Đơn vị: @Model.Unit *@
-@*                     </span> *@
-@*                 </div> *@
-
-@*                 <div class="mb-4"> *@
-@*                     <h5 class="fw-bold text-muted">Mô tả sản phẩm:</h5> *@
-@*                     <p class="text-secondary" style="line-height: 1.6;"> *@
-@*                         @if (string.IsNullOrWhiteSpace(Model.ProductDescription)) *@
-@*                         { *@
-@*                             <em>Chưa có mô tả chi tiết cho sản phẩm này. Hãy thưởng thức và cảm nhận nhé!</em> *@
-@*                         } *@
-@*                         else *@
-@*                         { *@
-@*                             @Model.ProductDescription *@
-@*                         } *@
-@*                     </p> *@
-@*                 </div> *@
-
-@*                 <hr class="text-muted opacity-25 my-4" /> *@
-
-@*                 <form action="/Cart/AddToCart" method="post" class="row g-3 align-items-end"> *@
-@*                     <input type="hidden" name="productID" value="@Model.ProductID" /> *@
-
-@*                     <div class="col-auto"> *@
-@*                         <label class="form-label fw-bold small text-muted">Số lượng</label> *@
-@*                         <div class="input-group"> *@
-@*                             <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button> *@
-@*                             <input type="number" name="quantity" class="form-control text-center border-secondary" value="1" min="1" max="99" style="width: 60px;" /> *@
-@*                             <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button> *@
-@*                         </div> *@
-@*                     </div> *@
-
-@*                     <div class="col"> *@
-@*                         <button type="submit" class="btn btn-pink w-100 btn-lg rounded-pill shadow-sm fw-bold"> *@
-@*                             <i class="fas fa-cart-plus me-2"></i> Thêm vào giỏ *@
-@*                         </button> *@
-@*                     </div> *@
-@*                 </form> *@
-
-@*                 <div class="mt-4 pt-3 border-top"> *@
-@*                     <a href="/" class="text-decoration-none text-muted hover-pink"> *@
-@*                         <i class="fas fa-long-arrow-alt-left me-2"></i> Quay lại thực đơn *@
-@*                     </a> *@
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* </div> *@
-
-@* @section Styles { *@
-@*     <style> *@
-@*         .text-pink { *@
-@*             color: #ff69b4 !important; *@
-@*         } *@
-
-@*         .bg-pink { *@
-@*             background-color: #ff69b4 !important; *@
-@*         } *@
-
-@*         .btn-pink { *@
-@*             background-color: #ff69b4; *@
-@*             color: white; *@
-@*             border: none; *@
-@*             transition: all 0.3s ease; *@
-@*         } *@
-
-@*             .btn-pink:hover { *@
-@*                 background-color: #e0529e; *@
-@*                 color: white; *@
-@*                 transform: translateY(-2px); *@
-@*                 box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3); *@
-@*             } *@
-
-@*         .hover-pink:hover { *@
-@*             color: #ff69b4 !important; *@
-@*         } *@
-
-@*         input[type=number]::-webkit-inner-spin-button, *@
-@*         input[type=number]::-webkit-outer-spin-button { *@
-@*             -webkit-appearance: none; *@
-@*             margin: 0; *@
-@*         } *@
-@*     </style> *@
-@* } *@
+@if (relatedProducts.Any())
+{
+    <section class="container pb-5">
+        <h2 class="h4 fw-bold mb-3">Sản phẩm liên quan</h2>
+        <div class="row g-4">
+            @foreach (var item in relatedProducts)
+            {
+                <div class="col-md-6 col-xl-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body">
+                            <h3 class="h6 fw-bold">@item.ProductName</h3>
+                            <div class="text-secondary small mb-3">@(item.Description ?? "Sản phẩm cùng danh mục")</div>
+                            <div class="fw-bold text-danger">@((item.PriceAfterDiscount > 0 ? item.PriceAfterDiscount : item.OriginalPrice).ToString("N0"))đ</div>
+                        </div>
+                        <div class="card-footer bg-white border-0 pt-0 pb-3">
+                            <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-dark btn-sm rounded-pill">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}

@@ -1,65 +1,78 @@
-﻿//using Dapper;
-//using SV22T1080045.Shop.DomainModels;
-//using System.Data;
-//using System.Collections.Generic;
-//using System.Linq;
+﻿using Dapper;
+using SV22T1080045.Shop.DomainModels;
 
-//namespace SV22T1080045.Shop.DataLayers
-//{
-//    public class OrderDAL : BaseDAL
-//    {
-//        public OrderDAL(string connectionString) : base(connectionString) { }
+namespace SV22T1080045.Shop.DataLayers
+{
+    public class OrderDAL : _BaseDAL
+    {
+        public OrderDAL(string connectionString) : base(connectionString) { }
 
-//        // Tạo đơn hàng
-//        public int AddOrder(Orders data)
-//        {
-//            using var conn = OpenConnection();
+        // ── TẠO ĐƠN HÀNG ──────────────────────────────────────────────────────
+        public int AddOrder(Order data)
+        {
+            using var conn = OpenConnection();
+            string sql = @"
+                INSERT INTO Orders
+                    (CustomerId, OrderDate, TotalAmount, Status,
+                     ShippingName, ShippingPhone, ShippingAddress)
+                VALUES
+                    (@CustomerId, GETDATE(), @TotalAmount, @Status,
+                     @ShippingName, @ShippingPhone, @ShippingAddress);
+                SELECT SCOPE_IDENTITY();";
+            return conn.ExecuteScalar<int>(sql, data);
+        }
 
-//            string sql = @"INSERT INTO Orders(CustomerID, OrderTime, DeliveryAddress, DeliveryPhone, Status, TotalAmount)
-//                           VALUES(@CustomerID, GETDATE(), @DeliveryAddress, @DeliveryPhone, @Status, @TotalAmount);
-                           
-//                           SELECT SCOPE_IDENTITY();";
+        // ── THÊM CHI TIẾT ĐƠN ────────────────────────────────────────────────
+        /// <summary>
+        /// Dùng tên cột SQL khớp với property của entity OrderDetail:
+        /// OrderId (không phải OrderID), ProductId (không phải ProductID)
+        /// </summary>
+        public void AddOrderDetail(OrderDetail data)
+        {
+            using var conn = OpenConnection();
+            string sql = @"
+                INSERT INTO OrderDetails (OrderId, ProductId, Quantity, UnitPrice)
+                VALUES (@OrderId, @ProductId, @Quantity, @UnitPrice)";
+            conn.Execute(sql, data);
+        }
 
-//            if (string.IsNullOrEmpty(data.Status)) data.Status = "Chờ xử lý";
+        // ── LẤY 1 ĐƠN HÀNG ───────────────────────────────────────────────────
+        public Order? GetOrder(int orderID)
+        {
+            using var conn = OpenConnection();
+            return conn.QueryFirstOrDefault<Order>(
+                "SELECT * FROM Orders WHERE Id = @orderID",
+                new { orderID });
+        }
 
-//            return conn.ExecuteScalar<int>(sql, data);
-//        }
+        // ── LẤY DANH SÁCH ĐƠN CỦA 1 KHÁCH ──────────────────────────────────
+        public List<Order> GetList(int customerId)
+        {
+            using var conn = OpenConnection();
+            return conn.Query<Order>(
+                "SELECT * FROM Orders WHERE CustomerId = @customerId ORDER BY OrderDate DESC",
+                new { customerId }).ToList();
+        }
 
-//        // Thêm chi tiết
-//        public void AddOrderDetail(OrderDetails data)
-//        {
-//            using var conn = OpenConnection();
-//            string sql = @"INSERT INTO OrderDetails(OrderID, ProductID, Quantity, SalePrice)
-//                           VALUES(@OrderID, @ProductID, @Quantity, @SalePrice)";
-//            conn.Execute(sql, data);
-//        }
+        // ── LẤY CHI TIẾT ĐƠN ────────────────────────────────────────────────
+        public List<OrderDetail> GetOrderDetails(int orderID)
+        {
+            using var conn = OpenConnection();
+            string sql = @"
+                SELECT d.*, p.ProductName, p.ImageUrl AS Photo
+                FROM   OrderDetails d
+                JOIN   Products p ON d.ProductId = p.Id
+                WHERE  d.OrderId = @orderID";
+            return conn.Query<OrderDetail>(sql, new { orderID }).ToList();
+        }
 
-//        // Lấy danh sách đơn hàng của 1 khách hàng
-//        public List<Orders> GetList(int customerID)
-//        {
-//            using var conn = OpenConnection();
-//            // Sắp xếp ngày mới nhất lên đầu
-//            var sql = @"SELECT * FROM Orders WHERE CustomerID = @CustomerID ORDER BY OrderTime DESC";
-//            return conn.Query<Orders>(sql, new { CustomerID = customerID }).ToList();
-//        }
-
-//        // Lấy thông tin 1 đơn hàng theo ID
-//        public Orders? GetOrder(int orderID)
-//        {
-//            using var conn = OpenConnection();
-//            var sql = @"SELECT * FROM Orders WHERE OrderID = @OrderID";
-//            return conn.QueryFirstOrDefault<Orders>(sql, new { OrderID = orderID });
-//        }
-
-//        // Lấy danh sách chi tiết sản phẩm trong đơn hàng
-//        public List<OrderDetails> GetOrderDetails(int orderID)
-//        {
-//            using var conn = OpenConnection();
-//            var sql = @"SELECT d.*, p.ProductName, p.Photo
-//                        FROM OrderDetails d
-//                        JOIN Products p ON d.ProductID = p.ProductID
-//                        WHERE d.OrderID = @OrderID";
-//            return conn.Query<OrderDetails>(sql, new { OrderID = orderID }).ToList();
-//        }
-//    }
-//}
+        // ── CẬP NHẬT TRẠNG THÁI ─────────────────────────────────────────────
+        public bool UpdateStatus(int orderID, int status)
+        {
+            using var conn = OpenConnection();
+            return conn.Execute(
+                "UPDATE Orders SET Status = @status WHERE Id = @orderID",
+                new { status, orderID }) > 0;
+        }
+    }
+}
