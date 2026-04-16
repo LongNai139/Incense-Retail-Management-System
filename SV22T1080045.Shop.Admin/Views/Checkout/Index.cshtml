@@ -1,0 +1,71 @@
+@model List<SV22T1080045.Shop.BusinessLayers.CartItem>
+@{
+    ViewData["Title"] = "Thanh toán";
+    var totalAmount = Model.Sum(x => x.TotalPrice);
+}
+
+<section class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="p-4 rounded-4" style="background:#fff; border:1px solid #ead8c9;">
+                <h1 class="h3 fw-bold mb-4">Thông tin giao hàng</h1>
+                <form asp-controller="Checkout" asp-action="PlaceOrder" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Họ tên</label>
+                            <input type="text" name="ShippingName" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" name="ShippingPhone" class="form-control" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Địa chỉ giao hàng</label>
+                            <textarea name="ShippingAddress" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mã giảm giá</label>
+                            <input type="text" name="VoucherCode" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phương thức thanh toán</label>
+                            <select name="PaymentMethod" class="form-select">
+                                <option value="1">COD</option>
+                                <option value="2">VNPay (sẽ tích hợp tiếp)</option>
+                                <option value="3">MoMo (sẽ tích hợp tiếp)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="Note" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-dark rounded-pill">Quay lại giỏ hàng</a>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4">Đặt hàng</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="p-4 rounded-4" style="background:#fff; border:1px solid #ead8c9;">
+                <h2 class="h5 fw-bold mb-3">Đơn hàng của bạn</h2>
+                @foreach (var item in Model)
+                {
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold">@item.ProductName</div>
+                            <div class="small text-secondary">x @item.Quantity</div>
+                        </div>
+                        <div class="fw-semibold">@item.TotalPrice.ToString("N0")đ</div>
+                    </div>
+                }
+                <div class="d-flex justify-content-between fw-bold fs-5 mt-3">
+                    <span>Tổng thanh toán</span>
+                    <span class="text-danger">@totalAmount.ToString("N0")đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
