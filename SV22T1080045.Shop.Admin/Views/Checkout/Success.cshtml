@@ -1,0 +1,61 @@
+@model SV22T1080045.Shop.DomainModels.Order
+@using SV22T1080045.Shop.DomainModels
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+    var orderDetails = ViewBag.OrderDetails as List<OrderDetail> ?? new();
+    var showRegisterPrompt = ViewBag.ShowRegisterPrompt is bool value && value;
+}
+
+<section class="container py-5">
+    <div class="mx-auto rounded-4 p-5 shadow-sm" style="max-width:840px; background:#fff; border:1px solid #ead8c9;">
+        <div class="text-center mb-4">
+            <div class="display-4 text-success"><i class="fa-solid fa-circle-check"></i></div>
+            <h1 class="h2 fw-bold mt-3">Đặt hàng thành công</h1>
+            <p class="text-secondary mb-0">Mã đơn hàng của bạn là <span class="fw-bold">#@ViewBag.OrderID</span>.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="p-4 rounded-4 h-100" style="background:#fbf7f2;">
+                    <h2 class="h5 fw-bold mb-3">Thông tin giao hàng</h2>
+                    <div class="mb-2"><span class="text-secondary">Người nhận:</span> @Model.ShippingName</div>
+                    <div class="mb-2"><span class="text-secondary">Số điện thoại:</span> @Model.ShippingPhone</div>
+                    <div><span class="text-secondary">Địa chỉ:</span> @Model.ShippingAddress</div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-4 rounded-4 h-100" style="background:#fbf7f2;">
+                    <h2 class="h5 fw-bold mb-3">Tóm tắt đơn hàng</h2>
+                    @foreach (var item in orderDetails)
+                    {
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span>@(item.ProductName ?? $"Sản phẩm #{item.ProductId}") x @item.Quantity</span>
+                            <span>@((item.UnitPrice * item.Quantity).ToString("N0"))đ</span>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-between fw-bold mt-3">
+                        <span>Tổng tiền</span>
+                        <span class="text-danger">@Model.TotalAmount.ToString("N0")đ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (showRegisterPrompt)
+        {
+            <div class="mt-4 p-4 rounded-4" style="background:#f7efe8; border:1px dashed #c89a75;">
+                <h2 class="h5 fw-bold">Gợi ý tạo tài khoản</h2>
+                <p class="mb-3">Spec yêu cầu hỗ trợ chuyển guest sang member ngay sau mua hàng. Luồng backend hiện mới ở mức placeholder, nên tôi giữ lời nhắc này để nối tiếp phần triển khai tiếp theo.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-dark rounded-pill" disabled>Tạo tài khoản ngay</button>
+                    <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-outline-dark rounded-pill">Tra cứu đơn hàng</a>
+                </div>
+            </div>
+        }
+
+        <div class="mt-4 d-flex flex-wrap gap-2">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-dark rounded-pill">Tiếp tục mua hàng</a>
+            <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-dark rounded-pill">Tra cứu đơn hàng</a>
+        </div>
+    </div>
+</section>
