@@ -1,51 +1,53 @@
-﻿//using Microsoft.AspNetCore.Mvc;
-//using SV22T1080045.Shop.BusinessLayers;
+using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.BusinessLayers;
 
-//namespace SV22T1080045.Shop.Controllers
-//{
-//    public class CartController : Controller
-//    {
-//        private readonly CartService _cartService;
+namespace SV22T1080045.Shop.Admin.Controllers
+{
+    public class CartController : Controller
+    {
+        private readonly ICartService _cartService;
 
-//        public CartController(CartService cartService)
-//        {
-//            _cartService = cartService;
-//        }
+        public CartController(ICartService cartService)
+        {
+            _cartService = cartService;
+        }
 
-//        // Xem giỏ hàng
-//        public IActionResult Index()
-//        {
-//            var model = _cartService.GetCart();
-//            return View(model);
-//        }
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return View(_cartService.GetCart());
+        }
 
-//        // Thêm vào giỏ
-//        public IActionResult AddToCart(int productID, int quantity = 1)
-//        {
-//            _cartService.AddToCart(productID, quantity);
-//            return RedirectToAction("Index");
-//        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddToCart(int productID, int quantity = 1)
+        {
+            _cartService.AddToCart(productID, quantity);
+            return RedirectToAction(nameof(Index));
+        }
 
-//        // Xóa 1 món
-//        public IActionResult RemoveFromCart(int id)
-//        {
-//            _cartService.RemoveFromCart(id);
-//            return RedirectToAction("Index");
-//        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateQuantity(int productID, int quantity)
+        {
+            _cartService.UpdateQuantity(productID, quantity);
+            return RedirectToAction(nameof(Index));
+        }
 
-//        // Cập nhật số lượng
-//        [HttpPost]
-//        public IActionResult UpdateQuantity(int id, int quantity)
-//        {
-//            _cartService.UpdateQuantity(id, quantity);
-//            return RedirectToAction("Index");
-//        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RemoveFromCart(int productID)
+        {
+            _cartService.RemoveFromCart(productID);
+            return RedirectToAction(nameof(Index));
+        }
 
-//        // Xóa hết
-//        public IActionResult ClearCart()
-//        {
-//            _cartService.ClearCart();
-//            return RedirectToAction("Index");
-//        }
-//    }
-//}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ClearCart()
+        {
+            _cartService.ClearCart();
+            return RedirectToAction(nameof(Index));
+        }
+    }
+}

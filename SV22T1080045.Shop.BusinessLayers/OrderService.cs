@@ -1,90 +1,90 @@
-﻿//using SV22T1080045.Shop.DomainModels;
+﻿using SV22T1080045.Shop.DataLayers;
+using SV22T1080045.Shop.DomainModels;
 
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using SV22T1080045.Shop.DataLayers;
+namespace SV22T1080045.Shop.BusinessLayers
+{
+    // ── Interface (để CheckoutController inject được) ──────────────────────
+    public interface IOrderService
+    {
+        /// <summary>Tạo đơn hàng mới, trả về OrderID vừa tạo (0 = thất bại)</summary>
+        int InitOrder(string shippingName, string shippingPhone,
+                      string shippingAddress, List<CartItem> cart,
+                      int customerId = 0);
 
-//namespace SV22T1080045.Shop.BusinessLayers
-//{
-//    public class OrderService
-//    {
-//        private readonly OrderDAL _orderDAL;
+        /// <summary>Lấy 1 đơn hàng theo ID</summary>
+        Order? GetOrder(int orderID);
 
-//        public OrderService(OrderDAL orderDAL)
-//        {
-//            _orderDAL = orderDAL;
-//        }
+        /// <summary>Lấy danh sách đơn hàng của 1 khách hàng (member)</summary>
+        List<Order> GetCustomerOrders(int customerId);
 
-//        /// <summary>
-//        /// Khởi tạo đơn hàng (Xử lý logic tính tiền và lưu xuống DB)
-//        /// </summary>
-//        public int InitOrder(int customerID, string deliveryAddress, string deliveryPhone, List<CartItem> cart)
-//        {
-//            try
-//            {
-//                if (cart == null || cart.Count == 0) return 0;
+        /// <summary>Lấy danh sách chi tiết sản phẩm trong đơn</summary>
+        List<OrderDetail> GetOrderDetails(int orderID);
 
-//                // Tạo đối tượng đơn hàng 
-//                var order = new Orders()
-//                {
-//                    CustomerID = customerID,
-//                    OrderTime = DateTime.Now,
-//                    DeliveryAddress = deliveryAddress,
-//                    DeliveryPhone = deliveryPhone,
-//                    Status = "Chờ xử lý",
-//                    TotalAmount = cart.Sum(item => item.TotalPrice)
-//                };
+        /// <summary>Cập nhật trạng thái đơn hàng</summary>
+        bool UpdateStatus(int orderID, int status);
+    }
 
-//                // Gọi DAL để lưu Orders và lấy về OrderID vừa sinh ra
-//                int orderID = _orderDAL.AddOrder(order);
+    // ── Implementation ─────────────────────────────────────────────────────
+    public class OrderService : IOrderService
+    {
+        private readonly OrderDAL _orderDAL;
 
-//                if (orderID > 0)
-//                {
-//                    // Lưu chi tiết đơn hàng (Details)
-//                    foreach (var item in cart)
-//                    {
-//                        var detail = new OrderDetails()
-//                        {
-//                            OrderID = orderID,
-//                            ProductID = item.ProductID,
-//                            Quantity = item.Quantity,
-//                            SalePrice = item.Price
-//                        };
-//                        _orderDAL.AddOrderDetail(detail);
-//                    }
-//                    return orderID;
-//                }
-//                return 0;
-//            }
-//            catch (Exception ex)
-//            {
-//                return 0;
-//            }
-//        }
+        public OrderService(OrderDAL orderDAL)
+        {
+            _orderDAL = orderDAL;
+        }
 
-//        /// <summary>
-//        /// Lấy danh sách đơn hàng của một khách hàng (Dùng cho trang History)
-//        /// </summary>
-//        public List<Orders> GetCustomerOrders(int customerID)
-//        {
-//            return _orderDAL.GetList(customerID);
-//        }
+        public int InitOrder(string shippingName, string shippingPhone,
+                             string shippingAddress, List<CartItem> cart,
+                             int customerId = 0)
+        {
+            try
+            {
+                if (cart == null || cart.Count == 0) return 0;
 
-//        /// <summary>
-//        /// Lấy thông tin một đơn hàng theo ID (Dùng cho trang Details)
-//        /// </summary>
-//        public Orders GetOrder(int orderID)
-//        {
-//            return _orderDAL.GetOrder(orderID);
-//        }
+                var order = new Order
+                {
+                    CustomerId = customerId,   // 0 nếu là guest
+                    OrderDate = DateTime.Now,
+                    TotalAmount = cart.Sum(i => i.TotalPrice),
+                    Status = 1,            // 1 = Mới đặt
+                    ShippingName = shippingName,
+                    ShippingPhone = shippingPhone,
+                    ShippingAddress = shippingAddress,
+                };
 
-//        /// <summary>
-//        /// Lấy danh sách chi tiết sản phẩm của đơn hàng (Dùng cho trang Details)
-//        /// </summary>
-//        public List<OrderDetails> GetOrderDetails(int orderID)
-//        {
-//            return _orderDAL.GetOrderDetails(orderID);
-//        }
-//    }
-//}
+                int orderID = _orderDAL.AddOrder(order);
+                if (orderID <= 0) return 0;
+
+                foreach (var item in cart)
+                {
+                    _orderDAL.AddOrderDetail(new OrderDetail
+                    {
+                        OrderId = orderID,
+                        ProductId = item.ProductID,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.Price
+                    });
+                }
+
+                return orderID;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        public Order? GetOrder(int orderID)
+            => _orderDAL.GetOrder(orderID);
+
+        public List<Order> GetCustomerOrders(int customerId)
+            => _orderDAL.GetList(customerId);
+
+        public List<OrderDetail> GetOrderDetails(int orderID)
+            => _orderDAL.GetOrderDetails(orderID);
+
+        public bool UpdateStatus(int orderID, int status)
+            => _orderDAL.UpdateStatus(orderID, status);
+    }
+}

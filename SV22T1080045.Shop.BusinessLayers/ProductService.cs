@@ -10,7 +10,7 @@ namespace SV22T1080045.Shop.BusinessLayers
         bool UpdateProduct(Product data);
         bool DeleteProduct(int id);
         bool InUsed(int id);
-        Product GetProduct(int id);
+        Product? GetProduct(int id);
     }
     public class ProductService : IProductService
     {
@@ -38,7 +38,7 @@ namespace SV22T1080045.Shop.BusinessLayers
         {
             return _productDAL.DeleteProduct(id);
         }
-        public Product GetProduct(int id)
+        public Product? GetProduct(int id)
         {
             return _productDAL.GetProduct(id);
         }
