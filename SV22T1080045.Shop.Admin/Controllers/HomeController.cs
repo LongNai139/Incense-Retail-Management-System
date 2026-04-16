@@ -1,43 +1,56 @@
-﻿//using Microsoft.AspNetCore.Mvc;
-//using SV22T1080045.Shop.BusinessLayers;
+using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.BusinessLayers;
 
-//namespace SV22T1080045.Shop.Controllers
-//{
-//    public class HomeController : Controller
-//    {
-//        private readonly ProductService _productService;
+namespace SV22T1080045.Shop.Admin.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
 
-//        public HomeController(ProductService productService)
-//        {
-//            _productService = productService;
-//        }
+        public HomeController(IProductService productService, ICategoryService categoryService)
+        {
+            _productService = productService;
+            _categoryService = categoryService;
+        }
 
-//        // Trang chủ: Hiển thị danh sách và Form tìm kiếm
-//        public IActionResult Index(string searchValue = "", int categoryID = 0, decimal minPrice = 0, decimal maxPrice = 0)
-//        {
-//            var model = _productService.Search(searchValue, categoryID, minPrice, maxPrice);
+        public IActionResult Index(string searchValue = "")
+        {
+            var products = _productService
+                .ListProducts(searchValue)
+                .Where(p => !p.IsDeleted)
+                .ToList();
 
-//            ViewBag.Categories = _productService.GetCategories();
+            ViewBag.SearchValue = searchValue;
+            ViewBag.FeaturedProducts = products.Take(4).ToList();
+            ViewBag.LatestProducts = products
+                .OrderByDescending(p => p.CreatedTime)
+                .Take(4)
+                .ToList();
+            ViewBag.Categories = _categoryService.ListCategories(6);
 
-//            // Giữ lại giá trị tìm kiếm để hiển thị lại trên form (UX)
-//            ViewBag.SearchValue = searchValue;
-//            ViewBag.CategoryID = categoryID;
-//            ViewBag.MinPrice = minPrice;
-//            ViewBag.MaxPrice = maxPrice;
+            return View(products);
+        }
 
-//            return View(model);
-//        }
+        public IActionResult Details(int id)
+        {
+            var product = _productService.GetProduct(id);
+            if (product == null || product.IsDeleted)
+            {
+                return RedirectToAction(nameof(Index));
+            }
 
-//        public IActionResult Details(int id)
-//        {
-//            var product = _productService.GetProduct(id);
-//            if (product == null)
-//            {
-//                return RedirectToAction("Index");
-//            }
-//            return View(product);
-//        }
+            ViewBag.RelatedProducts = _productService
+                .ListProducts()
+                .Where(p => !p.IsDeleted && p.Id != id && p.CategoryId == product.CategoryId)
+                .Take(4)
+                .ToList();
 
-//        public IActionResult Error() => View();
-//    }
-//}
+            return View(product);
+        }
+
+        public IActionResult Privacy() => View();
+
+        public IActionResult Error() => View();
+    }
+}

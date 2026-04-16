@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using SV22T1080045.Shop.BusinessLayers; // Nhớ thêm dòng này
+using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.DataLayers;
-// using SV22T1080045.Shop.App.Models; // Nếu cần
 
 public class Program
 {
@@ -12,14 +10,17 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddControllersWithViews();
-        builder.Services.AddHttpContextAccessor(); 
+        builder.Services.AddHttpContextAccessor();
 
-        string connectionString = builder.Configuration.GetConnectionString("ShopConnectionString");
+        // ── Connection String ───────────────────────────────────────────────
+        string connectionString = builder.Configuration
+            .GetConnectionString("ShopConnectionString")!;
+
+        // ── EF Core (chỉ dùng cho Products, và Migration) ──────────────────
         builder.Services.AddDbContext<ShopDbContext>(options =>
-        {
-            options.UseSqlServer(connectionString);
-        });
+            options.UseSqlServer(connectionString));
 
+        // ── Session ─────────────────────────────────────────────────────────
         builder.Services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -27,7 +28,7 @@ public class Program
             options.Cookie.IsEssential = true;
         });
 
-        // --- 4. CẤU HÌNH AUTHENTICATION ---
+        // ── Authentication ──────────────────────────────────────────────────
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
@@ -37,17 +38,31 @@ public class Program
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
             });
 
-        // --- 5. ĐĂNG KÝ DI (DEPENDENCY INJECTION) ---
-
-        // SỬA LỖI TẠI ĐÂY: Phải truyền connectionString vào Constructor
+        // ── DAL (Dapper) ────────────────────────────────────────────────────
         builder.Services.AddScoped<IProductDAL, ProductDAL>();
+        builder.Services.AddScoped<ICategoryDAL, CategoryDAL>();
+        builder.Services.AddScoped<ICustomerDAL, CustomerDAL>();
+        // Các DAL dùng Dapper cần connectionString trực tiếp
+        builder.Services.AddScoped(_ => new OrderDAL(connectionString));
+        builder.Services.AddScoped(_ => new VoucherDAL(connectionString));
+        builder.Services.AddScoped<IGuestOrderDAL>(_ => new GuestOrderDAL(connectionString));
+        builder.Services.AddScoped<IPhoneOtpDAL>(_ => new PhoneOtpDAL(connectionString));
 
-        // B. Business Logic Layer (BLL) - QUAN TRỌNG
-        // Phải đăng ký cái này thì Controller mới chạy được
+        // ── Business Services ───────────────────────────────────────────────
         builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
+        builder.Services.AddScoped<ICartService, CartService>();
+        builder.Services.AddScoped<IOrderService, OrderService>();
+        builder.Services.AddScoped<IGuestOrderService, GuestOrderService>();
+        builder.Services.AddScoped<IVoucherService, VoucherService>();
+        builder.Services.AddScoped<IOtpService, OtpService>();
+        builder.Services.AddScoped<AccountService>();
+        builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 
+        // ── SMS Service (dev: FakeSms | prod: đổi thành EsmsSmsService) ────
+        builder.Services.AddSingleton<ISmsService, FakeSmsService>();
 
-        // --- BUILD APP ---
+        // ── BUILD ───────────────────────────────────────────────────────────
         var app = builder.Build();
 
         if (!app.Environment.IsDevelopment())
@@ -58,12 +73,17 @@ public class Program
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
-
         app.UseRouting();
 
-        app.UseSession();
+        app.UseSession();           // phải trước UseAuthentication
         app.UseAuthentication();
-        app.UseAuthorization(); 
+        app.UseAuthorization();
+
+        // Route cho trang tra cứu đơn hàng (URL đẹp)
+        app.MapControllerRoute(
+            name: "tracuu",
+            pattern: "tra-cuu-don-hang",
+            defaults: new { controller = "OrderLookup", action = "Index" });
 
         app.MapControllerRoute(
             name: "default",

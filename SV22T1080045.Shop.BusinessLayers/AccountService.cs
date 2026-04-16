@@ -1,73 +1,58 @@
-﻿//using SV22T1080045.Shop.DataLayers;
-//using SV22T1080045.Shop.DomainModels;
-//using System.Security.Cryptography;
-//using System.Text;
+﻿using SV22T1080045.Shop.DataLayers;
+using SV22T1080045.Shop.DomainModels;
 
-//namespace SV22T1080045.Shop.BusinessLayers
-//{
-//    public class AccountService
-//    {
-//        private readonly AccountDAL _accountDAL;
+namespace SV22T1080045.Shop.BusinessLayers
+{
+    public class AccountService
+    {
+        private readonly ICustomerDAL _customerDAL;
+        private readonly IPasswordHasherService _passwordHasherService;
 
-//        public AccountService(AccountDAL accountDAL)
-//        {
-//            _accountDAL = accountDAL;
-//        }
+        public AccountService(ICustomerDAL customerDAL, IPasswordHasherService passwordHasherService)
+        {
+            _customerDAL = customerDAL;
+            _passwordHasherService = passwordHasherService;
+        }
 
-//        private string HashPassword(string password)
-//        {
-//            using (MD5 md5 = MD5.Create())
-//            {
-//                byte[] inputBytes = Encoding.ASCII.GetBytes(password);
-//                byte[] hashBytes = md5.ComputeHash(inputBytes);
-//                return Convert.ToHexString(hashBytes);
-//            }
-//        }
+        // ĐĂNG NHẬP
+        public Customer? Login(string phone, string password)
+        {
+            var customer = _customerDAL.GetByPhone(phone);
+            if (customer == null || string.IsNullOrWhiteSpace(customer.Password))
+                return null;
 
-//        public Customer? Login(string email, string password)
-//        {
-//            string hashedPassword = HashPassword(password);
-//            return _accountDAL.Login(email, hashedPassword);
-//        }
+            return _passwordHasherService.Verify(password, customer.Password) ? customer : null;
+        }
 
-//        public string Register(Customer data)
-//        {
-//            if (_accountDAL.EmailExists(data.Email))
-//                return "Email này đã được sử dụng.";
+        // ĐĂNG KÝ (Dành cho tab Register của bạn)
+        public bool Register(Customer data)
+        {
+            // Kiểm tra số điện thoại đã tồn tại chưa
+            if (_customerDAL.GetByPhone(data.Phone) != null)
+                return false;
 
-//            data.Password = HashPassword(data.Password);
+            data.Role = string.IsNullOrWhiteSpace(data.Role) ? "Customer" : data.Role;
+            data.CustomerName = data.CustomerName?.Trim() ?? "";
+            data.Phone = data.Phone?.Trim() ?? "";
+            data.Password = data.Password?.Trim() ?? "";
 
-//            bool result = _accountDAL.Register(data);
-//            return result ? "" : "Đăng ký thất bại. Vui lòng thử lại.";
-//        }
+            if (string.IsNullOrWhiteSpace(data.CustomerName) ||
+                string.IsNullOrWhiteSpace(data.Phone) ||
+                string.IsNullOrWhiteSpace(data.Password))
+            {
+                return false;
+            }
 
-//        public Customer? GetCustomer(int id)
-//        {
-//            return _accountDAL.GetCustomerById(id);
-//        }
+            data.Password = _passwordHasherService.Hash(data.Password);
+            return _customerDAL.Add(data) > 0;
+        }
 
-//        public bool UpdateProfile(int id, string name, string phone, string address)
-//        {
-//            var customer = new Customer
-//            {
-//                CustomerID = id,
-//                CustomerName = name,
-//                Phone = phone,
-//                Address = address
-//            };
-//            return _accountDAL.UpdateProfile(customer);
-//        }
-
-//        public bool ChangePassword(int id, string oldPass, string newPass)
-//        {
-//            var customer = _accountDAL.GetCustomerById(id);
-//            if (customer == null) return false;
-
-//            string hashedOld = HashPassword(oldPass);
-//            if (customer.Password != hashedOld) return false;
-
-//            string hashedNew = HashPassword(newPass);
-//            return _accountDAL.ChangePassword(id, hashedNew);
-//        }
-//    }
-//}
+        // LOGIC OTP (Giả lập để khớp với giao diện của bạn)
+        public string GenerateOTP()
+        {
+            // Tạo mã 6 số ngẫu nhiên
+            Random res = new Random();
+            return res.Next(100000, 999999).ToString();
+        }
+    }
+}
