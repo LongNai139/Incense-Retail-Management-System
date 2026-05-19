@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using SV22T1080045.Shop.BusinessLayers.Interfaces;
-using SV22T1080045.Shop.BusinessLayers.Services;
+using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.DataLayers;
 
 public class Program
@@ -36,18 +35,7 @@ public class Program
             });
 
         builder.Services.AddDataLayers(connectionString);
-
-        builder.Services.AddScoped<IAccountService, AccountService>();
-        builder.Services.AddScoped<IProductService, ProductService>();
-        builder.Services.AddScoped<ICategoryService, CategoryService>();
-        builder.Services.AddScoped<ICartService, CartService>();
-        builder.Services.AddScoped<IOrderService, OrderService>();
-        builder.Services.AddScoped<IGuestOrderService, GuestOrderService>();
-        builder.Services.AddScoped<IVoucherService, VoucherService>();
-        builder.Services.AddScoped<IOtpService, OtpService>();
-        builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
-
-        builder.Services.AddSingleton<ISmsService, FakeSmsService>();
+        builder.Services.AddBusinessLayers();
 
         var app = builder.Build();
 
