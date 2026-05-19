@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
-using SV22T1080045.Shop.DomainModels;
+using SV22T1080045.Shop.Models.Mappers;
 using SV22T1080045.Shop.Models.Requests.Checkout;
+using SV22T1080045.Shop.Models.ViewModels.Checkout;
 
 namespace SV22T1080045.Shop.Controllers
 {
@@ -92,11 +93,10 @@ namespace SV22T1080045.Shop.Controllers
             if (order == null)
                 return NotFound();
 
+            var model = order.ToCheckoutSuccessViewModel(_orderService.GetOrderDetails(orderId));
             ViewBag.IsGuest = isGuest;
             ViewBag.ShowRegisterPrompt = isGuest;
-            ViewBag.OrderDetails = _orderService.GetOrderDetails(orderId);
-            ViewBag.OrderID = order.Id;
-            return View(order);
+            return View(model);
         }
 
         [HttpPost]
@@ -127,14 +127,7 @@ namespace SV22T1080045.Shop.Controllers
             if (!string.Equals(order.ShippingPhone?.Trim(), req.Phone.Trim(), StringComparison.Ordinal))
                 return Json(new { success = false, message = "Số điện thoại không khớp với đơn hàng." });
 
-            var customer = new Customer
-            {
-                CustomerName = string.IsNullOrWhiteSpace(req.CustomerName) ? order.ShippingName : req.CustomerName,
-                Phone = req.Phone,
-                Password = req.Password,
-                Role = "Customer",
-                Address = order.ShippingAddress
-            };
+            var customer = req.ToCustomer(order);
 
             if (!_accountService.Register(customer))
                 return Json(new { success = false, message = "Số điện thoại đã tồn tại hoặc đăng ký thất bại." });

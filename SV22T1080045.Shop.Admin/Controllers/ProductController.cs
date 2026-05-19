@@ -1,110 +1,109 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SV22T1080045.Shop.Models;
-using SV22T1080045.Shop.BusinessLayers;
-using SV22T1080045.Shop.DomainModels;
-using SV22T1080045.Shop.Admin.AppCodes.Mappers;
+using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.Models.Mappers;
+using SV22T1080045.Shop.Models.ViewModels.Product;
 
-namespace SV22T1080045.Shop.Admin.Controllers
+namespace SV22T1080045.Shop.Controllers
 {
     public class ProductController : Controller
     {
         private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, ICategoryService categoryService)
         {
             _productService = productService;
+            _categoryService = categoryService;
         }
 
-        public IActionResult Index(string searchValue = "", int CategoryId = 0, decimal OriginalPrice = 0, decimal PriceAfterDiscount = 0)
+        public IActionResult Index(
+            string searchValue = "",
+            int? categoryId = null,
+            decimal? priceMin = null,
+            decimal? priceMax = null,
+            string? origin = null,
+            string? usageTag = null,
+            int? minRating = null,
+            string sortBy = "default",
+            int page = 1)
         {
-            var products = _productService.ListProducts(searchValue, CategoryId, OriginalPrice, PriceAfterDiscount);
-            return View(products);
-        }
+            const int pageSize = 12;
+            var currentPage = Math.Max(1, page);
 
-        // Handles both Create and Update operations.
-        // id = 0: Create Mode
-        // id > 0: Edit Mode
-        public IActionResult Edit(int id)
-        {
-            // CASE 1: CREATE MODE
-            if (id == 0)
+            var result = _productService.ListProductsFiltered(
+                ProductQueryMappingExtensions.ToProductQuery(
+                    searchValue,
+                    categoryId,
+                    priceMin,
+                    priceMax,
+                    origin,
+                    usageTag,
+                    minRating,
+                    sortBy,
+                    currentPage,
+                    pageSize));
+
+            var categories = _categoryService.ListCategories();
+
+            var model = new ProductListViewModel
             {
-                ViewBag.Title = "Thêm mới sản phẩm"; // Keep UI text in Vietnamese for end-users
-                // Return an empty model to render a blank form
-                return View(new ProductEditModel());
-            }
-
-            // CASE 2: EDIT MODE
-            ViewBag.Title = "Cập nhật sản phẩm";
-
-            // Retrieve product data from the Service layer
-            var product = _productService.GetProduct(id);
-            if (product == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            // CRITICAL: Map DomainModel (Entity) to ViewModel (ProductEditModel)
-            // This prepares data for the View presentation
-            var model = product.ToEditModel();
+                SearchValue = searchValue,
+                CategoryId = categoryId,
+                PriceMin = priceMin,
+                PriceMax = priceMax,
+                Origin = origin,
+                UsageTag = usageTag,
+                MinRating = minRating,
+                SortBy = sortBy,
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                TotalCount = result.TotalCount,
+                OriginOptions = result.OriginOptions,
+                Categories = categories
+                    .Select(c => c.ToCategoryFilterItem(result.CategoryCounts.GetValueOrDefault(c.Id, 0)))
+                    .ToList(),
+                Products = result.Products
+                    .Select(p => p.ToCardViewModel())
+                    .ToList()
+            };
 
             return View(model);
         }
 
-        [HttpPost]
-        public IActionResult Save(ProductEditModel model)
+        public IActionResult Edit(int id)
         {
-            // 1. Validate input data based on Data Annotations
+            if (id == 0)
+            {
+                ViewBag.Title = "Thêm mới sản phẩm";
+                return View(new ProductEditViewModel());
+            }
+
+            ViewBag.Title = "Cập nhật sản phẩm";
+            var product = _productService.GetProduct(id);
+            if (product == null)
+                return RedirectToAction(nameof(Index));
+
+            return View(product.ToEditViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Save(ProductEditViewModel model)
+        {
             if (!ModelState.IsValid)
+                return View("Edit", model);
+
+            try
             {
-                ViewBag.Title = model.Id == 0 ? "Thêm mới sản phẩm" : "Cập nhật sản phẩm";
-                return View("Edit", model); // Return to View with validation errors
+                _productService.SaveProduct(model.ToSaveRequest());
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View("Edit", model);
             }
 
-            // 2. Handle Image Upload (if a new file is provided)
-            if (model.UploadPhoto != null)
-            {
-                // Generate a unique filename to prevent duplication conflicts
-                var fileName = $"{DateTime.Now.Ticks}_{model.UploadPhoto.FileName}";
-
-                // Define the physical storage path
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/products");
-                var filePath = Path.Combine(folderPath, fileName);
-
-                // Logic to delete the old image when updating (Clean up server storage)
-                if (model.Id > 0 && !string.IsNullOrEmpty(model.ImageUrl))
-                {
-                    var oldFilePath = Path.Combine(folderPath, model.ImageUrl);
-                    if (System.IO.File.Exists(oldFilePath))
-                    {
-                        System.IO.File.Delete(oldFilePath);
-                    }
-                }
-
-                // Save the new file to the stream
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    model.UploadPhoto.CopyTo(stream);
-                }
-
-                // Update the ImageUrl property to save into the Database
-                model.ImageUrl = fileName;
-            }
-
-            // 3. Mapping: Convert ViewModel back to DomainModel
-            var data = model.ToDomainModel();
-
-            // 4. Call Service to persist data (Insert or Update)
-            if (data.Id == 0)
-            {
-                _productService.AddProduct(data);
-            }
-            else
-            {
-                _productService.UpdateProduct(data);
-            }
-
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

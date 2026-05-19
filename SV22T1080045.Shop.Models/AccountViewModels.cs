@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.Models
 {
@@ -47,5 +48,19 @@ namespace SV22T1080045.Shop.Models
         [Required]
         [RegularExpression(@"^\d{6}$")]
         public string Code { get; set; } = "";
+    }
+
+    public static class AccountViewModelExtensions
+    {
+        public static Customer ToCustomer(this RegisterViewModel model)
+        {
+            return new Customer
+            {
+                CustomerName = model.CustomerName,
+                Phone = model.Phone,
+                Password = model.Password,
+                Role = "Customer"
+            };
+        }
     }
 }
