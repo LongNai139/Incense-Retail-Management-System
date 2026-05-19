@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
-using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models;
 using System.Security.Claims;
 
@@ -96,15 +95,7 @@ namespace SV22T1080045.Shop.Controllers
                 return View("Login");
             }
 
-            var data = new Customer
-            {
-                CustomerName = model.CustomerName,
-                Phone = model.Phone,
-                Password = model.Password,
-                Role = "Customer"
-            };
-
-            bool isRegistered = _accountService.Register(data);
+            bool isRegistered = _accountService.Register(model.ToCustomer());
             if (isRegistered)
                 return await Login(new LoginViewModel { Phone = model.Phone, Password = model.Password });
 

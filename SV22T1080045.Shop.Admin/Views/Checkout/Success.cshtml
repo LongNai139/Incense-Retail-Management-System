@@ -1,8 +1,6 @@
-@model SV22T1080045.Shop.DomainModels.Order
-@using SV22T1080045.Shop.DomainModels
+@model SV22T1080045.Shop.Models.ViewModels.Checkout.CheckoutSuccessViewModel
 @{
     ViewData["Title"] = "Đặt hàng thành công";
-    var orderDetails = ViewBag.OrderDetails as List<OrderDetail> ?? new();
     var showRegisterPrompt = ViewBag.ShowRegisterPrompt is bool value && value;
 }
 
@@ -11,7 +9,7 @@
         <div class="text-center mb-4">
             <div class="display-4 text-success"><i class="fa-solid fa-circle-check"></i></div>
             <h1 class="h2 fw-bold mt-3">Đặt hàng thành công</h1>
-            <p class="text-secondary mb-0">Mã đơn hàng của bạn là <span class="fw-bold">#@ViewBag.OrderID</span>.</p>
+            <p class="text-secondary mb-0">Mã đơn hàng của bạn là <span class="fw-bold">#@Model.OrderId</span>.</p>
         </div>
 
         <div class="row g-4">
@@ -26,7 +24,7 @@
             <div class="col-lg-6">
                 <div class="p-4 rounded-4 h-100" style="background:#fbf7f2;">
                     <h2 class="h5 fw-bold mb-3">Tóm tắt đơn hàng</h2>
-                    @foreach (var item in orderDetails)
+                    @foreach (var item in Model.Details)
                     {
                         <div class="d-flex justify-content-between py-2 border-bottom">
                             <span>@(item.ProductName ?? $"Sản phẩm #{item.ProductId}") x @item.Quantity</span>
