@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.BusinessLayers.Services;
 using SV22T1080045.Shop.DataLayers;
 
 public class Program
@@ -12,15 +13,12 @@ public class Program
         builder.Services.AddControllersWithViews();
         builder.Services.AddHttpContextAccessor();
 
-        // ── Connection String ───────────────────────────────────────────────
         string connectionString = builder.Configuration
             .GetConnectionString("ShopConnectionString")!;
 
-        // ── EF Core (chỉ dùng cho Products, và Migration) ──────────────────
         builder.Services.AddDbContext<ShopDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-        // ── Session ─────────────────────────────────────────────────────────
         builder.Services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -28,7 +26,6 @@ public class Program
             options.Cookie.IsEssential = true;
         });
 
-        // ── Authentication ──────────────────────────────────────────────────
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
@@ -38,17 +35,9 @@ public class Program
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
             });
 
-        // ── DAL (Dapper) ────────────────────────────────────────────────────
-        builder.Services.AddScoped<IProductDAL, ProductDAL>();
-        builder.Services.AddScoped<ICategoryDAL, CategoryDAL>();
-        builder.Services.AddScoped<ICustomerDAL, CustomerDAL>();
-        // Các DAL dùng Dapper cần connectionString trực tiếp
-        builder.Services.AddScoped(_ => new OrderDAL(connectionString));
-        builder.Services.AddScoped(_ => new VoucherDAL(connectionString));
-        builder.Services.AddScoped<IGuestOrderDAL>(_ => new GuestOrderDAL(connectionString));
-        builder.Services.AddScoped<IPhoneOtpDAL>(_ => new PhoneOtpDAL(connectionString));
+        builder.Services.AddDataLayers(connectionString);
 
-        // ── Business Services ───────────────────────────────────────────────
+        builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<ICartService, CartService>();
@@ -56,13 +45,10 @@ public class Program
         builder.Services.AddScoped<IGuestOrderService, GuestOrderService>();
         builder.Services.AddScoped<IVoucherService, VoucherService>();
         builder.Services.AddScoped<IOtpService, OtpService>();
-        builder.Services.AddScoped<AccountService>();
         builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 
-        // ── SMS Service (dev: FakeSms | prod: đổi thành EsmsSmsService) ────
         builder.Services.AddSingleton<ISmsService, FakeSmsService>();
 
-        // ── BUILD ───────────────────────────────────────────────────────────
         var app = builder.Build();
 
         if (!app.Environment.IsDevelopment())
@@ -75,11 +61,10 @@ public class Program
         app.UseStaticFiles();
         app.UseRouting();
 
-        app.UseSession();           // phải trước UseAuthentication
+        app.UseSession();
         app.UseAuthentication();
         app.UseAuthorization();
 
-        // Route cho trang tra cứu đơn hàng (URL đẹp)
         app.MapControllerRoute(
             name: "tracuu",
             pattern: "tra-cuu-don-hang",
