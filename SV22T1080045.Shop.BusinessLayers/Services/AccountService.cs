@@ -1,9 +1,11 @@
-﻿using SV22T1080045.Shop.DataLayers;
+
+using SV22T1080045.Shop.Abstractions.Interfaces;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 
-namespace SV22T1080045.Shop.BusinessLayers
+namespace SV22T1080045.Shop.BusinessLayers.Services
 {
-    public class AccountService
+    public class AccountService : IAccountService
     {
         private readonly ICustomerDAL _customerDAL;
         private readonly IPasswordHasherService _passwordHasherService;
@@ -14,27 +16,27 @@ namespace SV22T1080045.Shop.BusinessLayers
             _passwordHasherService = passwordHasherService;
         }
 
-        // ĐĂNG NHẬP
         public Customer? Login(string phone, string password)
         {
-            var customer = _customerDAL.GetByPhone(phone);
+            var customer = _customerDAL.GetByPhone(phone.Trim());
             if (customer == null || string.IsNullOrWhiteSpace(customer.Password))
                 return null;
 
             return _passwordHasherService.Verify(password, customer.Password) ? customer : null;
         }
 
-        // ĐĂNG KÝ (Dành cho tab Register của bạn)
         public bool Register(Customer data)
         {
-            // Kiểm tra số điện thoại đã tồn tại chưa
-            if (_customerDAL.GetByPhone(data.Phone) != null)
+            var phone = data.Phone?.Trim() ?? "";
+            if (_customerDAL.GetByPhone(phone) != null)
                 return false;
 
-            data.Role = string.IsNullOrWhiteSpace(data.Role) ? "Customer" : data.Role;
+            data.Role = string.IsNullOrWhiteSpace(data.Role) ? "Customer" : data.Role.Trim();
             data.CustomerName = data.CustomerName?.Trim() ?? "";
-            data.Phone = data.Phone?.Trim() ?? "";
+            data.Phone = phone;
             data.Password = data.Password?.Trim() ?? "";
+            data.Address = data.Address?.Trim();
+            data.Email = data.Email?.Trim();
 
             if (string.IsNullOrWhiteSpace(data.CustomerName) ||
                 string.IsNullOrWhiteSpace(data.Phone) ||
@@ -47,12 +49,9 @@ namespace SV22T1080045.Shop.BusinessLayers
             return _customerDAL.Add(data) > 0;
         }
 
-        // LOGIC OTP (Giả lập để khớp với giao diện của bạn)
         public string GenerateOTP()
         {
-            // Tạo mã 6 số ngẫu nhiên
-            Random res = new Random();
-            return res.Next(100000, 999999).ToString();
+            return Random.Shared.Next(100000, 999999).ToString();
         }
     }
 }
