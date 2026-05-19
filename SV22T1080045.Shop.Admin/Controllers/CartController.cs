@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
 
-namespace SV22T1080045.Shop.Admin.Controllers
+namespace SV22T1080045.Shop.Controllers
 {
     public class CartController : Controller
     {

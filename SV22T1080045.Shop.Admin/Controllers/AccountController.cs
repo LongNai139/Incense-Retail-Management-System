@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models;
 using System.Security.Claims;
@@ -10,12 +11,12 @@ namespace SV22T1080045.Shop.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly AccountService _accountService;
+        private readonly IAccountService _accountService;
         private readonly IOtpService _otpService;
         private const int MaxLoginFailCount = 5;
         private const int LockMinutes = 5;
 
-        public AccountController(AccountService accountService, IOtpService otpService)
+        public AccountController(IAccountService accountService, IOtpService otpService)
         {
             _accountService = accountService;
             _otpService = otpService;
