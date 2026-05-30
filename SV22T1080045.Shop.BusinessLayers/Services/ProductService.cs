@@ -46,10 +46,9 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
         public bool DeleteProduct(int id)
             => _productDal.Delete(id);
 
-        public void SaveProduct(ProductSaveRequest request)
+        public int SaveProduct(ProductSaveRequest request)
         {
             var productName = (request.ProductName ?? string.Empty).Trim();
-
             ValidateSaveRequest(request, productName);
 
             if (_productDal.IsNameExists(productName, request.Id))
@@ -64,14 +63,20 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             var imageUrl3 = ResolveImageUrl(request.UploadPhoto3, request.ExistingImageUrl3, existing?.ImageUrl3);
             var imageUrl4 = ResolveImageUrl(request.UploadPhoto4, request.ExistingImageUrl4, existing?.ImageUrl4);
 
+            var salePrice = request.SalePrice > 0 ? request.SalePrice : request.OriginalPrice;
+            var priceAfterDiscount = CalculatePriceAfterDiscount(salePrice, request.DiscountPercent);
+
             var product = new Product
             {
                 Id = request.Id,
                 ProductName = productName,
                 UnitId = request.UnitId,
                 CategoryId = request.CategoryId,
-                OriginalPrice = request.OriginalPrice,
-                PriceAfterDiscount = request.PriceAfterDiscount,
+                ImportPrice = request.ImportPrice,
+                SalePrice = salePrice,
+                DiscountPercent = request.DiscountPercent,
+                OriginalPrice = salePrice,
+                PriceAfterDiscount = priceAfterDiscount,
                 BurningTime = request.BurningTime?.Trim(),
                 Ingredient = request.Ingredient?.Trim(),
                 Description = request.Description?.Trim(),
@@ -82,6 +87,13 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                 Weight = request.Weight?.Trim(),
                 UsageTags = request.UsageTags?.Trim(),
                 Quantity = request.Quantity,
+                Inventory = new ProductInventory
+                {
+                    ProductId = request.Id,
+                    Quantity = request.Quantity ?? 0,
+                    LowStockThreshold = request.LowStockThreshold.GetValueOrDefault(5),
+                    UpdatedTime = DateTime.Now
+                },
                 SoldCount = request.SoldCount,
                 Rating = request.Rating,
                 ReviewCount = request.ReviewCount,
@@ -94,9 +106,10 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             };
 
             if (product.Id == 0)
-                _productDal.Add(product);
-            else
-                _productDal.Update(product);
+                return _productDal.Add(product);
+
+            _productDal.Update(product);
+            return product.Id;
         }
 
         private void ValidateSaveRequest(ProductSaveRequest request, string productName)
@@ -110,16 +123,27 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             if (request.UnitId <= 0 || !_productDal.UnitExists(request.UnitId))
                 throw new InvalidOperationException("Đơn vị tính không tồn tại.");
 
-            if (request.OriginalPrice < 0)
-                throw new InvalidOperationException("Giá gốc không hợp lệ.");
+            if (request.ImportPrice < 0)
+                throw new InvalidOperationException("Giá nhập không hợp lệ.");
 
-            if (request.PriceAfterDiscount < 0)
+            if (request.SalePrice < 0 || request.OriginalPrice < 0)
                 throw new InvalidOperationException("Giá bán không hợp lệ.");
 
-            if (request.PriceAfterDiscount > request.OriginalPrice)
-                throw new InvalidOperationException("Giá bán không được lớn hơn giá gốc.");
+            if (request.DiscountPercent < 0 || request.DiscountPercent > 100)
+                throw new InvalidOperationException("Giảm giá chỉ được trong khoảng 0 đến 100%.");
+
+            if (request.PriceAfterDiscount < 0)
+                throw new InvalidOperationException("Giá sau giảm không hợp lệ.");
+
+            if (request.PriceAfterDiscount > 0)
+            {
+                var salePrice = request.SalePrice > 0 ? request.SalePrice : request.OriginalPrice;
+                if (request.PriceAfterDiscount > salePrice)
+                    throw new InvalidOperationException("Giá sau giảm không được lớn hơn giá bán.");
+            }
 
             ValidateNonNegative(request.Quantity, "Số lượng tồn không hợp lệ.");
+            ValidateNonNegative(request.LowStockThreshold, "Ngưỡng sắp hết hàng không hợp lệ.");
             ValidateNonNegative(request.SoldCount, "Số lượng đã bán không hợp lệ.");
             ValidateNonNegative(request.ReviewCount, "Số lượng đánh giá không hợp lệ.");
 
@@ -136,6 +160,14 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
         {
             if (value.HasValue && value.Value < 0)
                 throw new InvalidOperationException(errorMessage);
+        }
+
+        private static decimal CalculatePriceAfterDiscount(decimal salePrice, decimal discountPercent)
+        {
+            if (salePrice <= 0)
+                return 0;
+
+            return Math.Round(salePrice * (100 - discountPercent) / 100, 0);
         }
 
         private static void ValidateImageUpload(FileUploadData? upload)
