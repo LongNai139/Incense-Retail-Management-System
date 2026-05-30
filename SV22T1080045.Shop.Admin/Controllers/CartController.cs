@@ -20,10 +20,29 @@ namespace SV22T1080045.Shop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddToCart(int productID, int quantity = 1)
+        public IActionResult AddToCart(int productID, int quantity = 1, bool redirectToCheckout = false)
         {
             _cartService.AddToCart(productID, quantity);
+            if (redirectToCheckout)
+                return RedirectToAction("Index", "Checkout");
+
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddToCartAjax(int productID, int quantity = 1)
+        {
+            if (quantity <= 0)
+                return Json(new { success = false, message = "Số lượng không hợp lệ." });
+
+            _cartService.AddToCart(productID, quantity);
+            return Json(new
+            {
+                success = true,
+                message = "Đã thêm sản phẩm vào giỏ hàng.",
+                cartCount = _cartService.Count()
+            });
         }
 
         [HttpPost]

@@ -59,6 +59,7 @@ namespace SV22T1080045.Shop.Controllers
                 PageSize = pageSize,
                 TotalCount = result.TotalCount,
                 OriginOptions = result.OriginOptions,
+                OriginCounts = result.OriginCounts,
                 Categories = categories
                     .Select(c => c.ToCategoryFilterItem(result.CategoryCounts.GetValueOrDefault(c.Id, 0)))
                     .ToList(),
