@@ -119,6 +119,7 @@
     background: var(--cream);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
+    overflow: hidden;
 }
 
 .commerce-summary {
@@ -213,11 +214,16 @@
     margin-top: 2px;
 }
 
+.money-amount,
 .money-serif {
     color: var(--ink);
-    font-family: var(--serif);
-    font-size: 17px;
-    font-weight: 600;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+    line-height: 1.35;
+    white-space: nowrap;
 }
 
 .cart-qty-form {
@@ -347,9 +353,10 @@
 
 .summary-total .val {
     color: var(--ink);
-    font-family: var(--serif);
-    font-size: 28px;
-    font-weight: 700;
+    font-family: var(--sans);
+    font-size: 26px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
 }
 
 .voucher-box {
@@ -366,8 +373,20 @@
 }
 
 .voucher-row {
+    align-items: stretch;
     display: flex;
+    flex-wrap: nowrap;
     gap: 8px;
+}
+
+.voucher-row .commerce-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.voucher-apply-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .commerce-input,
@@ -708,9 +727,98 @@
 
 .order-item-price {
     flex-shrink: 0;
-    font-family: var(--serif);
+    font-family: var(--sans);
     font-size: 15px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.upsell-wrap {
+    margin-top: 32px;
+}
+
+.upsell-title {
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 300;
+    margin: 0 0 16px;
+}
+
+.upsell-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.upsell-card {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.upsell-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+}
+
+.upsell-img-link {
+    display: block;
+}
+
+.upsell-img {
+    aspect-ratio: 4 / 3;
+    background: var(--warm-100);
+    object-fit: cover;
+    width: 100%;
+}
+
+.upsell-img-placeholder {
+    align-items: center;
+    color: var(--ink-4);
+    display: flex;
+    font-size: 28px;
+    justify-content: center;
+}
+
+.upsell-info {
+    padding: 10px 12px;
+}
+
+.upsell-name {
+    color: var(--ink);
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.upsell-price {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.upsell-add {
+    background: var(--warm-100);
+    border: 1px solid var(--border-2);
+    border-radius: 99px;
+    color: var(--ink-2);
+    font-size: 11px;
+    height: 30px;
+    transition: var(--transition);
+    width: 100%;
+}
+
+.upsell-add:hover {
+    background: var(--ink);
+    color: var(--warm-100);
+}
+
+.upsell-add-form {
+    margin: 0;
 }
 
 .agree-box {
@@ -1017,9 +1125,14 @@
         grid-template-rows: auto auto auto;
     }
 
+    .cart-row .money-amount,
     .cart-row .money-serif,
     .cart-row .cart-qty-form {
         justify-self: start;
+    }
+
+    .upsell-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -1053,11 +1166,7 @@
         padding: 36px 24px;
     }
 
-    .voucher-row {
-        flex-direction: column;
-    }
-
-    .commerce-btn.square {
-        width: 100%;
+    .upsell-grid {
+        grid-template-columns: 1fr;
     }
 }
