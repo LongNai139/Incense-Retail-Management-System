@@ -17,6 +17,11 @@ namespace SV22T1080045.Shop.Models.Mappers
                 ShippingPhone = order.ShippingPhone ?? "",
                 ShippingAddress = order.ShippingAddress ?? "",
                 TotalAmount = order.TotalAmount,
+                VoucherCode = order.VoucherCode,
+                DiscountAmount = order.DiscountAmount,
+                FinalAmount = order.FinalAmount > 0 ? order.FinalAmount : order.TotalAmount - order.DiscountAmount,
+                PaymentMethod = order.PaymentMethod,
+                PaymentStatus = order.PaymentStatus,
                 Details = details
                     .Select(d => new CheckoutOrderDetailViewModel
                     {
