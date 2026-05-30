@@ -36,6 +36,7 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/management.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/operational-alerts.css" asp-append-version="true" />
 }
 
 <div class="management-shell">
@@ -53,6 +54,7 @@
                 <a href="#customers"><i class="fa-solid fa-users"></i> Khách hàng</a>
                 <a href="#discounts"><i class="fa-solid fa-ticket"></i> Mã giảm giá</a>
                 <a href="#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo</a>
+                <a href="#orders"><i class="fa-solid fa-bell"></i> Cảnh báo</a>
             </nav>
         </aside>
 
@@ -64,6 +66,9 @@
                     <p>Theo dõi doanh thu, xử lý đơn, chăm tồn kho và khách hàng trên cùng một khu vực quản trị. Các khối đơn hàng, khách hàng, mã giảm giá và báo cáo đang đọc từ database hiện tại.</p>
                 </div>
                 <div class="management-actions">
+                    <button class="admin-btn" type="button" data-sound-toggle>
+                        <i class="fa-solid fa-volume-high"></i> Âm báo
+                    </button>
                     <a class="admin-btn primary" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Thêm sản phẩm</a>
                     <button class="admin-btn"><i class="fa-solid fa-file-import"></i> Import Excel</button>
                     <a class="admin-btn success" asp-controller="Management" asp-action="ExportRevenueReport" asp-route-reportPeriod="@Model.ReportPeriod" asp-route-reportDate="@reportDateValue"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</a>
@@ -1093,4 +1098,12 @@
             });
         }
     </script>
+    <script>
+        window.operationalAlertsConfig = {
+            feedUrl: '@Url.Action("Feed", "OperationalAlerts")',
+            storageKey: 'managementOperationalAlerts',
+            pollIntervalMs: 30000
+        };
+    </script>
+    <script src="~/js/operational-alerts.js" asp-append-version="true"></script>
 }
