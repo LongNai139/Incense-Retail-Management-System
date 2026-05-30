@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SV22T1080045.Shop.DataLayers;
 
@@ -11,9 +12,11 @@ using SV22T1080045.Shop.DataLayers;
 namespace SV22T1080045.Shop.DataLayers.Migrations
 {
     [DbContext(typeof(ShopDbContext))]
-    partial class ShopDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416053958_SyncSchemaForAuthOtpCheckout")]
+    partial class SyncSchemaForAuthOtpCheckout
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,7 +98,7 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                         {
                             Id = 1,
                             Address = "Cửa hàng Hương Trầm",
-                            CreatedTime = new DateTime(2026, 5, 29, 9, 44, 42, 580, DateTimeKind.Local).AddTicks(105),
+                            CreatedTime = new DateTime(2026, 4, 16, 12, 39, 57, 956, DateTimeKind.Local).AddTicks(4784),
                             CustomerName = "Quản trị viên",
                             IsDeleted = false,
                             Password = "123",
@@ -157,42 +160,11 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("FinalAmount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Note")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PaymentBankCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PaymentResponseCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("PaymentStatus")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PaymentTransactionNo")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ShippingAddress")
                         .IsRequired()
@@ -211,12 +183,6 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("VoucherCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("VoucherId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -308,9 +274,6 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AgeYear")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("BurningTime")
                         .HasColumnType("nvarchar(max)");
 
@@ -326,29 +289,11 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImageUrl2")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl3")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl4")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Ingredient")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Length")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OilContent")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Origin")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("OriginalPrice")
                         .HasColumnType("decimal(18,2)");
@@ -360,32 +305,10 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ReviewCount")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SoldCount")
-                        .HasColumnType("int");
-
                     b.Property<int>("UnitId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UsageTags")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Weight")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("UnitId");
 
                     b.ToTable("Products");
                 });
@@ -505,25 +428,6 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("SV22T1080045.Shop.DomainModels.Product", b =>
-                {
-                    b.HasOne("SV22T1080045.Shop.DomainModels.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SV22T1080045.Shop.DomainModels.Unit", "Unit")
-                        .WithMany()
-                        .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("Unit");
                 });
 
             modelBuilder.Entity("SV22T1080045.Shop.DomainModels.Order", b =>

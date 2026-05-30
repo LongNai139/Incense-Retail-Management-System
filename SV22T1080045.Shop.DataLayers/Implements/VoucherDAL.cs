@@ -1,30 +1,29 @@
-﻿using Dapper;
+using Dapper;
+using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 
-namespace SV22T1080045.Shop.DataLayers
+namespace SV22T1080045.Shop.DataLayers.Implements
 {
-    /// <summary>
-    /// VoucherDAL dùng Dapper — nhất quán với OrderDAL, GuestOrderDAL.
-    /// KHÔNG dùng EF Core hay ShopDbContextFactory ở đây.
-    /// </summary>
-    public class VoucherDAL : _BaseDAL
+    public class VoucherDAL : _BaseDAL, IVoucherDAL
     {
         public VoucherDAL(string connectionString) : base(connectionString) { }
 
         public Voucher? GetByCode(string code)
         {
             using var conn = OpenConnection();
+            var normalizedCode = code.Trim().ToUpper();
             return conn.QueryFirstOrDefault<Voucher>(
                 "SELECT * FROM Vouchers WHERE Code = @code AND IsActive = 1",
-                new { code = code.Trim().ToUpper() });
+                new { code = normalizedCode });
         }
 
         public bool Use(string code)
         {
             using var conn = OpenConnection();
+            var normalizedCode = code.Trim().ToUpper();
             return conn.Execute(
                 "UPDATE Vouchers SET UsedCount = UsedCount + 1 WHERE Code = @code",
-                new { code = code.Trim().ToUpper() }) > 0;
+                new { code = normalizedCode }) > 0;
         }
 
         public int Add(Voucher v)
@@ -38,7 +37,7 @@ namespace SV22T1080045.Shop.DataLayers
                 VALUES
                     (@Code, @Description, @DiscountType, @DiscountValue, @MaxDiscount,
                      @MinOrderAmount, @ExpiresAt, @MaxUsage, 0, 1);
-                SELECT SCOPE_IDENTITY();", v);
+                SELECT CAST(SCOPE_IDENTITY() AS int);", v);
         }
 
         public bool Update(Voucher v)
