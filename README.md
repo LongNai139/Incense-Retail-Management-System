@@ -1,64 +1,83 @@
 # Agarwood & Incense E-Commerce Platform
 
 ## 1. Giới thiệu
-Đây là hệ thống bán hàng dành cho cửa hàng trầm hương và nhang, được tổ chức theo kiến trúc nhiều lớp để tách biệt phần giao diện, nghiệp vụ và truy cập dữ liệu.
 
-## 2. Kiến trúc
-Solution hiện gồm các project chính:
+Hệ thống bán hàng trầm hương / nhang, kiến trúc nhiều lớp, **tách cửa hàng khách và backoffice**.
 
-- `SV22T1080045.Shop.Abstractions`: hợp đồng (interface), DTO/query dùng chung giữa các lớp.
-- `SV22T1080045.Shop.DomainModels`: các thực thể cốt lõi.
-- `SV22T1080045.Shop.DataLayers`: truy cập dữ liệu bằng EF Core và Dapper.
-- `SV22T1080045.Shop.BusinessLayers`: xử lý nghiệp vụ.
-- `SV22T1080045.Shop.Models`: view model cho phần giao diện.
-- `SV22T1080045.Shop.Admin`: ứng dụng ASP.NET Core MVC.
+## 2. Kiến trúc solution
 
-Yêu cầu SDK: .NET 8 (xem `global.json`).
+| Project | Vai trò |
+|---------|---------|
+| `SV22T1080045.Shop.Web` | Cửa hàng: sản phẩm, giỏ, checkout, thanh toán |
+| `SV22T1080045.Shop.Admin` | Backoffice: Management, Staff, báo cáo |
+| `SV22T1080045.Shop.Payments` | VNPay, MoMo, VietQR (QR chuyển khoản) |
+| `SV22T1080045.Shop.BusinessLayers` | Nghiệp vụ |
+| `SV22T1080045.Shop.DataLayers` | EF Core / DAL |
+| `SV22T1080045.Shop.Models` | ViewModel, request |
+| `SV22T1080045.Shop.DomainModels` | Entity |
+| `SV22T1080045.Shop.Abstractions` | Contract, DTO |
 
-## 3. Chức năng chính
+SDK: .NET 8 (`global.json`).
 
-- Thanh toán không cần tài khoản (guest checkout).
-- Tra cứu đơn hàng bằng số điện thoại.
-- Thanh toán VNPay (sandbox).
-- Quản lý sản phẩm, danh mục, nhân viên và báo cáo.
-- Đăng ký tài khoản có xác thực OTP.
+**URL dev mặc định**
 
-## 4. Thiết lập nhanh
+- Cửa hàng: https://localhost:7126 (`SV22T1080045.Shop.Web`)
+- Quản trị: https://localhost:7127 (`SV22T1080045.Shop.Admin`)
 
-1. Cấu hình chuỗi kết nối trong `SV22T1080045.Shop.Admin/appsettings.json`.
-2. Chạy migration: `dotnet ef database update --project SV22T1080045.Shop.DataLayers --startup-project SV22T1080045.Shop.Admin`
-3. Backfill giá/tồn kho (sau migration mới): `SV22T1080045.Shop.DataLayers/Scripts/MigrateProductPricingAndInventory.sql`
-4. (Tuỳ chọn) Seed dữ liệu mẫu: `SV22T1080045.Shop.DataLayers/Scripts/SeedProducts_30.sql`
-5. Ảnh sản phẩm upload vào `wwwroot/images/products/` (thư mục không commit lên Git).
+Chi tiết kiểm thử và truy cập từ điện thoại: **[TESTING.md](TESTING.md)**.
 
-### Thanh toán VNPay (bạn cần tự đăng ký)
+## 3. Chạy dự án
 
-Ứng dụng đã tích hợp luồng redirect VNPay sandbox. Để bật thanh toán online:
+```powershell
+dotnet ef database update --project SV22T1080045.Shop.DataLayers --startup-project SV22T1080045.Shop.Web
 
-1. Đăng ký merchant tại [VNPay Sandbox](https://sandbox.vnpayment.vn/devreg/) (hoặc tài khoản production khi go-live).
-2. Lấy **TmnCode** và **HashSecret** từ cổng VNPay.
-3. Cập nhật `SV22T1080045.Shop.Admin/appsettings.json` (hoặc User Secrets / biến môi trường trên server):
+dotnet run --project SV22T1080045.Shop.Web
+dotnet run --project SV22T1080045.Shop.Admin
+```
+
+Cấu hình DB: `appsettings.json` trong **Web** và **Admin** (cùng connection string).
+
+## 4. Thanh toán — cấu hình trong `SV22T1080045.Shop.Web/appsettings.json`
+
+### VNPay (bạn tự đăng ký merchant)
+
+1. [VNPay Sandbox](https://sandbox.vnpayment.vn/devreg/)
+2. Điền `VnPay:TmnCode`, `VnPay:HashSecret`
+3. Return URL: `https://<host>/Checkout/VnPayReturn`
+
+### MoMo (bạn tự đăng ký)
+
+1. [MoMo Developer / Business](https://developers.momo.vn/) — tạo app sandbox
+2. Điền `MoMo:PartnerCode`, `MoMo:AccessKey`, `MoMo:SecretKey`
+3. Trên cổng MoMo khai báo:
+   - Redirect: `https://<host>/Checkout/MoMoReturn`
+   - IPN: `https://<host>/Checkout/MoMoIpn`
+
+### Chuyển khoản QR (VietQR — bạn tự điền tài khoản nhận)
+
+Không cần mua dịch vụ riêng; cần **tài khoản ngân hàng** và mã **BIN** ngân hàng (tra [VietQR](https://www.vietqr.io/)).
 
 ```json
-"VnPay": {
-  "TmnCode": "MÃ_CỦA_BẠN",
-  "HashSecret": "SECRET_CỦA_BẠN",
-  "PaymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+"VietQr": {
+  "BankId": "970436",
+  "AccountNumber": "0123456789",
+  "AccountName": "TRAN HUONG SHOP",
+  "Template": "compact2"
 }
 ```
 
-4. Cấu hình **Return URL** trên cổng VNPay trùng với: `https://<host-của-bạn>/Checkout/VnPayReturn` (local: `https://localhost:<port>/Checkout/VnPayReturn`).
-5. Khi deploy production: đổi `PaymentUrl` sang URL production VNPay và dùng merchant production.
+Khách chọn “Chuyển khoản QR” → màn hình QR có **sẵn số tiền** và nội dung `TH000123`. Shop xác nhận thanh toán thủ công trên Staff (chưa có webhook ngân hàng).
 
-Nếu chưa cấu hình `TmnCode`/`HashSecret`, khách vẫn đặt hàng bằng COD; chọn VNPay sẽ báo lỗi cấu hình.
+**Lưu ý:** Ảnh QR lấy từ `img.vietqr.io` (cần internet). Production có thể thay bằng API VietQR chính thức nếu bạn đăng ký.
 
-### Giá sản phẩm (quản trị)
+## 5. Giá sản phẩm (quản trị)
 
 | Trường | Ý nghĩa |
 |--------|---------|
-| `ImportPrice` | Giá nhập — chỉ dùng nội bộ (Management), không hiển thị khách |
-| `SalePrice` | Giá bán niêm yết trước giảm |
-| `DiscountPercent` | % giảm do admin thiết lập |
-| `PriceAfterDiscount` | Giá khách trả (tự tính khi lưu; giữ tương thích dữ liệu cũ) |
-| `OriginalPrice` | Giữ cho dữ liệu legacy (đồng bộ với `SalePrice` khi lưu) |
-| `ProductInventories` | Tồn kho tách bảng; `Products.Quantity` vẫn giữ để không vỡ dữ liệu cũ |
+| `ImportPrice` | Giá nhập — nội bộ |
+| `SalePrice` | Giá niêm yết |
+| `DiscountPercent` | % giảm |
+| `PriceAfterDiscount` | Giá khách trả |
+| `ProductInventories` | Tồn kho (bảng riêng) |
+
+Migration / script: `SV22T1080045.Shop.DataLayers/Scripts/MigrateProductPricingAndInventory.sql`
