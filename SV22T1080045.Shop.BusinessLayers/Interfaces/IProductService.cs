@@ -10,7 +10,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Interfaces
         List<Product> ListProducts(string? searchValue = null, int take = 0, string sortBy = "newest");
         List<Product> ListRelatedProducts(int productId, int categoryId, int take = 0);
         Product? GetProduct(int id);
-        void SaveProduct(ProductSaveRequest request);
+        int SaveProduct(ProductSaveRequest request);
         bool DeleteProduct(int id);
     }
 }

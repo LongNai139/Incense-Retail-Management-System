@@ -16,6 +16,11 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             _passwordHasherService = passwordHasherService;
         }
 
+        public Customer? GetCustomerById(int id)
+        {
+            return _customerDAL.GetById(id);
+        }
+
         public Customer? Login(string phone, string password)
         {
             var customer = _customerDAL.GetByPhone(phone.Trim());
@@ -47,6 +52,23 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
 
             data.Password = _passwordHasherService.Hash(data.Password);
             return _customerDAL.Add(data) > 0;
+        }
+
+        public bool UpdateProfile(int id, string customerName, string? email, string? address)
+        {
+            var existing = _customerDAL.GetById(id);
+            if (existing == null)
+                return false;
+
+            var normalizedName = customerName?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return false;
+
+            existing.CustomerName = normalizedName;
+            existing.Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+            existing.Address = string.IsNullOrWhiteSpace(address) ? null : address.Trim();
+
+            return _customerDAL.UpdateProfile(existing);
         }
 
         public string GenerateOTP()

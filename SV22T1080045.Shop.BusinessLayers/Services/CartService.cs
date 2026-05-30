@@ -50,7 +50,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                 ProductID = product.Id,
                 ProductName = product.ProductName,
                 Photo = ProductImageUrlHelper.Normalize(product.ImageUrl) ?? "",
-                Price = product.PriceAfterDiscount > 0 ? product.PriceAfterDiscount : product.OriginalPrice,
+                Price = product.DisplayPrice,
                 Quantity = quantity
             });
 
