@@ -107,26 +107,24 @@ namespace SV22T1080045.Shop.Controllers
             if (customerId == 0)
                 _guestOrderService.SaveGuestOrder(orderId, input.ShippingPhone);
 
-            // ── Redirect theo phương thức thanh toán ──────────────────────
-            //if (input.PaymentMethod == 2)
-            //{
-            //    // Lấy FinalAmount từ order đã lưu (đã bao gồm giảm giá)
-            //    var order = _orderService.GetOrder(orderId);
-            //    var payableAmount = order?.FinalAmount ?? cart.Sum(i => i.TotalPrice);
+            if (input.PaymentMethod == 2)
+            {
+                var order = _orderService.GetOrder(orderId);
+                var payableAmount = order?.FinalAmount ?? cart.Sum(i => i.TotalPrice);
 
-            //    var returnUrl = Url.Action(nameof(VnPayReturn), "Checkout", null, Request.Scheme)
-            //        ?? $"{Request.Scheme}://{Request.Host}/Checkout/VnPayReturn";
+                var returnUrl = Url.Action(nameof(VnPayReturn), "Checkout", null, Request.Scheme)
+                    ?? $"{Request.Scheme}://{Request.Host}/Checkout/VnPayReturn";
 
-            //    var paymentUrl = _vnPayService.CreatePaymentUrl(
-            //        orderId,
-            //        payableAmount,
-            //        $"Thanh toan don hang TH{orderId:D6}",
-            //        GetClientIpAddress(),
-            //        returnUrl);
+                var paymentUrl = _vnPayService.CreatePaymentUrl(
+                    orderId,
+                    payableAmount,
+                    $"Thanh toan don hang TH{orderId:D6}",
+                    GetClientIpAddress(),
+                    returnUrl);
 
-            //    _cartService.ClearCart();
-            //    return Redirect(paymentUrl);
-            //}
+                _cartService.ClearCart();
+                return Redirect(paymentUrl);
+            }
 
             _cartService.ClearCart();
             return RedirectToAction(nameof(Success), new { orderId, isGuest = customerId == 0 });
@@ -274,5 +272,14 @@ namespace SV22T1080045.Shop.Controllers
 
         private static string GetLastShippingAddressSessionKey(int customerId)
             => $"{LastShippingAddressSessionKeyPrefix}{(customerId > 0 ? customerId.ToString() : "GUEST")}";
+
+        private string GetClientIpAddress()
+        {
+            var forwarded = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(forwarded))
+                return forwarded.Split(',')[0].Trim();
+
+            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "127.0.0.1";
+        }
     }
 }
