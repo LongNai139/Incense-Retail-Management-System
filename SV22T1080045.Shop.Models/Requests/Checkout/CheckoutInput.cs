@@ -21,6 +21,6 @@ namespace SV22T1080045.Shop.Models.Requests.Checkout
 
         public string? Note { get; set; }
         public string? VoucherCode { get; set; }
-        public int PaymentMethod { get; set; } = 1; // 1=COD, 2=VNPay, 3=MoMo
+        public int PaymentMethod { get; set; } = 1; // 1=COD, 2=VNPay, 3=MoMo, 4=Bank QR
     }
 }

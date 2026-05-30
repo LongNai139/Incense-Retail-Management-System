@@ -16,7 +16,8 @@ namespace SV22T1080045.Shop.Models.ViewModels.Checkout
         {
             2 => "VNPay",
             3 => "MoMo",
-            _ => "COD"
+            4 => "Chuyển khoản QR",
+            _ => "Thanh toán khi nhận hàng (COD)"
         };
         public string PaymentStatusText => PaymentStatus switch
         {
