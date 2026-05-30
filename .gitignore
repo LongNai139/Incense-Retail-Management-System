@@ -1,4 +1,37 @@
+# Build output
 [Bb]in/
 [Oo]bj/
 .vs/
+
+# Tooling / agent build cache
+.codex-temp/
+
+# User-specific
 *.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and temp
+*.log
+*.tmp
+*.zip
+
+# Local configuration (keep appsettings.json template in repo)
+appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+
+# Runtime product uploads (seed via SQL/scripts)
+**/wwwroot/images/products/*
+!**/wwwroot/images/products/.gitkeep
+
+# Legacy demo images folder (optional local only)
+**/wwwroot/images/*.jpg
+!**/wwwroot/images/products/.gitkeep
+
+# OCR data (not used in solution; download locally if needed)
+tessdata/
+
+# Duplicate HTML prototypes (MVC is source of truth)
+01-prototype/New folder/
