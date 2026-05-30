@@ -1,83 +1,71 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using SV22T1080045.Shop.Admin.Services;
 using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DataLayers;
 
-public class Program
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
+
+var connectionString = builder.Configuration.GetConnectionString("ShopConnectionString")!;
+
+builder.Services.AddSession(options =>
 {
-    public static void Main(string[] args)
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        var builder = WebApplication.CreateBuilder(args);
+        options.Cookie.Name = "SV22T1080045_Shop_Backoffice_Auth";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    });
 
-        builder.Services.AddControllersWithViews();
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.Configure<VnPayOptions>(builder.Configuration.GetSection("VnPay"));
-        builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddDataLayers(connectionString);
+builder.Services.AddBusinessLayers();
 
-        string connectionString = builder.Configuration
-            .GetConnectionString("ShopConnectionString")!;
+var app = builder.Build();
 
-        builder.Services.AddSession(options =>
-        {
-            options.IdleTimeout = TimeSpan.FromMinutes(30);
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = true;
-        });
+SeedStaffAccounts(app);
 
-        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
-            {
-                options.Cookie.Name = "SV22T1080045_Shop_Auth";
-                options.LoginPath = "/Account/Login";
-                options.AccessDeniedPath = "/Account/AccessDenied";
-                options.ExpireTimeSpan = TimeSpan.FromDays(30);
-            });
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
-        builder.Services.AddDataLayers(connectionString);
-        builder.Services.AddBusinessLayers();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseSession();
+app.UseAuthentication();
+app.UseAuthorization();
 
-        var app = builder.Build();
+var storefrontUrl = app.Configuration["AppHosts:StorefrontUrl"] ?? "https://localhost:7126";
 
-        SeedStaffAccounts(app);
+app.MapGet("/", () => Results.Redirect("/Management"));
+app.MapGet("/Home", () => Results.Redirect($"{storefrontUrl.TrimEnd('/')}"));
 
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Home/Error");
-            app.UseHsts();
-        }
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Management}/{action=Index}/{id?}");
 
-        app.UseHttpsRedirection();
-        app.UseStaticFiles();
-        app.UseRouting();
+app.Run();
 
-        app.UseSession();
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.MapControllerRoute(
-            name: "tracuu",
-            pattern: "tra-cuu-don-hang",
-            defaults: new { controller = "OrderLookup", action = "Index" });
-
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
-
-        app.Run();
+static void SeedStaffAccounts(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    try
+    {
+        scope.ServiceProvider.GetRequiredService<IStartupSeedService>().SeedStaffAccounts();
     }
-
-    private static void SeedStaffAccounts(WebApplication app)
+    catch
     {
-        using var scope = app.Services.CreateScope();
-
-        try
-        {
-            scope.ServiceProvider.GetRequiredService<IStartupSeedService>().SeedStaffAccounts();
-        }
-        catch
-        {
-            // The app can still start when the database is not available; pages will surface DB errors normally.
-        }
+        // Database may be offline during startup.
     }
 }

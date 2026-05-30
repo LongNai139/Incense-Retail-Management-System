@@ -637,6 +637,11 @@
     border-color: var(--ink);
 }
 
+.payment-option.disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
 .payment-option input {
     accent-color: var(--ink);
     height: 18px;

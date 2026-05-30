@@ -235,7 +235,7 @@
                                     <span class="catalog-price-current">@FormatMoney(item.DisplayPrice)</span>
                                     @if (item.HasDiscount)
                                     {
-                                        <span class="catalog-price-original">@FormatMoney(item.OriginalPrice)</span>
+                                        <span class="catalog-price-original">@FormatMoney(item.DisplayOriginalPrice)</span>
                                         <span class="catalog-discount">-@item.DiscountPercent%</span>
                                     }
                                 </div>
