@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.Models.Mappers;
+using SV22T1080045.Shop.Models.ViewModels.Home;
 
-namespace SV22T1080045.Shop.Admin.Controllers
+namespace SV22T1080045.Shop.Controllers
 {
     public class HomeController : Controller
     {
@@ -16,37 +18,33 @@ namespace SV22T1080045.Shop.Admin.Controllers
 
         public IActionResult Index(string searchValue = "")
         {
-            var products = _productService
-                .ListProducts(searchValue)
-                .Where(p => !p.IsDeleted)
-                .ToList();
+            var model = new HomeViewModel
+            {
+                FeaturedProducts = _productService
+                    .ListProducts(searchValue, take: 4, sortBy: "bestseller")
+                    .Select(p => p.ToCardViewModel())
+                    .ToList(),
+                LatestProducts = _productService
+                    .ListProducts(searchValue, take: 4, sortBy: "newest")
+                    .Select(p => p.ToCardViewModel())
+                    .ToList(),
+                Categories = _categoryService.ListCategories(6)
+                    .Select(c => c.ToCategoryViewModel())
+                    .ToList()
+            };
 
             ViewBag.SearchValue = searchValue;
-            ViewBag.FeaturedProducts = products.Take(4).ToList();
-            ViewBag.LatestProducts = products
-                .OrderByDescending(p => p.CreatedTime)
-                .Take(4)
-                .ToList();
-            ViewBag.Categories = _categoryService.ListCategories(6);
-
-            return View(products);
+            return View(model);
         }
 
         public IActionResult Details(int id)
         {
             var product = _productService.GetProduct(id);
-            if (product == null || product.IsDeleted)
-            {
+            if (product == null)
                 return RedirectToAction(nameof(Index));
-            }
 
-            ViewBag.RelatedProducts = _productService
-                .ListProducts()
-                .Where(p => !p.IsDeleted && p.Id != id && p.CategoryId == product.CategoryId)
-                .Take(4)
-                .ToList();
-
-            return View(product);
+            var relatedProducts = _productService.ListRelatedProducts(id, product.CategoryId, 4);
+            return View(product.ToDetailsViewModel(relatedProducts));
         }
 
         public IActionResult Privacy() => View();

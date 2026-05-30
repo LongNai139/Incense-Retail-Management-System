@@ -23,7 +23,7 @@
     --red: #E74C3C;
 }
 
-*, *::before, *::after {
+.login-page, .login-page *, .login-page *::before, .login-page *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -32,17 +32,17 @@
     font-family: var(--sans);
     background: var(--bg);
     color: var(--ink);
-    min-height: 100vh;
+    min-height: calc(100vh - 68px);
     display: flex;
     flex-direction: column;
 }
 
-a {
+.login-page a {
     color: inherit;
     text-decoration: none;
 }
 
-button {
+.login-page button {
     cursor: pointer;
     font-family: var(--sans);
     border: none;
@@ -50,7 +50,7 @@ button {
 }
 
 /* HEADER */
-.site-header {
+.login-page .site-header {
     background: rgba(250,246,239,.95);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
@@ -61,13 +61,13 @@ button {
     justify-content: space-between;
 }
 
-.nav-logo {
+.login-page .nav-logo {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.logo-icon {
+.login-page .logo-icon {
     width: 36px;
     height: 36px;
     background: var(--ink);
@@ -79,7 +79,7 @@ button {
     color: var(--warm-100);
 }
 
-.logo-text {
+.login-page .logo-text {
     font-family: var(--serif);
     font-size: 20px;
     font-weight: 600;
@@ -87,7 +87,7 @@ button {
     line-height: 1.2;
 }
 
-    .logo-text span {
+    .login-page .logo-text span {
         display: block;
         font-size: 11px;
         font-weight: 300;
@@ -95,18 +95,18 @@ button {
         color: var(--ink-3);
     }
 
-.header-right {
+.login-page .header-right {
     font-size: 13px;
     color: var(--ink-4);
 }
 
-    .header-right a {
+    .login-page .header-right a {
         color: var(--ink-2);
         font-weight: 500;
         margin-left: 6px;
     }
 
-        .header-right a:hover {
+        .login-page .header-right a:hover {
             color: var(--ink);
         }
 
@@ -429,6 +429,17 @@ button {
         display: block;
     }
 
+.auth-alert {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(231,76,60,.22);
+    border-radius: var(--radius);
+    background: rgba(231,76,60,.08);
+    color: var(--red);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 /* OTP input */
 .otp-wrap {
     display: flex;
@@ -498,7 +509,7 @@ button {
     }
 
 /* Buttons */
-.btn-primary {
+.login-page .btn-primary {
     width: 100%;
     height: 50px;
     border-radius: var(--radius);
@@ -514,13 +525,13 @@ button {
     gap: 8px;
 }
 
-    .btn-primary:hover {
+    .login-page .btn-primary:hover {
         background: var(--ink-2);
         transform: translateY(-1px);
         box-shadow: var(--shadow);
     }
 
-    .btn-primary:disabled {
+    .login-page .btn-primary:disabled {
         background: var(--warm-200);
         color: var(--ink-4);
         cursor: not-allowed;
@@ -528,7 +539,7 @@ button {
         box-shadow: none;
     }
 
-.btn-outline {
+.login-page .btn-outline {
     width: 100%;
     height: 46px;
     border-radius: var(--radius);
@@ -540,7 +551,7 @@ button {
     transition: var(--tr);
 }
 
-    .btn-outline:hover {
+    .login-page .btn-outline:hover {
         background: var(--warm-100);
     }
 
@@ -567,7 +578,7 @@ button {
     gap: 10px;
 }
 
-.social-btn {
+.login-page .social-btn {
     flex: 1;
     height: 44px;
     border-radius: var(--radius);
@@ -582,7 +593,7 @@ button {
     transition: var(--tr);
 }
 
-    .social-btn:hover {
+    .login-page .social-btn:hover {
         background: var(--warm-100);
     }
 
@@ -696,7 +707,7 @@ button {
 }
 
 /* FOOTER */
-.site-footer {
+.login-page .site-footer {
     background: var(--ink);
     color: rgba(255,255,255,.45);
     padding: 20px 32px;

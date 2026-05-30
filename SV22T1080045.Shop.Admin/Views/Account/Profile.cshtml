@@ -1,226 +1,82 @@
-﻿@* @model SV22T1080045.Shop.DomainModels.Customer *@
-@* @{ *@
-@*     ViewBag.Title = "Hồ sơ cá nhân"; *@
-@* } *@
+@model SV22T1080045.Shop.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "Trang cá nhân";
+}
 
-@* @section Styles { *@
-@*     <style> *@
-@*         .profile-wrapper { *@
-@*             max-width: 1000px;  *@
-@*             margin: 0 auto; *@
-@*         } *@
+<section class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="p-4 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:64px;height:64px;background:#2b211c;color:#fff;font-size:26px;font-weight:700;">
+                        @((Model.CustomerName.FirstOrDefault() == default(char) ? 'K' : Model.CustomerName.First()).ToString().ToUpper())
+                    </div>
+                    <div>
+                        <h1 class="h4 fw-bold mb-1">@Model.CustomerName</h1>
+                        <div class="text-secondary small">@Model.Phone</div>
+                    </div>
+                </div>
 
-@*         .page-container { *@
-@*             background: linear-gradient(135deg, #fff5fa 0%, #f3e7fb 100%); *@
-@*             padding: 30px; *@
-@*             border-radius: 20px; *@
-@*             box-shadow: 0 10px 30px rgba(0,0,0,0.05); *@
-@*         } *@
+                <div class="d-grid gap-2">
+                    <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-outline-dark rounded-pill">
+                        Tra cứu đơn hàng
+                    </a>
+                    <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger rounded-pill">
+                        Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
 
-@*         .profile-box { *@
-@*             background: #fff; *@
-@*             border-radius: 16px; *@
-@*             padding: 25px; *@
-@*             box-shadow: 0 4px 15px rgba(173, 143, 222, 0.1); *@
-@*             height: 100%;  *@
-@*             transition: transform 0.2s; *@
-@*         } *@
+        <div class="col-lg-8">
+            <div class="p-4 rounded-4" style="background:#fff; border:1px solid #ead8c9;">
+                <h2 class="h4 fw-bold mb-3">Thông tin cá nhân</h2>
+                <p class="text-secondary mb-4">
+                    Địa chỉ cố định tại đây sẽ được ưu tiên điền sẵn khi thanh toán.
+                </p>
 
-@*             .profile-box:hover { *@
-@*                 transform: translateY(-2px); *@
-@*             } *@
+                @if (TempData["ProfileSuccess"] != null)
+                {
+                    <div class="alert alert-success rounded-4">@TempData["ProfileSuccess"]</div>
+                }
 
-@*         .title-section { *@
-@*             font-weight: 700; *@
-@*             font-size: 18px; *@
-@*             color: #C75EBE; *@
-@*             margin-bottom: 20px; *@
-@*             border-bottom: 2px solid #fce3f0; *@
-@*             padding-bottom: 10px; *@
-@*             display: flex; *@
-@*             align-items: center; *@
-@*         } *@
+                <form asp-controller="Account" asp-action="Profile" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-@*         .form-label { *@
-@*             font-weight: 600; *@
-@*             color: #555; *@
-@*             font-size: 0.9rem; *@
-@*             margin-bottom: 5px; *@
-@*         } *@
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="CustomerName" class="form-label">Họ tên</label>
+                            <input asp-for="CustomerName" class="form-control" />
+                            <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                            <input asp-for="Phone" class="form-control" readonly />
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Address" class="form-label">Địa chỉ giao hàng cố định</label>
+                            <textarea asp-for="Address" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                        </div>
+                    </div>
 
-@*         .form-control { *@
-@*             border-radius: 8px; *@
-@*             border: 1px solid #e0e0e0; *@
-@*             padding: 10px 15px; *@
-@*             font-size: 0.95rem; *@
-@*         } *@
+                    <div class="mt-4 d-flex gap-2">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-dark rounded-pill">Về trang chủ</a>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4">Lưu thông tin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
 
-@*             .form-control:focus { *@
-@*                 border-color: #C75EBE; *@
-@*                 box-shadow: 0 0 0 0.2rem rgba(199, 94, 190, 0.25); *@
-@*             } *@
-
-@*         .btn-primary-custom { *@
-@*             background-color: #C75EBE; *@
-@*             border: none; *@
-@*             border-radius: 8px; *@
-@*             color: white; *@
-@*             padding: 10px 20px; *@
-@*             font-weight: 600; *@
-@*             transition: all 0.3s; *@
-@*             width: 100%; *@
-@*         } *@
-
-@*             .btn-primary-custom:hover { *@
-@*                 background-color: #a54b9d; *@
-@*                 transform: translateY(-2px); *@
-@*             } *@
-
-@*         .btn-warning-custom { *@
-@*             background-color: #ffb74d; *@
-@*             border: none; *@
-@*             border-radius: 8px; *@
-@*             color: white; *@
-@*             padding: 10px 20px; *@
-@*             font-weight: 600; *@
-@*         } *@
-
-@*         /* Avatar style */ *@
-@*         .avatar-container { *@
-@*             width: 100px; *@
-@*             height: 100px; *@
-@*             margin: 0 auto 15px; *@
-@*             position: relative; *@
-@*         } *@
-
-@*         .avatar-img { *@
-@*             width: 100%; *@
-@*             height: 100%; *@
-@*             object-fit: cover; *@
-@*             border-radius: 50%; *@
-@*             border: 3px solid #fff; *@
-@*             box-shadow: 0 4px 10px rgba(0,0,0,0.1); *@
-@*         } *@
-@*     </style> *@
-@* } *@
-
-@* <div class="profile-wrapper my-4"> *@
-@*     <div class="page-container"> *@
-@*         <div class="row gy-4"> *@
-
-@*             <div class="col-lg-4"> *@
-@*                 <div class="profile-box"> *@
-@*                     <div class="text-center mb-4"> *@
-@*                         <div class="avatar-container"> *@
-@*                             <img src="~/images/doraemon-logo.png" onerror="this.src='https://placehold.co/100x100?text=User'" class="avatar-img" alt="Avatar" /> *@
-@*                             <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-2" title="Online"></span> *@
-@*                         </div> *@
-@*                         <h5 class="fw-bold text-dark mb-1">@Model.CustomerName</h5> *@
-@*                         <p class="text-muted small">Thành viên thân thiết</p> *@
-@*                     </div> *@
-
-@*                     <div class="title-section"><i class="bi bi-person-badge me-2"></i>Cá nhân</div> *@
-
-@*                     <form action="/Account/UpdateProfile" method="post"> *@
-@*                         <div class="mb-3"> *@
-@*                             <label class="form-label">Email</label> *@
-@*                             <input type="text" class="form-control bg-light text-muted" value="@Model.Email" readonly disabled /> *@
-@*                         </div> *@
-
-@*                         <div class="mb-3"> *@
-@*                             <label class="form-label">Họ và tên</label> *@
-@*                             <input type="text" name="CustomerName" class="form-control" value="@Model.CustomerName" required /> *@
-@*                         </div> *@
-
-@*                         <div class="mb-3"> *@
-@*                             <label class="form-label">Số điện thoại</label> *@
-@*                             <input type="text" name="Phone" class="form-control" value="@Model.Phone" /> *@
-@*                         </div> *@
-
-@*                         <div class="mb-3"> *@
-@*                             <label class="form-label">Địa chỉ</label> *@
-@*                             <textarea name="Address" class="form-control" rows="3" style="resize: none;">@Model.Address</textarea> *@
-@*                         </div> *@
-
-@*                         <div class="mt-4"> *@
-@*                             <button type="submit" class="btn btn-primary-custom"> *@
-@*                                 <i class="bi bi-save me-2"></i>Lưu thông tin *@
-@*                             </button> *@
-@*                         </div> *@
-@*                     </form> *@
-@*                 </div> *@
-@*             </div> *@
-
-@*             <div class="col-lg-8"> *@
-@*                 <div class="d-flex flex-column gap-4 h-100"> *@
-
-@*                     <div class="profile-box"> *@
-@*                         <div class="title-section"><i class="bi bi-shield-lock me-2"></i>Bảo mật tài khoản</div> *@
-
-@*                         @if (TempData["PassSuccess"] != null) *@
-@*                         { *@
-@*                             <div class="alert alert-success py-2 small rounded-3"><i class="bi bi-check-circle me-2"></i>@TempData["PassSuccess"]</div> *@
-@*                         } *@
-@*                         @if (TempData["PassError"] != null) *@
-@*                         { *@
-@*                             <div class="alert alert-danger py-2 small rounded-3"><i class="bi bi-exclamation-circle me-2"></i>@TempData["PassError"]</div> *@
-@*                         } *@
-
-@*                         <form action="/Account/ChangePassword" method="post"> *@
-@*                             <div class="mb-3"> *@
-@*                                 <label class="form-label">Mật khẩu hiện tại</label> *@
-@*                                 <input type="password" name="oldPass" class="form-control" required /> *@
-@*                             </div> *@
-@*                             <div class="row"> *@
-@*                                 <div class="col-md-6 mb-3"> *@
-@*                                     <label class="form-label">Mật khẩu mới</label> *@
-@*                                     <input type="password" name="newPass" class="form-control" required /> *@
-@*                                 </div> *@
-@*                                 <div class="col-md-6 mb-3"> *@
-@*                                     <label class="form-label">Xác nhận mật khẩu mới</label> *@
-@*                                     <input type="password" name="confirmPass" class="form-control" required /> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <div class="text-end mt-2"> *@
-@*                                 <button class="btn btn-warning-custom"> *@
-@*                                     <i class="bi bi-key me-2"></i>Cập nhật mật khẩu *@
-@*                                 </button> *@
-@*                             </div> *@
-@*                         </form> *@
-@*                     </div> *@
-
-@*                     <div class="profile-box" style="flex: 1;"> *@
-@*                         <div class="title-section text-dark"><i class="bi bi-grid-fill me-2"></i>Tiện ích</div> *@
-
-@*                         <div class="row g-3 align-items-center mb-3"> *@
-@*                             <div class="col-8"> *@
-@*                                 <div class="fw-bold">Lịch sử mua hàng</div> *@
-@*                                 <small class="text-muted">Xem lại trạng thái đơn hàng đã đặt</small> *@
-@*                             </div> *@
-@*                             <div class="col-4 text-end"> *@
-@*                                 <a href="/Order/History" class="btn btn-outline-primary btn-sm rounded-pill px-3"> *@
-@*                                     Xem ngay <i class="bi bi-arrow-right"></i> *@
-@*                                 </a> *@
-@*                             </div> *@
-@*                         </div> *@
-
-@*                         <hr class="text-muted opacity-25"> *@
-
-@*                         <div class="row g-3 align-items-center"> *@
-@*                             <div class="col-8"> *@
-@*                                 <div class="fw-bold text-danger">Đăng xuất</div> *@
-@*                                 <small class="text-muted">Thoát khỏi phiên làm việc</small> *@
-@*                             </div> *@
-@*                             <div class="col-4 text-end"> *@
-@*                                 <a href="/Account/Logout" class="btn btn-outline-danger btn-sm rounded-pill px-3"> *@
-@*                                     Đăng xuất *@
-@*                                 </a> *@
-@*                             </div> *@
-@*                         </div> *@
-@*                     </div> *@
-
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* </div> *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

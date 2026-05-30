@@ -1,155 +1,290 @@
-@model IEnumerable<SV22T1080045.Shop.DomainModels.Product>
-@using SV22T1080045.Shop.DomainModels
+@model SV22T1080045.Shop.Models.ViewModels.Home.HomeViewModel
 @{
     ViewData["Title"] = "Trang chủ";
-    var featuredProducts = ViewBag.FeaturedProducts as List<Product> ?? new();
-    var categories = ViewBag.Categories as List<Category> ?? new();
-    var allProducts = Model?.ToList() ?? new List<Product>();
+    var featuredProducts = Model.FeaturedProducts;
+    var latestProducts = Model.LatestProducts;
+    var categories = Model.Categories;
+    var catIcons = new[] { "🪔", "🫙", "🎍", "🎁", "🌿", "✨" };
 }
 
-<section class="container py-5">
-    <div class="row g-4 align-items-center">
-        <div class="col-lg-7">
-            <div class="p-5 rounded-4" style="background: linear-gradient(135deg, #4f2f22 0%, #8d5d3a 100%); color:#fff;">
-                <span class="badge rounded-pill mb-3" style="background: rgba(255,255,255,.15);">Guest checkout bằng số điện thoại</span>
-                <h1 class="display-5 fw-bold mb-3">Tinh hoa trầm hương cho không gian sống và quà tặng.</h1>
-                <p class="lead mb-4">Bản storefront hiện tại đã được ghép lại theo luồng mua hàng cốt lõi: xem sản phẩm, thêm giỏ, thanh toán, tra cứu đơn bằng OTP.</p>
-                <div class="d-flex flex-wrap gap-3">
-                    <a href="#san-pham" class="btn btn-light btn-lg px-4">Xem sản phẩm</a>
-                    <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-outline-light btn-lg px-4">Tra cứu đơn</a>
-                </div>
+<!-- HERO-->
+<section class="hero">
+    <div class="hero-content fade-up visible">
+        <div class="hero-eyebrow">
+            <span class="hero-eyebrow-line"></span>
+            <span class="label">Hương Trầm Thiên Nhiên</span>
+        </div>
+        <h1 class="hero-title">
+            Hương trầm Việt Nam
+            <br />
+            cho <em>không gian an yên</em>
+        </h1>
+        <p class="hero-desc">
+            Chọn lọc từ nguồn nguyên liệu tự nhiên, phù hợp cho thờ cúng, thiền định và quà tặng cao cấp.
+        </p>
+        <div class="hero-ctas">
+            <a asp-controller="Product" asp-action="Index" class="btn-primary">Khám phá sản phẩm</a>
+            <a asp-controller="OrderLookup" asp-action="Index" class="btn-secondary">Tra cứu đơn hàng</a>
+        </div>
+        <div class="hero-stats">
+            <div>
+                <div class="hero-stat-num">500+</div>
+                <div class="hero-stat-lbl">Sản phẩm</div>
+            </div>
+            <div>
+                <div class="hero-stat-num">10k+</div>
+                <div class="hero-stat-lbl">Khách hàng</div>
+            </div>
+            <div>
+                <div class="hero-stat-num">5★</div>
+                <div class="hero-stat-lbl">Đánh giá</div>
             </div>
         </div>
-        <div class="col-lg-5">
-            <div class="p-4 rounded-4 h-100" style="background: rgba(255,250,245,.85); border:1px solid #e6d6c7;">
-                <h5 class="fw-bold mb-3">Danh mục nổi bật</h5>
-                <div class="row g-3">
-                    @if (categories.Any())
-                    {
-                        foreach (var category in categories)
-                        {
-                            <div class="col-6">
-                                <div class="rounded-4 p-3 h-100" style="background:#fff; border:1px solid #efe3d7;">
-                                    <div class="fw-semibold">@category.CategoryName</div>
-                                    <div class="small text-secondary">Sản phẩm theo nhóm trầm hương</div>
-                                </div>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="col-12 text-secondary">Chưa có dữ liệu danh mục.</div>
-                    }
-                </div>
+    </div>
+
+    <div class="hero-visual">
+        <div class="hero-visual-main">
+            <div class="incense-art">
+                <div class="smoke-line"></div>
+                <div class="smoke-line"></div>
+                <div class="smoke-line"></div>
+                <div class="incense-glow"></div>
+                <div class="incense-stick"></div>
+                <div class="incense-base"></div>
             </div>
+        </div>
+        <div class="hero-float-card">
+            <div class="hero-float-card-title">Giao hàng toàn quốc</div>
+            <div class="hero-float-card-sub">Đóng gói an toàn, cẩn thận</div>
         </div>
     </div>
 </section>
 
-<section class="container pb-4">
-    <div class="row g-4">
-        <div class="col-lg-4">
-            <div class="p-4 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
-                <div class="fw-bold mb-2">Server-rendered storefront</div>
-                <div class="text-secondary">Phù hợp với nền ASP.NET Core MVC hiện tại, dễ hoàn thiện tiếp theo spec mà không phải thay kiến trúc đột ngột.</div>
+<!-- MARQUEE (trust strip chạy ngang)-->
+<div class="marquee-wrap">
+    <div class="marquee-track">
+        <span class="marquee-item"><span class="marquee-dot"></span>100% Tự Nhiên</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Giao Hàng Toàn Quốc</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Đổi Trả 7 Ngày</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Chứng Nhận Nguồn Gốc</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Hỗ Trợ 24/7</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Thanh Toán An Toàn</span>
+        <!-- lặp lại để marquee mượt-->
+        <span class="marquee-item"><span class="marquee-dot"></span>100% Tự Nhiên</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Giao Hàng Toàn Quốc</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Đổi Trả 7 Ngày</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Chứng Nhận Nguồn Gốc</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Hỗ Trợ 24/7</span>
+        <span class="marquee-item"><span class="marquee-dot"></span>Thanh Toán An Toàn</span>
+    </div>
+</div>
+
+<!-- TRUST BADGES (4 icon) — nền trắng ấm để tạo ranh giới với section tiếp theo-->
+<div class="trust-strip">
+    <div class="container-custom">
+        <div class="trust-grid">
+            <div class="trust-item">
+                <div class="trust-icon">🌿</div>
+                <div>
+                    <div class="trust-name">100% Tự nhiên</div>
+                    <div class="trust-desc">Nguyên liệu thiên nhiên, không hoá chất</div>
+                </div>
             </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="p-4 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
-                <div class="fw-bold mb-2">Giỏ hàng qua session</div>
-                <div class="text-secondary">Luồng thêm, cập nhật và đặt hàng đang bám trên nền code có sẵn để đẩy nhanh MVP.</div>
+            <div class="trust-item">
+                <div class="trust-icon">🚚</div>
+                <div>
+                    <div class="trust-name">Giao hàng toàn quốc</div>
+                    <div class="trust-desc">Nhanh chóng, đóng gói kỹ càng</div>
+                </div>
             </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="p-4 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
-                <div class="fw-bold mb-2">Tra cứu đơn bằng OTP</div>
-                <div class="text-secondary">Khách vãng lai có thể xác thực số điện thoại rồi xem lại đơn hàng đã tạo.</div>
+            <div class="trust-item">
+                <div class="trust-icon">🔄</div>
+                <div>
+                    <div class="trust-name">Đổi trả 7 ngày</div>
+                    <div class="trust-desc">Không hài lòng, hoàn tiền ngay</div>
+                </div>
+            </div>
+            <div class="trust-item">
+                <div class="trust-icon">📜</div>
+                <div>
+                    <div class="trust-name">Chứng nhận nguồn gốc</div>
+                    <div class="trust-desc">Truy xuất được nguồn gốc sản phẩm</div>
+                </div>
             </div>
         </div>
     </div>
-</section>
+</div>
 
-<section class="container py-4">
-    <h2 class="h3 fw-bold mb-3">Sản phẩm nổi bật</h2>
-    <div class="row g-4">
-        @foreach (var item in featuredProducts)
+<!-- CATEGORIES — nền section-alt (bg-alt) tạo ranh giới-->
+<section class="section section-alt">
+    <div class="container-custom">
+        <div class="section-head fade-up">
+            <span class="label">Danh mục</span>
+            <h2 class="section-title">Khám phá <em>các dòng sản phẩm</em></h2>
+        </div>
+
+        @if (categories.Any())
         {
-            <div class="col-md-6 col-xl-3">
-                <div class="card border-0 h-100 shadow-sm rounded-4">
-                    <div class="card-body">
-                        <div class="ratio ratio-1x1 rounded-4 mb-3 overflow-hidden" style="background:#f3ece5;">
-                            @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
-                            {
-                                <img src="@item.ImageUrl" alt="@item.ProductName" style="object-fit:cover;" />
-                            }
-                            else
-                            {
-                                <div class="d-flex align-items-center justify-content-center text-secondary">Không có ảnh</div>
-                            }
-                        </div>
-                        <div class="small text-secondary mb-2">Mã sản phẩm #@item.Id</div>
-                        <h3 class="h6 fw-bold">@item.ProductName</h3>
-                        <p class="text-secondary small">@(string.IsNullOrWhiteSpace(item.Description) ? "Sản phẩm trầm hương dành cho nhu cầu sử dụng hằng ngày." : item.Description)</p>
-                    </div>
-                    <div class="card-footer bg-white border-0 pt-0 pb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="fw-bold text-danger">@((item.PriceAfterDiscount > 0 ? item.PriceAfterDiscount : item.OriginalPrice).ToString("N0"))đ</div>
-                            <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-dark btn-sm rounded-pill">Chi tiết</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-</section>
-
-<section class="container py-4" id="san-pham">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h3 fw-bold mb-0">Tất cả sản phẩm</h2>
-        <form method="get" class="d-flex gap-2">
-            <input type="text" name="searchValue" value="@ViewBag.SearchValue" class="form-control rounded-pill" placeholder="Tìm theo tên sản phẩm" />
-            <button type="submit" class="btn btn-dark rounded-pill px-4">Tìm</button>
-        </form>
-    </div>
-    <div class="row g-4">
-        @if (!allProducts.Any())
-        {
-            <div class="col-12">
-                <div class="alert alert-warning rounded-4">Chưa có sản phẩm nào trong hệ thống.</div>
+            <div class="cat-grid">
+                @for (int i = 0; i < categories.Count; i++)
+                {
+                    var cat = categories[i];
+                    <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@cat.Id" class="cat-card fade-up">
+                        <div class="cat-icon">@catIcons[i % catIcons.Length]</div>
+                        <div class="cat-name">@cat.CategoryName</div>
+                        <div class="cat-count">Sản phẩm trầm hương</div>
+                    </a>
+                }
             </div>
         }
         else
         {
-            foreach (var item in allProducts)
-            {
-                <div class="col-md-6">
-                    <div class="p-4 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-4">
-                                <div class="ratio ratio-1x1 rounded-4 overflow-hidden" style="background:#f3ece5;">
-                                    @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
-                                    {
-                                        <img src="@item.ImageUrl" alt="@item.ProductName" style="object-fit:cover;" />
-                                    }
-                                    else
-                                    {
-                                        <div class="d-flex align-items-center justify-content-center text-secondary">Không có ảnh</div>
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-8">
-                                <h3 class="h5 fw-bold">@item.ProductName</h3>
-                                <div class="text-secondary small mb-2">Thành phần: @(item.Ingredient ?? "Đang cập nhật")</div>
-                                <div class="text-secondary small mb-3">Thời gian cháy: @(item.BurningTime ?? "Đang cập nhật")</div>
-                                <div class="d-flex flex-wrap gap-2 align-items-center">
-                                    <span class="fw-bold text-danger">@((item.PriceAfterDiscount > 0 ? item.PriceAfterDiscount : item.OriginalPrice).ToString("N0"))đ</span>
-                                    <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-dark btn-sm rounded-pill">Xem chi tiết</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+            <p style="color:var(--ink-4);text-align:center;padding:40px 0;">Chưa có dữ liệu danh mục.</p>
         }
     </div>
 </section>
+
+<!-- FEATURED PRODUCTS — nền trắng (warm-50)-->
+<section class="section" style="background: var(--warm-50);">
+    <div class="container-custom">
+        <div class="section-head fade-up" style="display:flex;align-items:flex-end;justify-content:space-between;">
+            <div>
+                <span class="label">Nổi bật</span>
+                <h2 class="section-title">Sản phẩm <em>được quan tâm</em></h2>
+            </div>
+            <a asp-controller="Product" asp-action="Index" class="btn-secondary" style="margin-bottom:12px;">Xem tất cả</a>
+        </div>
+
+        <div class="product-grid">
+            @if (featuredProducts.Any())
+            {
+                foreach (var item in featuredProducts)
+                {
+                    <div class="product-card fade-up">
+                        <div class="product-img">
+                            @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.ProductName" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="product-img-placeholder">🌿</div>
+                            }
+                            @if (item.HasDiscount)
+                            {
+                                <span class="product-badge badge-sale">-@item.DiscountPercent%</span>
+                            }
+                        </div>
+                        <div class="product-info">
+                            <div class="product-origin">
+                                <span class="origin-dot"></span>
+                                <span class="label" style="font-size:10px;">@(item.Origin ?? "Việt Nam")</span>
+                            </div>
+                            <div class="product-name">
+                                <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id">@item.ProductName</a>
+                            </div>
+                            <div class="product-price">
+                                <span class="price-current">@item.DisplayPrice.ToString("N0")đ</span>
+                                @if (item.HasDiscount)
+                                {
+                                    <span class="price-original">@item.OriginalPrice.ToString("N0")đ</span>
+                                    <span class="price-discount">-@item.DiscountPercent%</span>
+                                }
+                            </div>
+                            <div class="product-actions">
+                                <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id" class="btn-cart">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="grid-column:1/-1;text-align:center;color:var(--ink-4);padding:40px 0;">Chưa có sản phẩm nổi bật.</p>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- FLASH / MỚI CẬP NHẬT — nền tối (ink) tạo điểm nhấn-->
+<section class="flash-section">
+    <div class="container-custom">
+        <div class="flash-head">
+            <div class="flash-title-wrap">
+                <span class="flash-icon">⚡</span>
+                <h2 class="flash-title">Sản phẩm mới cập nhật</h2>
+            </div>
+            <a asp-controller="Product" asp-action="Index" asp-route-sortBy="newest"
+               style="height:38px;padding:0 20px;border-radius:99px;border:1px solid rgba(255,255,255,.2);
+                      color:var(--warm-200);font-size:13px;display:flex;align-items:center;">
+                Xem tất cả →
+            </a>
+        </div>
+
+        <div class="flash-grid">
+            @if (latestProducts.Any())
+            {
+                foreach (var item in latestProducts)
+                {
+                    <div class="flash-card">
+                        <div class="flash-img">
+                            @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.ProductName" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span style="font-size:48px;">🌿</span>
+                            }
+                        </div>
+                        <div class="flash-info">
+                            <div class="flash-name">@item.ProductName</div>
+                            <div class="flash-price-row">
+                                <span class="flash-price">@item.DisplayPrice.ToString("N0")đ</span>
+                                @if (item.HasDiscount)
+                                {
+                                    <span class="flash-orig">@item.OriginalPrice.ToString("N0")đ</span>
+                                    <span class="flash-pct">-@item.DiscountPercent%</span>
+                                }
+                            </div>
+                            <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id" class="btn-flash"
+                               style="display:flex;align-items:center;justify-content:center;">Xem ngay</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.5);padding:40px 0;">Chưa có sản phẩm mới.</p>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- NEWSLETTER / ƯU ĐÃI ĐỘC QUYỀN-->
+<section class="newsletter-section">
+    <div class="container-custom">
+        <h2 class="newsletter-title">Nhận ưu đãi độc quyền</h2>
+        <p class="newsletter-sub">Đăng ký nhận thông báo sản phẩm mới và mã giảm giá dành riêng cho thành viên.</p>
+        <div class="newsletter-form">
+            <input type="email" class="newsletter-input" placeholder="Nhập email của bạn..." />
+            <button type="button" class="newsletter-btn">Đăng ký</button>
+        </div>
+        <p class="newsletter-note">Chúng tôi tôn trọng quyền riêng tư của bạn. Không spam.</p>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const fadeEls = document.querySelectorAll('.fade-up');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.12 });
+
+        fadeEls.forEach(el => observer.observe(el));
+    </script>
+}

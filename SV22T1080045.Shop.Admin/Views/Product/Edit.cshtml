@@ -1,4 +1,5 @@
-﻿@model SV22T1080045.Shop.Models.ProductEditModel
+@using SV22T1080045.Shop.Models.ViewModels.Product
+@model ProductEditViewModel
 @{
     ViewBag.Title = Model.Id == 0 ? "Bổ sung sản phẩm" : "Cập nhật sản phẩm";
 }
@@ -6,42 +7,72 @@
 <div class="box box-primary">
     <div class="box-body">
         <form action="~/Product/Save" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
             <input type="hidden" name="Id" value="@Model.Id" />
             <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
+            <input type="hidden" name="ImageUrl2" value="@Model.ImageUrl2" />
+            <input type="hidden" name="ImageUrl3" value="@Model.ImageUrl3" />
+            <input type="hidden" name="ImageUrl4" value="@Model.ImageUrl4" />
 
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Tên sản phẩm:</label>
-                        <input type="text" class="form-control" name="ProductName" value="@Model.ProductName" required autofocus>
+                        <input type="text" class="form-control" name="ProductName" value="@Model.ProductName" required autofocus />
                     </div>
 
                     <div class="form-group">
                         <label>Đơn vị tính (Nhập tạm ID):</label>
-                        <input type="number" class="form-control" name="UnitId" value="@Model.UnitId">
+                        <input type="number" class="form-control" name="UnitId" value="@Model.UnitId" min="1" />
                     </div>
 
                     <div class="form-group">
                         <label>Loại hàng (Nhập tạm ID):</label>
-                        <input type="number" class="form-control" name="CategoryId" value="@Model.CategoryId">
+                        <input type="number" class="form-control" name="CategoryId" value="@Model.CategoryId" min="1" />
                     </div>
 
                     <div class="form-group">
                         <label>Giá gốc:</label>
-                        <input type="text" class="form-control number-separator" name="OriginalPrice" value="@Model.OriginalPrice">
+                        <input type="number" class="form-control" name="OriginalPrice" value="@Model.OriginalPrice" min="0" step="0.01" />
                     </div>
 
                     <div class="form-group">
                         <label>Giá bán:</label>
-                        <input type="text" class="form-control number-separator" name="PriceAfterDiscount" value="@Model.PriceAfterDiscount">
+                        <input type="number" class="form-control" name="PriceAfterDiscount" value="@Model.PriceAfterDiscount" min="0" step="0.01" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Xuất xứ:</label>
+                        <input type="text" class="form-control" name="Origin" value="@Model.Origin" placeholder="VD: Khánh Hòa" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số lượng tồn:</label>
+                        <input type="number" class="form-control" name="Quantity" value="@Model.Quantity" min="0" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số lượng đã bán:</label>
+                        <input type="number" class="form-control" name="SoldCount" value="@Model.SoldCount" min="0" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Độ tuổi trầm:</label>
+                        <input type="text" class="form-control" name="AgeYear" value="@Model.AgeYear" placeholder="VD: 8-12 năm" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hàm lượng tinh dầu:</label>
+                        <input type="text" class="form-control" name="OilContent" value="@Model.OilContent" placeholder="VD: 4.5%" />
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Thời gian cháy:</label>
-                        <input type="text" class="form-control" name="BurningTime" value="@Model.BurningTime" placeholder="VD: 30 phút, 1 tiếng...">
+                        <input type="text" class="form-control" name="BurningTime" value="@Model.BurningTime" placeholder="VD: 30 phút, 1 tiếng..." />
                     </div>
 
                     <div class="form-group">
@@ -55,16 +86,74 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Ảnh minh họa:</label>
+                        <label>Thẻ sử dụng:</label>
+                        <input type="text" class="form-control" name="UsageTags" value="@Model.UsageTags" placeholder="Thờ cúng, Thiền định, Thư giãn" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kích thước/chiều dài:</label>
+                        <input type="text" class="form-control" name="Length" value="@Model.Length" placeholder="VD: 22 cm" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trọng lượng:</label>
+                        <input type="text" class="form-control" name="Weight" value="@Model.Weight" placeholder="VD: 80g / hộp" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Đánh giá trung bình:</label>
+                        <input type="number" class="form-control" name="Rating" value="@Model.Rating" min="0" max="5" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số lượng đánh giá:</label>
+                        <input type="number" class="form-control" name="ReviewCount" value="@Model.ReviewCount" min="0" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh chính:</label>
                         @if (!string.IsNullOrEmpty(Model.ImageUrl))
                         {
                             <div style="margin-bottom: 5px;">
-                                <img src="~/images/products/@Model.ImageUrl" style="height: 60px; border: 1px solid #ccc;" />
+                                <img src="@Model.ImageUrl" style="height: 60px; border: 1px solid #ccc;" alt="@Model.ProductName" />
                             </div>
                         }
-                        
-                        <input type="file" name="uploadPhoto" class="form-control" accept="image/*" />
+
+                        <input type="file" name="UploadPhoto" class="form-control" accept="image/*" />
                         <small class="text-muted">Để trống nếu không muốn thay đổi ảnh.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh phụ 2:</label>
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl2))
+                        {
+                            <div style="margin-bottom: 5px;">
+                                <img src="@Model.ImageUrl2" style="height: 60px; border: 1px solid #ccc;" alt="@Model.ProductName" />
+                            </div>
+                        }
+                        <input type="file" name="UploadPhoto2" class="form-control" accept="image/*" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh phụ 3:</label>
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl3))
+                        {
+                            <div style="margin-bottom: 5px;">
+                                <img src="@Model.ImageUrl3" style="height: 60px; border: 1px solid #ccc;" alt="@Model.ProductName" />
+                            </div>
+                        }
+                        <input type="file" name="UploadPhoto3" class="form-control" accept="image/*" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh phụ 4:</label>
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl4))
+                        {
+                            <div style="margin-bottom: 5px;">
+                                <img src="@Model.ImageUrl4" style="height: 60px; border: 1px solid #ccc;" alt="@Model.ProductName" />
+                            </div>
+                        }
+                        <input type="file" name="UploadPhoto4" class="form-control" accept="image/*" />
                     </div>
                 </div>
             </div>

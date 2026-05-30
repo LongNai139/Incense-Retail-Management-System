@@ -1,0 +1,523 @@
+@model SV22T1080045.Shop.Models.ViewModels.Staff.StaffDashboardViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Controllers
+
+@{
+    ViewData["Title"] = "Staff";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal value) => value.ToString("N0", vi) + "đ";
+    string DateTimeText(DateTime value) => value.ToString("dd/MM HH:mm", vi);
+    string ProductStatusClass(int quantity) => quantity <= 0 ? "staff-status-failed" : quantity < 5 ? "staff-status-pending" : "staff-status-done";
+    string ProductStatusText(int quantity) => quantity <= 0 ? "Hết hàng" : quantity < 5 ? "Sắp hết" : "Đủ hàng";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/staff.css" asp-append-version="true" />
+}
+
+<div class="staff-shell">
+    <aside class="staff-sidebar">
+        <div class="staff-brand">
+            <div class="staff-avatar">@Model.Profile.AvatarInitials</div>
+            <div>
+                <strong>@Model.Profile.DisplayName</strong>
+                <span>@Model.Profile.Role</span>
+            </div>
+        </div>
+
+        <nav class="staff-nav" aria-label="Staff menu">
+            <a href="#dashboard" class="active"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="#orders"><i class="fa-solid fa-receipt"></i> Đơn hàng</a>
+            <a href="#products"><i class="fa-solid fa-boxes-stacked"></i> Sản phẩm</a>
+            <a href="#customers"><i class="fa-solid fa-users"></i> Khách hàng</a>
+            <a href="#notifications"><i class="fa-solid fa-bell"></i> Thông báo</a>
+            <a href="#profile"><i class="fa-solid fa-user-gear"></i> Hồ sơ cá nhân</a>
+            <a asp-controller="Account" asp-action="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="staff-main">
+        <section class="staff-topbar">
+            <div>
+                <span class="staff-kicker">Staff workspace</span>
+                <h1>Trung tâm xử lý đơn hàng</h1>
+            </div>
+            <div class="staff-quick-tools">
+                <button class="staff-btn" type="button" data-sound-toggle>
+                    <i class="fa-solid fa-volume-high"></i>
+                    Âm báo
+                </button>
+                <button class="staff-btn primary" type="button" data-check-toggle>
+                    <i class="fa-solid fa-fingerprint"></i>
+                    Check-in
+                </button>
+            </div>
+        </section>
+
+        @if (TempData["StaffMessage"] is string message)
+        {
+            <div class="staff-toast">@message</div>
+        }
+
+        <section class="staff-section" id="dashboard">
+            <div class="staff-kpi-grid">
+                <div class="staff-kpi">
+                    <i class="fa-solid fa-cart-plus"></i>
+                    <span>Đơn mới hôm nay</span>
+                    <strong>@Model.NewOrdersToday</strong>
+                </div>
+                <div class="staff-kpi">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <span>Đơn đang xử lý</span>
+                    <strong>@Model.ProcessingOrders</strong>
+                </div>
+                <div class="staff-kpi">
+                    <i class="fa-solid fa-truck-fast"></i>
+                    <span>Đơn cần giao</span>
+                    <strong>@Model.OrdersToDeliver</strong>
+                </div>
+                <div class="staff-kpi">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>Sản phẩm sắp hết</span>
+                    <strong>@Model.LowStockProducts</strong>
+                </div>
+            </div>
+
+            <div class="staff-grid">
+                <div class="staff-panel">
+                    <div class="staff-panel-head">
+                        <h2>Đơn mới</h2>
+                        <a href="#orders">Xem tất cả</a>
+                    </div>
+                    <div class="staff-table-wrap">
+                        <table class="staff-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Khách hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thời gian</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.RecentOrders.Any())
+                                {
+                                    foreach (var order in Model.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td><a href="#order-@order.Id">@order.OrderCode</a></td>
+                                            <td>@order.CustomerName</td>
+                                            <td>@Money(order.TotalAmount)</td>
+                                            <td><span class="staff-status @StaffController.StatusClass(order.Status)">@StaffController.StatusText(order.Status)</span></td>
+                                            <td>@DateTimeText(order.OrderDate)</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="5">Chưa có đơn hàng.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="staff-panel">
+                    <div class="staff-panel-head">
+                        <h2>Cảnh báo nhanh</h2>
+                        <span>@Model.Alerts.Count mục</span>
+                    </div>
+                    <div class="staff-alert-list">
+                        @foreach (var alert in Model.Alerts)
+                        {
+                            <div class="staff-alert @alert.Level">
+                                <i class="fa-solid @alert.Icon"></i>
+                                <div>
+                                    <strong>@alert.Title</strong>
+                                    <span>@alert.Detail</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="staff-section" id="orders">
+            <div class="staff-section-head">
+                <div>
+                    <span class="staff-kicker">Chức năng chính</span>
+                    <h2>Quản lý đơn hàng</h2>
+                </div>
+                <div class="staff-note">Chỉ hiển thị đơn ngày @Model.WorkDate.ToString("dd/MM/yyyy", vi). Staff không thể xem ngày khác, xóa đơn hoặc chỉnh sửa tiền đơn hàng.</div>
+            </div>
+
+            <form class="staff-filter" asp-controller="Staff" asp-action="Index" method="get">
+                <input type="search" name="orderSearchValue" value="@Model.OrderSearchValue" placeholder="Tìm mã đơn, khách, số điện thoại" />
+                <select name="orderStatus">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="1" selected="@(Model.OrderStatus == 1 ? "selected" : null)">Chờ xử lý</option>
+                    <option value="2" selected="@(Model.OrderStatus == 2 ? "selected" : null)">Đang chuẩn bị</option>
+                    <option value="3" selected="@(Model.OrderStatus == 3 ? "selected" : null)">Đang giao</option>
+                    <option value="4" selected="@(Model.OrderStatus == 4 ? "selected" : null)">Hoàn thành</option>
+                    <option value="-1" selected="@(Model.OrderStatus == -1 ? "selected" : null)">Giao thất bại</option>
+                </select>
+                <button class="staff-btn primary" type="submit"><i class="fa-solid fa-filter"></i> Lọc</button>
+                <a class="staff-btn" asp-controller="Staff" asp-action="Index" asp-fragment="orders"><i class="fa-solid fa-xmark"></i> Xóa lọc</a>
+            </form>
+
+            <div class="staff-order-list">
+                @if (Model.Orders.Any())
+                {
+                    foreach (var order in Model.Orders)
+                    {
+                        <article class="staff-order-card @(order.Status == 1 && order.OrderDate <= DateTime.Now.AddHours(-2) ? "urgent" : null)" id="order-@order.Id" data-order-code="@order.OrderCode">
+                            <div class="staff-order-main">
+                                <div>
+                                    <div class="staff-order-code">@order.OrderCode</div>
+                                    <div class="staff-order-meta">@order.CustomerName · @order.CustomerPhone · @DateTimeText(order.OrderDate)</div>
+                                </div>
+                                <div class="staff-order-money">@Money(order.TotalAmount)</div>
+                                <span class="staff-status @StaffController.StatusClass(order.Status)">@StaffController.StatusText(order.Status)</span>
+                            </div>
+
+                            <div class="staff-order-actions">
+                                <form asp-controller="Staff" asp-action="UpdateOrderStatus" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderId" value="@order.Id" />
+                                    <select name="status">
+                                        <option value="1" selected="@(order.Status == 1 ? "selected" : null)">Chờ xử lý</option>
+                                        <option value="2" selected="@(order.Status == 2 ? "selected" : null)">Đang chuẩn bị</option>
+                                        <option value="3" selected="@(order.Status == 3 ? "selected" : null)">Đang giao</option>
+                                        <option value="4" selected="@(order.Status == 4 ? "selected" : null)">Hoàn thành</option>
+                                    </select>
+                                    <button class="staff-btn primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Cập nhật</button>
+                                </form>
+                                <button class="staff-btn" type="button" data-print-target="invoice-@order.Id"><i class="fa-solid fa-print"></i> In hóa đơn</button>
+                                <button class="staff-btn" type="button" data-print-target="delivery-@order.Id"><i class="fa-solid fa-file-export"></i> Phiếu giao</button>
+                            </div>
+
+                            <details class="staff-order-detail">
+                                <summary>Chi tiết đơn hàng</summary>
+                                <div class="staff-detail-grid">
+                                    <div>
+                                        <strong>Thông tin khách</strong>
+                                        <span>@order.CustomerName</span>
+                                        <span>@order.CustomerPhone</span>
+                                        <span>@order.ShippingAddress</span>
+                                    </div>
+                                    <div>
+                                        <strong>Lịch sử trạng thái</strong>
+                                        <span>Hiện tại: @StaffController.StatusText(order.Status)</span>
+                                        <span>Cập nhật gần nhất theo dữ liệu đơn hàng.</span>
+                                    </div>
+                                </div>
+                                <table class="staff-table compact">
+                                    <thead>
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th>SL</th>
+                                            <th>Đơn giá</th>
+                                            <th>Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in order.Items)
+                                        {
+                                            <tr>
+                                                <td>@item.ProductName</td>
+                                                <td>@item.Quantity</td>
+                                                <td>@Money(item.UnitPrice)</td>
+                                                <td>@Money(item.LineTotal)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </details>
+
+                            <div class="staff-print" id="invoice-@order.Id">
+                                <h2>Hóa đơn @order.OrderCode</h2>
+                                <p>@order.CustomerName - @order.CustomerPhone</p>
+                                <p>@order.ShippingAddress</p>
+                                <table>
+                                    @foreach (var item in order.Items)
+                                    {
+                                        <tr><td>@item.ProductName</td><td>@item.Quantity</td><td>@Money(item.LineTotal)</td></tr>
+                                    }
+                                </table>
+                                <strong>Tổng: @Money(order.TotalAmount)</strong>
+                            </div>
+                            <div class="staff-print" id="delivery-@order.Id">
+                                <h2>Phiếu giao hàng @order.OrderCode</h2>
+                                <p>Người nhận: @order.CustomerName</p>
+                                <p>SĐT: @order.CustomerPhone</p>
+                                <p>Địa chỉ: @order.ShippingAddress</p>
+                            </div>
+                        </article>
+                    }
+                }
+                else
+                {
+                    <div class="staff-empty">Không tìm thấy đơn hàng phù hợp.</div>
+                }
+            </div>
+        </section>
+
+        <section class="staff-section" id="products">
+            <div class="staff-section-head">
+                <div>
+                    <span class="staff-kicker">Tồn kho cơ bản</span>
+                    <h2>Sản phẩm</h2>
+                </div>
+                <div class="staff-note">Staff chỉ được xem số lượng tồn để tư vấn và báo quản lý nhập hàng; không được cập nhật mặt hàng.</div>
+            </div>
+
+            <form class="staff-filter" asp-controller="Staff" asp-action="Index" method="get">
+                <input type="search" name="productSearchValue" value="@Model.ProductSearchValue" placeholder="Tìm sản phẩm, danh mục, xuất xứ" />
+                <button class="staff-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Tìm</button>
+                <a class="staff-btn" asp-controller="Staff" asp-action="Index" asp-fragment="products"><i class="fa-solid fa-xmark"></i> Xóa lọc</a>
+            </form>
+
+            <div class="staff-table-wrap">
+                <table class="staff-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Giá bán</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Products.Any())
+                        {
+                            foreach (var product in Model.Products)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@product.ProductName</strong>
+                                        <span>@product.Origin · Đã bán @product.SoldCount</span>
+                                    </td>
+                                    <td>@product.CategoryName</td>
+                                    <td>@Money(product.PriceAfterDiscount)</td>
+                                    <td><strong>@product.Quantity @product.UnitName</strong></td>
+                                    <td><span class="staff-status @ProductStatusClass(product.Quantity)">@ProductStatusText(product.Quantity)</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5">Không tìm thấy sản phẩm phù hợp.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="staff-pagination">
+                <span>Hiển thị @Model.ProductStartItem-@Model.ProductEndItem / @Model.ProductTotalItems sản phẩm</span>
+                <div>
+                    @if (Model.ProductPage > 1)
+                    {
+                        <a class="staff-btn" asp-controller="Staff" asp-action="Index" asp-route-productSearchValue="@Model.ProductSearchValue" asp-route-productPage="@(Model.ProductPage - 1)" asp-fragment="products"><i class="fa-solid fa-chevron-left"></i> Trước</a>
+                    }
+                    else
+                    {
+                        <span class="staff-btn disabled"><i class="fa-solid fa-chevron-left"></i> Trước</span>
+                    }
+                    <span class="staff-page-count">Trang @Model.ProductPage / @Model.ProductTotalPages</span>
+                    @if (Model.ProductPage < Model.ProductTotalPages)
+                    {
+                        <a class="staff-btn" asp-controller="Staff" asp-action="Index" asp-route-productSearchValue="@Model.ProductSearchValue" asp-route-productPage="@(Model.ProductPage + 1)" asp-fragment="products">Sau <i class="fa-solid fa-chevron-right"></i></a>
+                    }
+                    else
+                    {
+                        <span class="staff-btn disabled">Sau <i class="fa-solid fa-chevron-right"></i></span>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="staff-section" id="customers">
+            <div class="staff-section-head">
+                <div>
+                    <span class="staff-kicker">Tra cứu khách</span>
+                    <h2>Bối cảnh khách hàng</h2>
+                </div>
+                <div class="staff-note">Dùng để nhận diện khách khi gọi xác nhận đơn và xem thói quen mua gần đây. Email và số điện thoại được ẩn bớt.</div>
+            </div>
+
+            <div class="staff-customer-grid">
+                @foreach (var customer in Model.Customers)
+                {
+                    <article class="staff-customer">
+                        <strong>@customer.CustomerName</strong>
+                        <span>@customer.MaskedPhone</span>
+                        <span>@customer.MaskedEmail</span>
+                        <div>@customer.OrderCount đơn · @(customer.LastOrderDate?.ToString("dd/MM/yyyy", vi) ?? "Chưa mua")</div>
+                        <small>@(customer.RecentProducts.Any() ? string.Join(", ", customer.RecentProducts) : "Chưa có lịch sử sản phẩm")</small>
+                    </article>
+                }
+            </div>
+        </section>
+
+        <section class="staff-section staff-grid" id="notifications">
+            <div class="staff-panel">
+                <div class="staff-panel-head">
+                    <h2>Thông báo</h2>
+                    <span>@Model.Notifications.Count mục</span>
+                </div>
+                <div class="staff-note compact">Luồng thông báo hiện lấy từ dữ liệu thật: đơn mới trong ngày cần xử lý và sản phẩm sắp hết hàng. Đây chưa phải push realtime.</div>
+                <div class="staff-notification-list">
+                    @foreach (var notification in Model.Notifications)
+                    {
+                        <div class="staff-notification @notification.Type" data-notification-target="@(notification.TargetAnchor ?? "")">
+                            <i class="fa-solid @(notification.Type == "order" ? "fa-receipt" : notification.Type == "stock" ? "fa-box-open" : "fa-circle-check")"></i>
+                            <div>
+                                <span>@notification.Message</span>
+                                <small>@notification.Detail</small>
+                                <small>@DateTimeText(notification.CreatedAt)</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="staff-panel">
+                <div class="staff-panel-head">
+                    <h2>Quét QR đơn hàng</h2>
+                    <span>Tìm nhanh</span>
+                </div>
+                <div class="staff-qr-box">
+                    <input id="staffQrInput" type="text" placeholder="Nhập hoặc quét mã #TH000001" />
+                    <button class="staff-btn primary" type="button" data-find-order><i class="fa-solid fa-qrcode"></i> Tìm đơn</button>
+                    <div id="staffQrResult"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="staff-section" id="profile">
+            <div class="staff-section-head">
+                <div>
+                    <span class="staff-kicker">Tài khoản</span>
+                    <h2>Hồ sơ cá nhân</h2>
+                </div>
+            </div>
+
+            <div class="staff-profile-panel">
+                <div class="staff-avatar large">@Model.Profile.AvatarInitials</div>
+                <div>
+                    <strong>@Model.Profile.DisplayName</strong>
+                    <span>@Model.Profile.Phone</span>
+                    <span>@Model.Profile.Role</span>
+                </div>
+                <button class="staff-btn" type="button"><i class="fa-solid fa-camera"></i> Đổi avatar</button>
+                <button class="staff-btn" type="button"><i class="fa-solid fa-key"></i> Đổi mật khẩu</button>
+                <div class="staff-activity">
+                    <strong>Lịch sử hoạt động</strong>
+                    <span>Đăng nhập phiên hiện tại</span>
+                    <span id="staffCheckState">Chưa check-in</span>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.staff-nav a[href^="#"]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                document.querySelectorAll('.staff-nav a').forEach(function (item) {
+                    item.classList.remove('active');
+                });
+                link.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('[data-print-target]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var target = document.getElementById(button.getAttribute('data-print-target'));
+                if (!target) return;
+                var win = window.open('', '_blank', 'width=760,height=900');
+                var printDocument = win.document;
+                printDocument.open();
+                printDocument.write('<!doctype html><title>In</title><body>');
+                printDocument.close();
+
+                var style = printDocument.createElement('style');
+                style.textContent = 'body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse}td{border-bottom:1px solid #ddd;padding:8px}';
+                printDocument.head.appendChild(style);
+                printDocument.body.innerHTML = target.innerHTML;
+                win.focus();
+                win.print();
+            });
+        });
+
+        var soundEnabled = false;
+        var soundButton = document.querySelector('[data-sound-toggle]');
+        if (soundButton) {
+            soundButton.addEventListener('click', function () {
+                soundEnabled = !soundEnabled;
+                soundButton.classList.toggle('primary', soundEnabled);
+                if (soundEnabled) {
+                    var audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=');
+                    audio.play().catch(function () { });
+                }
+            });
+        }
+
+        var checkButton = document.querySelector('[data-check-toggle]');
+        var checkState = document.getElementById('staffCheckState');
+        var checkedIn = localStorage.getItem('staffCheckedIn') === '1';
+        function renderCheckState() {
+            if (checkButton) {
+                checkButton.innerHTML = checkedIn
+                    ? '<i class="fa-solid fa-door-open"></i> Check-out'
+                    : '<i class="fa-solid fa-fingerprint"></i> Check-in';
+            }
+            if (checkState) {
+                checkState.textContent = checkedIn ? 'Đang trong ca làm việc' : 'Chưa check-in';
+            }
+        }
+        if (checkButton) {
+            checkButton.addEventListener('click', function () {
+                checkedIn = !checkedIn;
+                localStorage.setItem('staffCheckedIn', checkedIn ? '1' : '0');
+                renderCheckState();
+            });
+        }
+        renderCheckState();
+
+        var findButton = document.querySelector('[data-find-order]');
+        if (findButton) {
+            findButton.addEventListener('click', function () {
+                var input = document.getElementById('staffQrInput');
+                var result = document.getElementById('staffQrResult');
+                var code = input ? input.value.trim().toUpperCase() : '';
+                var target = Array.from(document.querySelectorAll('[data-order-code]')).find(function (item) {
+                    return item.getAttribute('data-order-code').toUpperCase() === code;
+                });
+
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    target.classList.add('pulse');
+                    window.setTimeout(function () { target.classList.remove('pulse'); }, 1400);
+                    if (result) result.textContent = 'Đã tìm thấy ' + code;
+                } else if (result) {
+                    result.textContent = 'Không tìm thấy mã đơn trong danh sách hiện tại.';
+                }
+            });
+        }
+
+        document.querySelectorAll('[data-notification-target]:not([data-notification-target=""])').forEach(function (item) {
+            item.addEventListener('click', function () {
+                var target = document.getElementById(item.getAttribute('data-notification-target'));
+                if (!target) return;
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.classList.add('pulse');
+                window.setTimeout(function () { target.classList.remove('pulse'); }, 1400);
+            });
+        });
+    </script>
+}

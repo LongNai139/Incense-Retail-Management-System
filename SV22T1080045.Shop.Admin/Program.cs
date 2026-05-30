@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
+using SV22T1080045.Shop.Admin.Services;
 using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DataLayers;
 
 public class Program
@@ -11,12 +12,11 @@ public class Program
 
         builder.Services.AddControllersWithViews();
         builder.Services.AddHttpContextAccessor();
+        builder.Services.Configure<VnPayOptions>(builder.Configuration.GetSection("VnPay"));
+        builder.Services.AddScoped<IVnPayService, VnPayService>();
 
         string connectionString = builder.Configuration
             .GetConnectionString("ShopConnectionString")!;
-
-        builder.Services.AddDbContext<ShopDbContext>(options =>
-            options.UseSqlServer(connectionString));
 
         builder.Services.AddSession(options =>
         {
@@ -38,6 +38,8 @@ public class Program
         builder.Services.AddBusinessLayers();
 
         var app = builder.Build();
+
+        SeedStaffAccounts(app);
 
         if (!app.Environment.IsDevelopment())
         {
@@ -63,5 +65,19 @@ public class Program
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
         app.Run();
+    }
+
+    private static void SeedStaffAccounts(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+
+        try
+        {
+            scope.ServiceProvider.GetRequiredService<IStartupSeedService>().SeedStaffAccounts();
+        }
+        catch
+        {
+            // The app can still start when the database is not available; pages will surface DB errors normally.
+        }
     }
 }

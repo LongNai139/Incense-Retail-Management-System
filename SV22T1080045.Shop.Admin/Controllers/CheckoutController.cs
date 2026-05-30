@@ -1,90 +1,138 @@
 using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.Admin.Services;
+using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.Models.Mappers;
 using SV22T1080045.Shop.Models.Requests.Checkout;
+using SV22T1080045.Shop.Models.ViewModels;
+using SV22T1080045.Shop.Models.ViewModels.Cart;
 using SV22T1080045.Shop.Models.ViewModels.Checkout;
+using System.Security.Claims;
 
 namespace SV22T1080045.Shop.Controllers
 {
     public class CheckoutController : Controller
     {
+        private const string LastShippingAddressSessionKeyPrefix = "CHECKOUT_LAST_SHIPPING_ADDRESS_";
+
         private readonly IAccountService _accountService;
         private readonly ICartService _cartService;
         private readonly IGuestOrderService _guestOrderService;
         private readonly IOrderService _orderService;
         private readonly IVoucherService _voucherService;
+        private readonly IVnPayService _vnPayService;
 
         public CheckoutController(
             IOrderService orderService,
             ICartService cartService,
             IGuestOrderService guestOrderService,
             IVoucherService voucherService,
-            IAccountService accountService)
+            IAccountService accountService,
+            IVnPayService vnPayService)
         {
             _orderService = orderService;
             _cartService = cartService;
             _guestOrderService = guestOrderService;
             _voucherService = voucherService;
             _accountService = accountService;
+            _vnPayService = vnPayService;
         }
 
+        // ── GET /Checkout ─────────────────────────────────────────────────
+
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string? voucherCode = null)
         {
             var cart = _cartService.GetCart();
             if (!cart.Any())
                 return RedirectToAction("Index", "Cart");
 
-            return View(cart);
+            var input = BuildDefaultInput();
+            input.VoucherCode = voucherCode?.Trim();
+
+            var vm = BuildViewModel(cart, input);
+            return View(vm);
         }
+
+        // ── POST /Checkout/PlaceOrder ──────────────────────────────────────
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult PlaceOrder(CheckoutInput input)
         {
-            if (!ModelState.IsValid)
-                return View("Index", _cartService.GetCart());
-
             var cart = _cartService.GetCart();
             if (!cart.Any())
                 return RedirectToAction("Index", "Cart");
 
-            var customerId = 0;
-            var customerIdClaim = User.FindFirst("CustomerId");
-            if (customerIdClaim != null)
-                int.TryParse(customerIdClaim.Value, out customerId);
+            // Validate form
+            if (!ModelState.IsValid)
+                return View("Index", BuildViewModel(cart, input));
 
-            var voucherApplied = false;
-            if (!string.IsNullOrWhiteSpace(input.VoucherCode))
+            // Validate phương thức thanh toán
+            if (input.PaymentMethod == 2 && !_vnPayService.IsConfigured)
             {
-                var voucherResult = _voucherService.Apply(input.VoucherCode, cart.Sum(i => i.TotalPrice));
-                voucherApplied = voucherResult.Success;
+                ModelState.AddModelError(nameof(input.PaymentMethod),
+                    "VNPay chưa được cấu hình. Vui lòng chọn COD.");
+                return View("Index", BuildViewModel(cart, input));
             }
+
+            if (input.PaymentMethod is not 1 and not 2)
+            {
+                ModelState.AddModelError(nameof(input.PaymentMethod),
+                    "Phương thức thanh toán này chưa được hỗ trợ.");
+                return View("Index", BuildViewModel(cart, input));
+            }
+
+            // ── Tạo đơn hàng — voucher được xử lý hoàn toàn trong OrderService ──
+            var customerId = GetCurrentCustomerId();
 
             var orderId = _orderService.InitOrder(
                 input.ShippingName,
                 input.ShippingPhone,
                 input.ShippingAddress,
                 cart,
-                customerId);
+                customerId,
+                input.PaymentMethod,
+                input.Note,
+                input.VoucherCode); 
 
             if (orderId <= 0)
             {
                 ModelState.AddModelError(string.Empty, "Đặt hàng thất bại, vui lòng thử lại.");
-                return View("Index", cart);
+                return View("Index", BuildViewModel(cart, input));
             }
 
-            if (voucherApplied)
-                _voucherService.Use(input.VoucherCode!);
+            RememberShippingAddress(input.ShippingAddress, customerId);
 
-            var isGuest = customerId == 0;
-            if (isGuest)
+            if (customerId == 0)
                 _guestOrderService.SaveGuestOrder(orderId, input.ShippingPhone);
 
-            _cartService.ClearCart();
+            // ── Redirect theo phương thức thanh toán ──────────────────────
+            //if (input.PaymentMethod == 2)
+            //{
+            //    // Lấy FinalAmount từ order đã lưu (đã bao gồm giảm giá)
+            //    var order = _orderService.GetOrder(orderId);
+            //    var payableAmount = order?.FinalAmount ?? cart.Sum(i => i.TotalPrice);
 
-            return RedirectToAction("Success", new { orderId, isGuest });
+            //    var returnUrl = Url.Action(nameof(VnPayReturn), "Checkout", null, Request.Scheme)
+            //        ?? $"{Request.Scheme}://{Request.Host}/Checkout/VnPayReturn";
+
+            //    var paymentUrl = _vnPayService.CreatePaymentUrl(
+            //        orderId,
+            //        payableAmount,
+            //        $"Thanh toan don hang TH{orderId:D6}",
+            //        GetClientIpAddress(),
+            //        returnUrl);
+
+            //    _cartService.ClearCart();
+            //    return Redirect(paymentUrl);
+            //}
+
+            _cartService.ClearCart();
+            return RedirectToAction(nameof(Success), new { orderId, isGuest = customerId == 0 });
         }
+
+        // ── GET /Checkout/Success ─────────────────────────────────────────
 
         [HttpGet]
         public IActionResult Success(int orderId, bool isGuest = false)
@@ -96,10 +144,38 @@ namespace SV22T1080045.Shop.Controllers
             var model = order.ToCheckoutSuccessViewModel(_orderService.GetOrderDetails(orderId));
             ViewBag.IsGuest = isGuest;
             ViewBag.ShowRegisterPrompt = isGuest;
+            ViewBag.PaymentMessage = TempData["PaymentMessage"] as string;
             return View(model);
         }
 
+        // ── GET /Checkout/VnPayReturn ─────────────────────────────────────
+
+        [HttpGet]
+        public IActionResult VnPayReturn()
+        {
+            var result = _vnPayService.ReadReturn(Request.Query);
+            if (!result.IsValidSignature || !result.OrderId.HasValue)
+            {
+                TempData["PaymentMessage"] = result.Message;
+                return RedirectToAction(nameof(Index), "Cart");
+            }
+
+            _orderService.MarkPaymentResult(
+                result.OrderId.Value,
+                result.IsSuccess ? 1 : 2,
+                result.TransactionNo,
+                result.BankCode,
+                result.ResponseCode,
+                result.IsSuccess ? DateTime.Now : null);
+
+            TempData["PaymentMessage"] = result.Message;
+            return RedirectToAction(nameof(Success), new { orderId = result.OrderId.Value });
+        }
+
+        // ── POST /Checkout/ApplyVoucher  (AJAX) ───────────────────────────
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult ApplyVoucher([FromBody] ApplyVoucherRequest req)
         {
             var result = _voucherService.Apply(req.Code, req.OrderAmount);
@@ -111,12 +187,12 @@ namespace SV22T1080045.Shop.Controllers
             });
         }
 
+        // ── POST /Checkout/QuickRegister  (AJAX) ──────────────────────────
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult QuickRegister([FromBody] QuickRegisterRequest req)
         {
-            if (!ModelState.IsValid)
-                return Json(new { success = false, message = "Dữ liệu đăng ký nhanh không hợp lệ." });
-
             if (string.IsNullOrWhiteSpace(req.Phone) || string.IsNullOrWhiteSpace(req.Password))
                 return Json(new { success = false, message = "Số điện thoại và mật khẩu là bắt buộc." });
 
@@ -128,12 +204,75 @@ namespace SV22T1080045.Shop.Controllers
                 return Json(new { success = false, message = "Số điện thoại không khớp với đơn hàng." });
 
             var customer = req.ToCustomer(order);
-
             if (!_accountService.Register(customer))
                 return Json(new { success = false, message = "Số điện thoại đã tồn tại hoặc đăng ký thất bại." });
 
             _guestOrderService.MergeToCustomer(req.Phone, customer.Id);
             return Json(new { success = true, message = "Tài khoản đã được tạo thành công." });
         }
+
+        // ── Private helpers ───────────────────────────────────────────────
+
+        /// <summary>Tạo ViewModel từ giỏ hàng + input form (dùng cho cả GET lẫn validation-fail POST).</summary>
+        private CheckoutViewModel BuildViewModel(List<CartItem> cart, CheckoutInput input)
+        {
+            var model = new CheckoutViewModel
+            {
+                CartItems = cart.Select(i => new CartItemViewModel
+                {
+                    ProductID = i.ProductID,
+                    ProductName = i.ProductName,
+                    Photo = i.Photo,
+                    Quantity = i.Quantity,
+                    Price = i.Price
+                }).ToList(),
+                Input = input
+            };
+
+            if (!string.IsNullOrWhiteSpace(input.VoucherCode) && model.TotalAmount > 0)
+            {
+                var voucher = _voucherService.Apply(input.VoucherCode.Trim(), model.TotalAmount);
+                if (voucher.Success)
+                {
+                    model.DiscountAmount = voucher.DiscountAmount;
+                    input.VoucherCode = input.VoucherCode.Trim().ToUpperInvariant();
+                }
+            }
+
+            return model;
+        }
+
+        private CheckoutInput BuildDefaultInput()
+        {
+            var customerId = GetCurrentCustomerId();
+            var customer = customerId > 0 ? _accountService.GetCustomerById(customerId) : null;
+
+            return new CheckoutInput
+            {
+                ShippingName = customer?.CustomerName ?? "",
+                ShippingPhone = customer?.Phone ?? "",
+                ShippingAddress = (!string.IsNullOrWhiteSpace(customer?.Address))
+                    ? customer.Address
+                    : GetRememberedShippingAddress(customerId)
+            };
+        }
+
+        private int GetCurrentCustomerId()
+        {
+            var claim = User.FindFirst("CustomerId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            return claim != null && int.TryParse(claim.Value, out var id) ? id : 0;
+        }
+
+        private string GetRememberedShippingAddress(int customerId)
+            => HttpContext.Session.GetString(GetLastShippingAddressSessionKey(customerId)) ?? "";
+
+        private void RememberShippingAddress(string address, int customerId)
+        {
+            if (!string.IsNullOrWhiteSpace(address))
+                HttpContext.Session.SetString(GetLastShippingAddressSessionKey(customerId), address.Trim());
+        }
+
+        private static string GetLastShippingAddressSessionKey(int customerId)
+            => $"{LastShippingAddressSessionKeyPrefix}{(customerId > 0 ? customerId.ToString() : "GUEST")}";
     }
 }

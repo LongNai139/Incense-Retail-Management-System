@@ -1,0 +1,1096 @@
+@model SV22T1080045.Shop.Models.ViewModels.Management.ManagementDashboardViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Models.ViewModels.Management
+@using SV22T1080045.Shop.Models.ViewModels.Product
+
+@{
+    ViewData["Title"] = "Quản lý";
+
+    var products = Model.Products ?? new List<ManagementProductRowViewModel>();
+    var allProducts = Model.AllProducts ?? new List<ManagementProductRowViewModel>();
+    var categories = Model.Categories ?? new List<ManagementCategoryOptionViewModel>();
+    var units = Model.Units ?? new List<ManagementUnitOptionViewModel>();
+    var productForm = Model.ProductForm ?? new ProductEditViewModel();
+    var categoryMap = categories.ToDictionary(c => c.Id, c => c.CategoryName);
+    var unitMap = units.ToDictionary(u => u.Id, u => u.UnitName);
+    var bestSellers = allProducts.OrderByDescending(p => p.SoldCount ?? 0).Take(5).ToList();
+    var lowStockProducts = allProducts.Where(p => (p.Quantity ?? 0) > 0 && (p.Quantity ?? 0) <= p.LowStockThreshold).OrderBy(p => p.Quantity ?? 0).Take(5).ToList();
+    var outOfStockCount = allProducts.Count(p => (p.Quantity ?? 0) <= 0);
+    var revenueSummary = Model.RevenueSummary;
+    var reportSummary = Model.ReportSummary;
+    var bestRevenuePoint = Model.RevenuePoints.OrderByDescending(p => p.Revenue).FirstOrDefault();
+    var bestReportPoint = Model.ReportRevenuePoints.OrderByDescending(p => p.Revenue).FirstOrDefault();
+    var reportDateValue = Model.ReportDate.ToString("yyyy-MM-dd");
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+    string CategoryName(int categoryId) => categoryMap.TryGetValue(categoryId, out var name) ? name : "Chưa phân loại";
+    string UnitName(int unitId) => unitMap.TryGetValue(unitId, out var name) ? name : $"ID {unitId}";
+    string FormatDate(DateTime value) => value.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"));
+    string FormatRange(DateTime start, DateTime end) => start.Date == end.AddDays(-1).Date
+        ? FormatDate(start)
+        : $"{FormatDate(start)} - {FormatDate(end.AddDays(-1))}";
+    string FormatPercent(decimal value) => (value >= 0 ? "+" : "") + value.ToString("N1", CultureInfo.GetCultureInfo("vi-VN")) + "%";
+    string MaskPhone(string? phone) => string.IsNullOrWhiteSpace(phone) || phone.Length < 4 ? "***" : "***" + phone[^4..];
+    string StatusText(int status) => status switch { 1 => "Chờ xử lý", 2 => "Đang chuẩn bị", 3 => "Đang giao", 4 => "Hoàn thành", -1 => "Đã hủy", _ => "Khác" };
+    string StatusClass(int status) => status switch { 1 => "status-pending", 2 => "status-ready", 3 => "status-shipped", 4 => "status-done", -1 => "status-cancel", _ => "status-ready" };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/management.css" asp-append-version="true" />
+}
+
+<div class="management-shell">
+    <div class="management-wrap">
+        <aside class="management-sidebar">
+            <div class="management-brand">
+                <div class="management-kicker">Admin workspace</div>
+                <div class="management-title">Quản lý cửa hàng</div>
+            </div>
+
+            <nav class="management-nav" aria-label="Điều hướng quản lý">
+                <a class="active" href="#dashboard"><i class="fa-solid fa-gauge-high"></i> Tổng quan</a>
+                <a href="#products"><i class="fa-solid fa-boxes-stacked"></i> Sản phẩm</a>
+                <a href="#orders"><i class="fa-solid fa-receipt"></i> Đơn hàng</a>
+                <a href="#customers"><i class="fa-solid fa-users"></i> Khách hàng</a>
+                <a href="#discounts"><i class="fa-solid fa-ticket"></i> Mã giảm giá</a>
+                <a href="#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo</a>
+            </nav>
+        </aside>
+
+        <main class="management-main">
+            <section class="management-hero">
+                <div>
+                    <div class="management-kicker">Trầm Hương Shop</div>
+                    <h1>Trung tâm vận hành</h1>
+                    <p>Theo dõi doanh thu, xử lý đơn, chăm tồn kho và khách hàng trên cùng một khu vực quản trị. Các khối đơn hàng, khách hàng, mã giảm giá và báo cáo đang đọc từ database hiện tại.</p>
+                </div>
+                <div class="management-actions">
+                    <a class="admin-btn primary" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Thêm sản phẩm</a>
+                    <button class="admin-btn"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+                    <a class="admin-btn success" asp-controller="Management" asp-action="ExportRevenueReport" asp-route-reportPeriod="@Model.ReportPeriod" asp-route-reportDate="@reportDateValue"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</a>
+                </div>
+            </section>
+
+            <section class="admin-section" id="dashboard">
+                <div class="admin-section-head">
+                    <div class="admin-section-heading-block">
+                        <h2>Trang tổng quan</h2>
+                        <p class="admin-section-desc">Doanh thu theo ngày, tuần, tháng hoặc một ngày cụ thể. Khoảng đang xem: @FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd).</p>
+                        <form class="time-filter-row" asp-controller="Management" asp-action="Index" method="get">
+                            <select class="admin-select" name="revenuePeriod">
+                                <option value="day" selected="@(Model.RevenuePeriod == "day" ? "selected" : null)">Theo ngày</option>
+                                <option value="week" selected="@(Model.RevenuePeriod == "week" ? "selected" : null)">Theo tuần</option>
+                                <option value="month" selected="@(Model.RevenuePeriod == "month" ? "selected" : null)">Theo tháng</option>
+                            </select>
+                            <input class="admin-input" type="date" name="revenueDate" value="@Model.RevenueDate.ToString("yyyy-MM-dd")" />
+                            <button class="admin-btn" type="submit"><i class="fa-solid fa-filter"></i> Xem doanh thu</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon revenue"><i class="fa-solid fa-dong-sign"></i></div>
+                        <div class="kpi-label">Doanh thu</div>
+                        <div class="kpi-value">@FormatMoney(revenueSummary.Revenue)</div>
+                        <div class="kpi-note">@FormatPercent(revenueSummary.RevenueChangePercent) so với kỳ trước</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon orders"><i class="fa-solid fa-bag-shopping"></i></div>
+                        <div class="kpi-label">Đơn hàng</div>
+                        <div class="kpi-value">@revenueSummary.OrderCount</div>
+                        <div class="kpi-note">@revenueSummary.CompletedOrderCount đơn hoàn thành</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon stock"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-label">Sản phẩm hết hàng</div>
+                        <div class="kpi-value">@outOfStockCount</div>
+                        <div class="kpi-note">@lowStockProducts.Count sản phẩm sắp hết hàng</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon customers"><i class="fa-solid fa-user-plus"></i></div>
+                        <div class="kpi-label">Khách mới</div>
+                        <div class="kpi-value">@revenueSummary.NewCustomerCount</div>
+                        <div class="kpi-note">@revenueSummary.GuestOrderCount đơn khách vãng lai</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="admin-panel">
+                        <div class="panel-title">
+                            <span>Biểu đồ doanh thu</span>
+                            <span class="status-badge status-ready">@FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd)</span>
+                        </div>
+                        <div class="chart-guide">
+                            <strong>Kết luận nhanh:</strong>
+                            @if (bestRevenuePoint != null && bestRevenuePoint.Revenue > 0)
+                            {
+                                <span>@bestRevenuePoint.Label bán tốt nhất với @FormatMoney(bestRevenuePoint.Revenue) từ @bestRevenuePoint.OrderCount đơn.</span>
+                            }
+                            else
+                            {
+                                <span>Khoảng này chưa có doanh thu.</span>
+                            }
+                        </div>
+                        <div class="revenue-list" aria-label="Bảng thanh doanh thu">
+                            @foreach (var point in Model.RevenuePoints.OrderByDescending(p => p.Revenue))
+                            {
+                                <div class="revenue-row">
+                                    <div class="revenue-row-label">@point.Label</div>
+                                    <div class="revenue-row-track">
+                                        <div class="revenue-row-fill" style="width:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
+                                    </div>
+                                    <div class="revenue-row-money">@FormatMoney(point.Revenue)</div>
+                                    <div class="revenue-row-orders">@point.OrderCount đơn</div>
+                                </div>
+                            }
+                        </div>
+                        <div class="chart-caption">Đọc từ trên xuống: mốc nào tạo nhiều tiền nhất nằm ở đầu danh sách. Tổng @FormatMoney(revenueSummary.Revenue) từ @revenueSummary.OrderCount đơn.</div>
+                    </div>
+
+                    <div class="admin-panel">
+                        <div class="panel-title">Sản phẩm bán chạy top 5</div>
+                        <div class="selling-list">
+                            @if (bestSellers.Any())
+                            {
+                                var rank = 1;
+                                foreach (var item in bestSellers)
+                                {
+                                    var revenue = (item.SoldCount ?? 0) * item.PriceAfterDiscount;
+                                    <div class="selling-item">
+                                        <div>
+                                            <div class="item-name">@item.ProductName</div>
+                                            <div class="item-meta">@((item.SoldCount ?? 0).ToString("N0")) đã bán | @FormatMoney(revenue)</div>
+                                        </div>
+                                        <strong>@rank</strong>
+                                    </div>
+                                    rank++;
+                                }
+                            }
+                            else
+                            {
+                                <div class="item-meta">Chưa có dữ liệu sản phẩm.</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="admin-panel">
+                        <div class="panel-title">10 đơn hàng mới nhất</div>
+                        <div class="admin-table-wrap">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Khách</th>
+                                        <th>Tổng</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thời gian</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.RecentOrders.Any())
+                                    {
+                                        foreach (var order in Model.RecentOrders)
+                                        {
+                                            <tr>
+                                                <td>@order.OrderCode</td>
+                                                <td>@(order.IsGuest ? $"Guest {MaskPhone(order.CustomerPhone)}" : order.CustomerName)</td>
+                                                <td>@FormatMoney(order.TotalAmount)</td>
+                                                <td><span class="status-badge @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
+                                                <td>@order.OrderDate.ToString("dd/MM HH:mm")</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr><td colspan="5">Chưa có đơn hàng trong database.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel">
+                        <div class="panel-title">Cảnh báo sắp hết hàng (&lt;5 sp)</div>
+                        <div class="warning-list">
+                            @if (lowStockProducts.Any())
+                            {
+                                foreach (var item in lowStockProducts)
+                                {
+                                    <div class="warning-item">
+                                        <div>
+                                            <div class="item-name">@item.ProductName</div>
+                                            <div class="item-meta">@CategoryName(item.CategoryId) | @item.Origin</div>
+                                        </div>
+                                        <div class="warning-count">@(item.Quantity ?? 0)</div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="item-meta">Không có sản phẩm nào dưới 5 tồn kho.</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" id="products">
+                <div class="admin-section-head">
+                    <div>
+                        <h2>Quản lý sản phẩm</h2>
+                        <p class="admin-section-desc">Danh sách có lọc, tìm kiếm, phân trang, thao tác tồn kho nhanh, form thêm/sửa với nhiều ảnh và thông tin đặc thù trầm hương.</p>
+                    </div>
+                    <div class="management-actions">
+                        <a class="admin-btn primary" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Thêm mới</a>
+                        <button class="admin-btn"><i class="fa-solid fa-file-excel"></i> Import Excel</button>
+                    </div>
+                </div>
+
+                <form class="product-tools" asp-controller="Management" asp-action="Index" method="get">
+                    <input class="admin-input" type="search" name="searchValue" value="@Model.SearchValue" placeholder="Tìm theo tên, danh mục, xuất xứ..." />
+                    <select class="admin-select" name="categoryId">
+                        <option value="">Tất cả danh mục</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id" selected="@(Model.CategoryId == category.Id ? "selected" : null)">@category.CategoryName</option>
+                        }
+                    </select>
+                    <select class="admin-select" name="productStatus">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="selling" selected="@(Model.ProductStatus == "selling" ? "selected" : null)">Đang bán</option>
+                        <option value="low-stock" selected="@(Model.ProductStatus == "low-stock" ? "selected" : null)">Sắp hết</option>
+                        <option value="out-of-stock" selected="@(Model.ProductStatus == "out-of-stock" ? "selected" : null)">Hết hàng</option>
+                    </select>
+                    <button class="admin-btn" type="submit"><i class="fa-solid fa-filter"></i> Lọc</button>
+                    <a class="admin-btn" asp-controller="Management" asp-action="Index" asp-fragment="products"><i class="fa-solid fa-xmark"></i> Xóa lọc</a>
+                </form>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Danh mục</th>
+                                <th>Giá bán</th>
+                                <th>Tồn kho</th>
+                                <th>Đã bán</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (products.Any())
+                            {
+                                foreach (var item in products)
+                                {
+                                    var quantity = item.Quantity ?? 0;
+                                    var statusClass = quantity <= 0 ? "status-cancel" : quantity <= item.LowStockThreshold ? "status-pending" : "status-ready";
+                                    var statusText = quantity <= 0 ? "Hết hàng" : quantity <= item.LowStockThreshold ? "Sắp hết" : "Đang bán";
+                                    var isLastSaved = Model.LastSavedProductId == item.Id;
+                                    var savedText = Model.LastSavedAction == "created" ? "Vừa thêm" : "Vừa sửa";
+                                    <tr class="@(isLastSaved ? "product-row-highlight" : null)">
+                                        <td>
+                                            <strong>@item.ProductName</strong>
+                                            <div class="item-meta">@item.Origin | @UnitName(item.UnitId) | tinh dầu @(item.OilContent ?? "chưa cập nhật")</div>
+                                            @if (isLastSaved)
+                                            {
+                                                <span class="status-badge status-highlight">@savedText</span>
+                                            }
+                                        </td>
+                                        <td>@CategoryName(item.CategoryId)</td>
+                                        <td>
+                                            <strong>@FormatMoney(item.PriceAfterDiscount)</strong>
+                                            @if (item.DiscountPercent > 0)
+                                            {
+                                                <div class="item-meta">@FormatMoney(item.SalePrice) | -@item.DiscountPercent.ToString("0.##", CultureInfo.InvariantCulture)%</div>
+                                            }
+                                        </td>
+                                        <td><input class="stock-input" type="number" value="@quantity" /></td>
+                                        <td>@(item.SoldCount ?? 0)</td>
+                                        <td><span class="status-badge @statusClass">@statusText</span></td>
+                                        <td><a href="@Url.Action("Index", "Management", new { editProductId = item.Id })#product-form">Sửa</a> | <a href="#">Xóa mềm</a></td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7">Chưa có sản phẩm trong dữ liệu.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-compact pagination-with-summary">
+                    <span class="item-meta">
+                        Hiển thị @products.Count / @Model.ProductTotalCount sản phẩm, trang @Model.ProductPage / @Model.ProductTotalPages.
+                    </span>
+                    <div class="page-list">
+                        @if (Model.ProductPage > 1)
+                        {
+                            <a class="page-dot" asp-controller="Management" asp-action="Index" asp-route-searchValue="@Model.SearchValue" asp-route-categoryId="@Model.CategoryId" asp-route-productStatus="@Model.ProductStatus" asp-route-productPage="@(Model.ProductPage - 1)" asp-fragment="products"><i class="fa-solid fa-chevron-left"></i></a>
+                        }
+
+                        @{
+                            var firstPage = Math.Max(1, Model.ProductPage - 2);
+                            var lastPage = Math.Min(Model.ProductTotalPages, Model.ProductPage + 2);
+                        }
+                        @for (var pageNumber = firstPage; pageNumber <= lastPage; pageNumber++)
+                        {
+                            <a class="page-dot @(pageNumber == Model.ProductPage ? "active" : null)" asp-controller="Management" asp-action="Index" asp-route-searchValue="@Model.SearchValue" asp-route-categoryId="@Model.CategoryId" asp-route-productStatus="@Model.ProductStatus" asp-route-productPage="@pageNumber" asp-fragment="products">@pageNumber</a>
+                        }
+
+                        @if (Model.ProductPage < Model.ProductTotalPages)
+                        {
+                            <a class="page-dot" asp-controller="Management" asp-action="Index" asp-route-searchValue="@Model.SearchValue" asp-route-categoryId="@Model.CategoryId" asp-route-productStatus="@Model.ProductStatus" asp-route-productPage="@(Model.ProductPage + 1)" asp-fragment="products"><i class="fa-solid fa-chevron-right"></i></a>
+                        }
+                    </div>
+                </div>
+
+                <form asp-controller="Management" asp-action="SaveProduct" method="post" enctype="multipart/form-data" id="managementProductForm" class="dashboard-grid">
+                    @Html.AntiForgeryToken()
+                    <div class="admin-panel" id="product-form">
+                        <div class="panel-title">
+                            <span>@(productForm.Id > 0 ? "Sửa sản phẩm" : "Thêm sản phẩm")</span>
+                            @if (productForm.Id > 0)
+                            {
+                                <span class="status-badge status-ready">#@productForm.Id</span>
+                            }
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            @Html.ValidationSummary(false, "", new { @class = "validation-summary" })
+                        }
+
+                        <input type="hidden" name="Id" value="@productForm.Id" />
+                        <input type="hidden" name="ImageUrl" value="@productForm.ImageUrl" />
+                        <input type="hidden" name="ImageUrl2" value="@productForm.ImageUrl2" />
+                        <input type="hidden" name="ImageUrl3" value="@productForm.ImageUrl3" />
+                        <input type="hidden" name="ImageUrl4" value="@productForm.ImageUrl4" />
+
+                        <div class="form-grid">
+                            <div class="field"><label>Tên sản phẩm</label><input class="admin-input" name="ProductName" value="@productForm.ProductName" required /></div>
+                            <div class="field">
+                                <label>Danh mục</label>
+                                <select class="admin-select" name="CategoryId" required>
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.Id" selected="@(productForm.CategoryId == category.Id ? "selected" : null)">@category.CategoryName</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Đơn vị tính</label>
+                                <select class="admin-select" name="UnitId" required>
+                                    @foreach (var unit in units)
+                                    {
+                                        <option value="@unit.Id" selected="@(productForm.UnitId == unit.Id ? "selected" : null)">@unit.UnitName</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="field"><label>Giá nhập</label><input class="admin-input js-price-field" type="number" name="ImportPrice" min="0" step="1000" value="@productForm.ImportPrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                            <div class="field"><label>Giá bán</label><input class="admin-input js-price-field" type="number" name="SalePrice" min="0" step="1000" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                            <div class="field"><label>Giảm giá (%)</label><input class="admin-input js-price-field" type="number" name="DiscountPercent" min="0" max="100" step="0.01" value="@productForm.DiscountPercent.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                            <div class="field"><label>Giá sau giảm</label><input class="admin-input" type="number" name="PriceAfterDiscount" min="0" step="1000" value="@productForm.PriceAfterDiscount.ToString("0.##", CultureInfo.InvariantCulture)" readonly /></div>
+                            <input type="hidden" name="OriginalPrice" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" />
+                            <div class="field"><label>Tồn kho</label><input class="admin-input" type="number" name="Quantity" min="0" value="@productForm.Quantity" /></div>
+                            <div class="field"><label>Ngưỡng sắp hết</label><input class="admin-input" type="number" name="LowStockThreshold" min="1" value="@(productForm.LowStockThreshold ?? 5)" /></div>
+                            <div class="field"><label>Đã bán</label><input class="admin-input" type="number" name="SoldCount" min="0" value="@productForm.SoldCount" /></div>
+                            <div class="field"><label>Đánh giá</label><input class="admin-input" type="number" name="Rating" min="0" max="5" value="@productForm.Rating" /></div>
+                            <div class="field"><label>Số đánh giá</label><input class="admin-input" type="number" name="ReviewCount" min="0" value="@productForm.ReviewCount" /></div>
+                            <div class="field"><label>Xuất xứ</label><input class="admin-input" name="Origin" value="@productForm.Origin" /></div>
+                            <div class="field"><label>Độ tuổi trầm</label><input class="admin-input" name="AgeYear" value="@productForm.AgeYear" /></div>
+                            <div class="field"><label>Hàm lượng tinh dầu</label><input class="admin-input" name="OilContent" value="@productForm.OilContent" /></div>
+                            <div class="field"><label>Thời gian cháy</label><input class="admin-input" name="BurningTime" value="@productForm.BurningTime" /></div>
+                            <div class="field"><label>Kích thước</label><input class="admin-input" name="Length" value="@productForm.Length" /></div>
+                            <div class="field"><label>Trọng lượng</label><input class="admin-input" name="Weight" value="@productForm.Weight" /></div>
+                            <div class="field"><label>Thẻ sử dụng</label><input class="admin-input" name="UsageTags" value="@productForm.UsageTags" /></div>
+                        </div>
+
+                        <div class="field" style="margin-top:12px;">
+                            <label>Thành phần</label>
+                            <textarea class="admin-textarea" name="Ingredient" rows="2">@productForm.Ingredient</textarea>
+                        </div>
+
+                        <div class="field" style="margin-top:12px;">
+                            <label>Mô tả sản phẩm</label>
+                            <textarea class="admin-textarea" name="Description" rows="5">@productForm.Description</textarea>
+                        </div>
+
+                        <div class="management-actions" style="margin-top:14px;">
+                            <button class="admin-btn primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Lưu sản phẩm</button>
+                            <a class="admin-btn" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Form thêm mới</a>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel">
+                        <div class="panel-title">Ảnh sản phẩm</div>
+                        <div class="image-preview-row">
+                            @foreach (var imageUrl in new[] { productForm.ImageUrl, productForm.ImageUrl2, productForm.ImageUrl3, productForm.ImageUrl4 }.Where(url => !string.IsNullOrWhiteSpace(url)))
+                            {
+                                <img class="image-preview image-preview-img" src="@imageUrl" alt="@productForm.ProductName" />
+                            }
+                        </div>
+                        <div class="upload-fields">
+                            <div class="field"><label>Ảnh chính</label><input class="admin-input" type="file" name="UploadPhoto" accept="image/*" /></div>
+                            <div class="field"><label>Ảnh phụ 2</label><input class="admin-input" type="file" name="UploadPhoto2" accept="image/*" /></div>
+                            <div class="field"><label>Ảnh phụ 3</label><input class="admin-input" type="file" name="UploadPhoto3" accept="image/*" /></div>
+                            <div class="field"><label>Ảnh phụ 4</label><input class="admin-input" type="file" name="UploadPhoto4" accept="image/*" /></div>
+                        </div>
+                        <div class="panel-title" style="margin-top:18px;">Dữ liệu đang dùng</div>
+                        <p class="admin-section-desc">Danh mục và đơn vị trong form được lấy từ database hiện tại. Khi bấm Sửa ở bảng trên, trang giữ nguyên khu vực quản lý và cuộn xuống form này.</p>
+                    </div>
+                </form>
+            </section>
+
+            <section class="admin-section" id="orders">
+                <div class="admin-section-head">
+                    <div>
+                        <h2>Quản lý đơn hàng</h2>
+                        <p class="admin-section-desc">Đơn hàng mới nhất được lấy từ bảng Orders, ghép Customers và OrderDetails để hiển thị khách, số món, tổng tiền và trạng thái.</p>
+                    </div>
+                    <div class="management-actions">
+                        <button class="admin-btn"><i class="fa-solid fa-print"></i> In hóa đơn</button>
+                        <button class="admin-btn"><i class="fa-solid fa-truck-fast"></i> Phiếu giao GHN</button>
+                    </div>
+                </div>
+
+                <div class="order-board">
+                    @foreach (var group in Model.OrderStatusGroups)
+                    {
+                        <div class="order-column">
+                            <div class="order-column-title">@group.StatusText (@group.Orders.Count)</div>
+                            @if (group.Orders.Any())
+                            {
+                                foreach (var order in group.Orders)
+                                {
+                                    <button class="order-ticket" type="button" data-order-link data-order-id="@order.Id">
+                                        <strong>@order.OrderCode</strong>
+                                        <span>@(order.IsGuest ? $"Guest {MaskPhone(order.CustomerPhone)}" : order.CustomerName) | @FormatMoney(order.TotalAmount) | @order.ItemCount món</span>
+                                    </button>
+                                }
+                            }
+                            else
+                            {
+                                <div class="item-meta">Không có đơn.</div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="admin-table-wrap" style="margin-top:16px;">
+                    <table class="admin-table">
+                        <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>SĐT</th><th>Số món</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th></tr></thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr data-order-row="@order.Id">
+                                    <td>@order.OrderCode</td>
+                                    <td>@(order.IsGuest ? "Khách vãng lai" : order.CustomerName)</td>
+                                    <td>@MaskPhone(order.CustomerPhone)</td>
+                                    <td>@order.ItemCount</td>
+                                    <td>@FormatMoney(order.TotalAmount)</td>
+                                    <td><span class="status-badge @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
+                                    <td><button class="link-button" type="button" data-order-link data-order-id="@order.Id">@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="admin-panel order-detail-panel" id="orderDetailPanel">
+                    <div class="panel-title">
+                        <span>Chi tiết đơn hàng</span>
+                        <span class="status-badge status-ready" id="selectedOrderCode">Chọn một đơn</span>
+                    </div>
+                    <div id="orderDetailContent" class="customer-history">
+                        <div class="item-meta">Nhấp vào mã đơn trong bảng hoặc thẻ trạng thái để xem sản phẩm, số lượng, đơn giá và tổng tiền ngay tại đây.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" id="customers">
+                <div class="admin-section-head">
+                    <div>
+                        <h2>Quản lý khách hàng</h2>
+                        <p class="admin-section-desc">Danh sách lấy từ bảng Customers, tổng hợp số đơn và chi tiêu từ Orders. Nhấp vào khách hàng để xem 3 lần mua gần nhất.</p>
+                    </div>
+                    <button class="admin-btn"><i class="fa-solid fa-user-shield"></i> Cập nhật quyền</button>
+                </div>
+
+                <div class="customer-grid dashboard-grid">
+                    <div class="admin-panel">
+                        <div class="panel-title">
+                            <span>Danh sách khách hàng</span>
+                            <span class="status-badge status-ready">Hiển thị 5 khách</span>
+                        </div>
+                        <div class="customer-search">
+                            <input class="admin-input" type="search" id="customerSearchInput" placeholder="Tìm khách theo tên, SĐT, email..." autocomplete="off" />
+                            <span class="item-meta" id="customerSearchHint">Nhập để tìm trong toàn bộ danh sách khách hàng.</span>
+                        </div>
+                        <div class="admin-table-wrap">
+                            <table class="admin-table">
+                                <thead><tr><th>Khách</th><th>Liên hệ</th><th>SĐT</th><th>Đơn</th><th>Chi tiêu</th><th>Gần nhất</th><th>Quyền</th></tr></thead>
+                                <tbody>
+                                    @if (Model.Customers.Any())
+                                    {
+                                        var customerIndex = 0;
+                                        foreach (var customer in Model.Customers)
+                                        {
+                                            var customerSearchText = $"{customer.CustomerName} {customer.Phone} {customer.Email} {customer.Address}".ToLowerInvariant();
+                                            <tr class="@(Model.SelectedCustomer?.Id == customer.Id ? "product-row-highlight" : null) @(customerIndex >= 5 ? "is-hidden-by-limit" : null)" data-customer-row="@customer.Id" data-customer-search="@customerSearchText" data-customer-index="@customerIndex">
+                                                <td><button class="link-button" type="button" data-customer-link data-customer-id="@customer.Id"><strong>@customer.CustomerName</strong></button><div class="item-meta">@customer.Address</div></td>
+                                                <td>@(customer.Email ?? "Chưa có email")</td>
+                                                <td>@MaskPhone(customer.Phone)</td>
+                                                <td>@customer.OrderCount</td>
+                                                <td>@FormatMoney(customer.TotalSpent)</td>
+                                                <td>@(customer.LastOrderDate.HasValue ? customer.LastOrderDate.Value.ToString("dd/MM/yyyy") : "Chưa mua")</td>
+                                                <td><span class="role-badge @(customer.Role == "Admin" ? "role-admin" : "role-user")">@customer.Role</span></td>
+                                            </tr>
+                                            customerIndex++;
+                                        }
+                                        <tr id="customerNoResultRow" class="is-hidden"><td colspan="7">Không tìm thấy khách hàng phù hợp.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        <tr><td colspan="7">Chưa có khách hàng trong database.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="admin-panel" id="customerHistoryPanel">
+                        <div class="panel-title">
+                            <span>Lịch sử mua hàng</span>
+                            @if (Model.SelectedCustomer != null)
+                            {
+                                <span class="status-badge status-ready" id="selectedCustomerName">@Model.SelectedCustomer.CustomerName</span>
+                            }
+                        </div>
+                        <div class="customer-history" id="customerHistoryList">
+                            @if (Model.SelectedCustomerHistory.Any())
+                            {
+                                foreach (var item in Model.SelectedCustomerHistory)
+                                {
+                                    <div class="history-item">
+                                        <strong>@item.OrderCode</strong>
+                                        <span>@FormatMoney(item.TotalAmount) | @StatusText(item.Status) | @item.OrderDate.ToString("dd/MM/yyyy")</span>
+                                        <span>@string.Join(", ", item.ProductNames)</span>
+                                    </div>
+                                }
+
+                                @if (!Model.ShowFullCustomerHistory && Model.SelectedCustomer != null && Model.SelectedCustomer.OrderCount > 3)
+                                {
+                                    <a class="admin-btn" asp-controller="Management" asp-action="Index" asp-route-selectedCustomerId="@Model.SelectedCustomer.Id" asp-route-showFullCustomerHistory="true" asp-fragment="customers" data-customer-more data-customer-id="@Model.SelectedCustomer.Id"><i class="fa-solid fa-clock-rotate-left"></i> Xem nhiều hơn</a>
+                                }
+                            }
+                            else
+                            {
+                                <div class="item-meta">Khách hàng này chưa có lịch sử mua hàng.</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" id="discounts">
+                <div class="admin-section-head">
+                    <div>
+                        <h2>Quản lý mã giảm giá</h2>
+                        <p class="admin-section-desc">Tạo code thủ công hoặc sinh tự động, chọn kiểu giảm, điều kiện đơn tối thiểu và sản phẩm áp dụng.</p>
+                    </div>
+                    <button class="admin-btn primary" type="button" id="generateCouponCode"><i class="fa-solid fa-wand-magic-sparkles"></i> Sinh mã tự động</button>
+                </div>
+
+                <div class="coupon-grid dashboard-grid">
+                    <div class="admin-panel">
+                        <div class="panel-title">Tạo mã</div>
+                        @if (!string.IsNullOrWhiteSpace(Model.VoucherMessage))
+                        {
+                            <div class="status-badge status-ready" style="margin-bottom:12px;">@Model.VoucherMessage</div>
+                        }
+                        <form asp-controller="Management" asp-action="SaveVoucher" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="form-grid">
+                                <div class="field"><label>Code</label><input class="admin-input coupon-code" id="couponCodeInput" name="Code" value="@Model.VoucherForm.Code" required /></div>
+                                <div class="field">
+                                    <label>Loại giảm</label>
+                                    <select class="admin-select" name="DiscountType">
+                                        <option value="1" selected="@(Model.VoucherForm.DiscountType == ManagementVoucherDiscountType.Percent ? "selected" : null)">Phần trăm</option>
+                                        <option value="2" selected="@(Model.VoucherForm.DiscountType == ManagementVoucherDiscountType.FixedAmount ? "selected" : null)">Số tiền cố định</option>
+                                    </select>
+                                </div>
+                                <div class="field"><label>Giá trị</label><input class="admin-input" type="number" name="DiscountValue" min="1" step="1" value="@Model.VoucherForm.DiscountValue.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                                <div class="field"><label>Giảm tối đa</label><input class="admin-input" type="number" name="MaxDiscount" min="0" step="1000" value="@(Model.VoucherForm.MaxDiscount.HasValue ? Model.VoucherForm.MaxDiscount.Value.ToString("0.##", CultureInfo.InvariantCulture) : "")" /></div>
+                                <div class="field"><label>Đơn tối thiểu</label><input class="admin-input" type="number" name="MinOrderAmount" min="0" step="1000" value="@Model.VoucherForm.MinOrderAmount.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                                <div class="field"><label>Số lượt dùng</label><input class="admin-input" type="number" name="MaxUsage" min="1" value="@Model.VoucherForm.MaxUsage" /></div>
+                                <div class="field"><label>Hạn dùng</label><input class="admin-input" type="date" name="ExpiresAt" value="@(Model.VoucherForm.ExpiresAt.HasValue ? Model.VoucherForm.ExpiresAt.Value.ToString("yyyy-MM-dd") : "")" /></div>
+                                <div class="field"><label>Mô tả</label><input class="admin-input" name="Description" value="@Model.VoucherForm.Description" placeholder="Ví dụ: giảm cho đơn đầu tiên" /></div>
+                            </div>
+                            <div class="management-actions" style="margin-top:14px;">
+                                <button class="admin-btn primary" type="submit"><i class="fa-solid fa-check"></i> Xác nhận tạo mã</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="admin-panel">
+                        <div class="panel-title">Thống kê sử dụng</div>
+                        <div class="coupon-list">
+                            @if (Model.Vouchers.Any())
+                            {
+                                foreach (var voucher in Model.Vouchers)
+                                {
+                                    var percent = voucher.MaxUsage.HasValue && voucher.MaxUsage.Value > 0 ? Math.Min(100, voucher.UsedCount * 100 / voucher.MaxUsage.Value) : 0;
+                                    <div class="coupon-item" data-voucher-row="@voucher.Id">
+                                        <div>
+                                            <div class="coupon-code">@voucher.Code</div>
+                                            <div class="item-meta">@voucher.UsedCount lượt dùng | tối thiểu @FormatMoney(voucher.MinOrderAmount)</div>
+                                            <div class="progress-track"><div class="progress-fill" style="width:@percent%"></div></div>
+                                        </div>
+                                        <form asp-controller="Management" asp-action="ToggleVoucher" method="post" data-voucher-toggle-form>
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@voucher.Id" />
+                                            <button class="admin-btn @(voucher.IsActive ? "primary" : null)" type="submit" data-voucher-toggle-button>
+                                                <i class="fa-solid @(voucher.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                                                <span>@(voucher.IsActive ? "Bật" : "Tắt")</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="item-meta">Chưa có mã giảm giá.</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" id="reports">
+                <div class="admin-section-head">
+                    <div>
+                        <h2>Báo cáo</h2>
+                        <p class="admin-section-desc">Báo cáo tổng hợp theo ngày/tuần/tháng, có doanh thu, số đơn, giá trị trung bình, top sản phẩm và top khách hàng.</p>
+                    </div>
+                    <form class="management-actions" asp-controller="Management" asp-action="Index" method="get">
+                        <select class="admin-select" name="reportPeriod">
+                            <option value="day" selected="@(Model.ReportPeriod == "day" ? "selected" : null)">Theo ngày</option>
+                            <option value="week" selected="@(Model.ReportPeriod == "week" ? "selected" : null)">Theo tuần</option>
+                            <option value="month" selected="@(Model.ReportPeriod == "month" ? "selected" : null)">Theo tháng</option>
+                        </select>
+                        <input class="admin-input" type="date" name="reportDate" value="@reportDateValue" />
+                        <button class="admin-btn" type="submit"><i class="fa-solid fa-chart-line"></i> Xem báo cáo</button>
+                        <button class="admin-btn success" type="submit" formaction="@Url.Action("ExportRevenueReport", "Management")"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</button>
+                    </form>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Doanh thu kỳ báo cáo</div>
+                        <div class="kpi-value">@FormatMoney(reportSummary.Revenue)</div>
+                        <div class="kpi-note">@FormatRange(Model.ReportRangeStart, Model.ReportRangeEnd)</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Tổng đơn</div>
+                        <div class="kpi-value">@reportSummary.OrderCount</div>
+                        <div class="kpi-note">@reportSummary.CompletedOrderCount đơn hoàn thành</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Giá trị trung bình</div>
+                        <div class="kpi-value">@FormatMoney(reportSummary.AverageOrderValue)</div>
+                        <div class="kpi-note">Tính trên đơn trong kỳ</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Khách mới</div>
+                        <div class="kpi-value">@reportSummary.NewCustomerCount</div>
+                        <div class="kpi-note">@reportSummary.GuestOrderCount đơn guest</div>
+                    </div>
+                </div>
+
+                <div class="report-grid dashboard-grid">
+                    <div class="admin-panel">
+                        <div class="panel-title">
+                            <span>Doanh thu trong kỳ</span>
+                            <span class="status-badge status-ready">@FormatPercent(reportSummary.RevenueChangePercent)</span>
+                        </div>
+                        <div class="chart-guide">
+                            <strong>Kết luận nhanh:</strong>
+                            @if (bestReportPoint != null && bestReportPoint.Revenue > 0)
+                            {
+                                <span>@bestReportPoint.Label là mốc doanh thu cao nhất: @FormatMoney(bestReportPoint.Revenue) từ @bestReportPoint.OrderCount đơn.</span>
+                            }
+                            else
+                            {
+                                <span>Kỳ báo cáo này chưa có doanh thu.</span>
+                            }
+                        </div>
+                        <div class="revenue-list" aria-label="Bảng thanh doanh thu báo cáo">
+                            @foreach (var point in Model.ReportRevenuePoints.OrderByDescending(p => p.Revenue))
+                            {
+                                <div class="revenue-row">
+                                    <div class="revenue-row-label">@point.Label</div>
+                                    <div class="revenue-row-track">
+                                        <div class="revenue-row-fill" style="width:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
+                                    </div>
+                                    <div class="revenue-row-money">@FormatMoney(point.Revenue)</div>
+                                    <div class="revenue-row-orders">@point.OrderCount đơn</div>
+                                </div>
+                            }
+                        </div>
+                        <div class="chart-caption">Tổng @FormatMoney(reportSummary.Revenue), trung bình @FormatMoney(reportSummary.AverageOrderValue) mỗi đơn.</div>
+                    </div>
+                    <div class="admin-panel">
+                        <div class="panel-title">Top sản phẩm theo doanh thu</div>
+                        <div class="selling-list">
+                            @if (Model.ProductSalesReports.Any())
+                            {
+                                foreach (var item in Model.ProductSalesReports)
+                                {
+                                    <div class="selling-item">
+                                        <div>
+                                            <div class="item-name">@item.ProductName</div>
+                                            <div class="item-meta">@item.Quantity.ToString("N0") sản phẩm | @item.OrderCount đơn</div>
+                                        </div>
+                                        <strong>@FormatMoney(item.Revenue)</strong>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="item-meta">Chưa có dữ liệu bán hàng trong kỳ này.</div>
+                            }
+                        </div>
+                        <div class="panel-title" style="margin-top:18px;">Top khách hàng</div>
+                        <div class="selling-list">
+                            @foreach (var customer in Model.TopCustomers)
+                            {
+                                <div class="selling-item">
+                                    <div>
+                                        <div class="item-name">@customer.CustomerName</div>
+                                        <div class="item-meta">@customer.OrderCount đơn | @MaskPhone(customer.Phone)</div>
+                                    </div>
+                                    <strong>@FormatMoney(customer.TotalSpent)</strong>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.management-nav a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                document.querySelectorAll('.management-nav a').forEach(function (item) {
+                    item.classList.remove('active');
+                });
+                link.classList.add('active');
+            });
+        });
+
+        function formatMoneyVnd(value) {
+            return new Intl.NumberFormat('vi-VN').format(value || 0) + 'đ';
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function updateCustomerRows() {
+            var input = document.getElementById('customerSearchInput');
+            var hint = document.getElementById('customerSearchHint');
+            var noResultRow = document.getElementById('customerNoResultRow');
+            var keyword = input ? input.value.trim().toLowerCase() : '';
+            var visibleCount = 0;
+
+            document.querySelectorAll('[data-customer-row]').forEach(function (row) {
+                var searchText = row.getAttribute('data-customer-search') || '';
+                var index = Number(row.getAttribute('data-customer-index') || '0');
+                var visible = keyword ? searchText.indexOf(keyword) >= 0 : index < 5;
+                row.classList.remove('is-hidden-by-limit');
+                row.classList.toggle('is-hidden', !visible);
+                if (visible) {
+                    visibleCount++;
+                }
+            });
+
+            if (noResultRow) {
+                noResultRow.classList.toggle('is-hidden', visibleCount !== 0);
+            }
+
+            if (hint) {
+                hint.textContent = keyword
+                    ? 'Tìm thấy ' + visibleCount + ' khách hàng phù hợp.'
+                    : 'Đang hiển thị 5 khách gần đây nhất. Nhập để tìm trong toàn bộ danh sách.';
+            }
+        }
+
+        function renderCustomerHistory(data) {
+            var selectedName = document.getElementById('selectedCustomerName');
+            var historyList = document.getElementById('customerHistoryList');
+            if (!historyList || !data || !data.customer) {
+                return;
+            }
+
+            if (selectedName) {
+                selectedName.textContent = data.customer.customerName;
+            }
+
+            document.querySelectorAll('[data-customer-row]').forEach(function (row) {
+                row.classList.toggle('product-row-highlight', row.getAttribute('data-customer-row') === String(data.customer.id));
+            });
+
+            if (!data.history || data.history.length === 0) {
+                historyList.innerHTML = '<div class="item-meta">Khách hàng này chưa có lịch sử mua hàng.</div>';
+                return;
+            }
+
+            var html = data.history.map(function (item) {
+                var products = Array.isArray(item.productNames) ? item.productNames.join(', ') : '';
+                return '<div class="history-item">' +
+                    '<strong>' + escapeHtml(item.orderCode) + '</strong>' +
+                    '<span>' + formatMoneyVnd(item.totalAmount) + ' | ' + escapeHtml(item.statusText) + ' | ' + escapeHtml(item.orderDate) + '</span>' +
+                    '<span>' + escapeHtml(products) + '</span>' +
+                    '</div>';
+            }).join('');
+
+            if (data.canShowMore) {
+                html += '<button class="admin-btn" type="button" data-customer-more data-customer-id="' + data.customer.id + '">' +
+                    '<i class="fa-solid fa-clock-rotate-left"></i> Xem nhiều hơn</button>';
+            }
+
+            historyList.innerHTML = html;
+        }
+
+        document.addEventListener('click', function (event) {
+            var trigger = event.target.closest('[data-customer-link], [data-customer-more]');
+            if (!trigger) {
+                return;
+            }
+
+            event.preventDefault();
+            var customerId = trigger.getAttribute('data-customer-id');
+            var showFull = trigger.hasAttribute('data-customer-more');
+            var historyList = document.getElementById('customerHistoryList');
+            if (historyList) {
+                historyList.classList.add('is-loading');
+            }
+
+            fetch('/Management/CustomerHistory?selectedCustomerId=' + encodeURIComponent(customerId) + '&showFullCustomerHistory=' + showFull, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Không tải được lịch sử mua hàng.');
+                    }
+                    return response.json();
+                })
+                .then(renderCustomerHistory)
+                .catch(function () {
+                    if (historyList) {
+                        historyList.innerHTML = '<div class="item-meta">Không tải được lịch sử mua hàng. Vui lòng thử lại.</div>';
+                    }
+                })
+                .finally(function () {
+                    if (historyList) {
+                        historyList.classList.remove('is-loading');
+                    }
+                });
+        });
+
+        var customerSearchInput = document.getElementById('customerSearchInput');
+        if (customerSearchInput) {
+            customerSearchInput.addEventListener('input', updateCustomerRows);
+            updateCustomerRows();
+        }
+
+        function renderOrderDetails(data) {
+            var panel = document.getElementById('orderDetailPanel');
+            var code = document.getElementById('selectedOrderCode');
+            var content = document.getElementById('orderDetailContent');
+            if (!data || !data.order || !content) {
+                return;
+            }
+
+            if (code) {
+                code.textContent = data.order.orderCode;
+            }
+
+            document.querySelectorAll('[data-order-row], [data-order-link]').forEach(function (item) {
+                var selected = item.getAttribute('data-order-id') === String(data.order.id) ||
+                    item.getAttribute('data-order-row') === String(data.order.id);
+                item.classList.toggle('product-row-highlight', selected);
+                item.classList.toggle('is-selected', selected);
+            });
+
+            var rows = (data.details || []).map(function (item) {
+                return '<tr>' +
+                    '<td>' + escapeHtml(item.productName) + '</td>' +
+                    '<td>' + escapeHtml(item.quantity) + '</td>' +
+                    '<td>' + formatMoneyVnd(item.unitPrice) + '</td>' +
+                    '<td>' + formatMoneyVnd(item.lineTotal) + '</td>' +
+                    '</tr>';
+            }).join('');
+
+            content.innerHTML =
+                '<div class="order-detail-summary">' +
+                '<div><strong>' + escapeHtml(data.order.customerName) + '</strong><span>' + escapeHtml(data.order.customerPhone) + '</span></div>' +
+                '<div><strong>' + formatMoneyVnd(data.order.totalAmount) + '</strong><span>' + escapeHtml(data.order.statusText) + ' | ' + escapeHtml(data.order.orderDate) + '</span></div>' +
+                '</div>' +
+                '<div class="item-meta">' + escapeHtml(data.order.shippingAddress) + '</div>' +
+                '<div class="admin-table-wrap order-detail-table">' +
+                '<table class="admin-table"><thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>' +
+                (rows || '<tr><td colspan="4">Đơn hàng chưa có chi tiết.</td></tr>') +
+                '</tbody></table></div>';
+
+            if (panel) {
+                panel.classList.remove('is-loading');
+            }
+        }
+
+        document.addEventListener('click', function (event) {
+            var trigger = event.target.closest('[data-order-link]');
+            if (!trigger) {
+                return;
+            }
+
+            event.preventDefault();
+            var orderId = trigger.getAttribute('data-order-id');
+            var panel = document.getElementById('orderDetailPanel');
+            if (panel) {
+                panel.classList.add('is-loading');
+            }
+
+            fetch('/Management/OrderDetails?orderId=' + encodeURIComponent(orderId), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Không tải được chi tiết đơn hàng.');
+                    }
+                    return response.json();
+                })
+                .then(renderOrderDetails)
+                .catch(function () {
+                    var content = document.getElementById('orderDetailContent');
+                    if (content) {
+                        content.innerHTML = '<div class="item-meta">Không tải được chi tiết đơn hàng. Vui lòng thử lại.</div>';
+                    }
+                    if (panel) {
+                        panel.classList.remove('is-loading');
+                    }
+                });
+        });
+
+        document.addEventListener('submit', function (event) {
+            var form = event.target.closest('[data-voucher-toggle-form]');
+            if (!form) {
+                return;
+            }
+
+            event.preventDefault();
+            var button = form.querySelector('[data-voucher-toggle-button]');
+            if (button) {
+                button.disabled = true;
+            }
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Không cập nhật được mã giảm giá.');
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (!button) {
+                        return;
+                    }
+                    var icon = button.querySelector('i');
+                    var label = button.querySelector('span');
+                    button.classList.toggle('primary', data.isActive);
+                    if (icon) {
+                        icon.classList.toggle('fa-toggle-on', data.isActive);
+                        icon.classList.toggle('fa-toggle-off', !data.isActive);
+                    }
+                    if (label) {
+                        label.textContent = data.isActive ? 'Bật' : 'Tắt';
+                    }
+                    button.title = data.message || '';
+                })
+                .catch(function () {
+                    alert('Không cập nhật được mã giảm giá. Vui lòng thử lại.');
+                })
+                .finally(function () {
+                    if (button) {
+                        button.disabled = false;
+                    }
+                });
+        });
+
+        var productForm = document.getElementById('managementProductForm');
+        document.querySelectorAll('[data-product-action="create"]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!productForm) {
+                    return;
+                }
+
+                productForm.querySelectorAll('input[type="hidden"]').forEach(function (input) {
+                    input.value = input.name === 'Id' ? '0' : '';
+                });
+
+                productForm.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea').forEach(function (input) {
+                    input.value = '';
+                });
+
+                productForm.querySelectorAll('input[type="file"]').forEach(function (input) {
+                    input.value = '';
+                });
+
+                productForm.querySelectorAll('select').forEach(function (select) {
+                    select.selectedIndex = 0;
+                });
+
+                productForm.querySelectorAll('.image-preview-img').forEach(function (image) {
+                    image.remove();
+                });
+
+                var title = productForm.querySelector('#product-form .panel-title span:first-child');
+                if (title) {
+                    title.textContent = 'Thêm sản phẩm';
+                }
+            });
+        });
+
+        var couponButton = document.getElementById('generateCouponCode');
+        var couponInput = document.getElementById('couponCodeInput');
+        if (couponButton && couponInput) {
+            couponButton.addEventListener('click', function () {
+                var now = new Date();
+                var datePart = String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+                var randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+                couponInput.value = 'TRAM' + datePart + randomPart;
+                couponInput.classList.add('generated-coupon');
+                couponInput.focus();
+                couponInput.select();
+                window.setTimeout(function () {
+                    couponInput.classList.remove('generated-coupon');
+                }, 1200);
+            });
+        }
+    </script>
+}

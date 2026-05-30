@@ -2,58 +2,254 @@
 @{
     ViewData["Title"] = "Đặt hàng thành công";
     var showRegisterPrompt = ViewBag.ShowRegisterPrompt is bool value && value;
+    var paymentMessage = ViewBag.PaymentMessage as string;
+    var orderCode = $"TH{Model.OrderId:D6}";
+    var payStatusClass = Model.PaymentStatus switch
+    {
+        1 => "paid",
+        2 => "failed",
+        _ => "pending"
+    };
 }
 
-<section class="container py-5">
-    <div class="mx-auto rounded-4 p-5 shadow-sm" style="max-width:840px; background:#fff; border:1px solid #ead8c9;">
-        <div class="text-center mb-4">
-            <div class="display-4 text-success"><i class="fa-solid fa-circle-check"></i></div>
-            <h1 class="h2 fw-bold mt-3">Đặt hàng thành công</h1>
-            <p class="text-secondary mb-0">Mã đơn hàng của bạn là <span class="fw-bold">#@Model.OrderId</span>.</p>
-        </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/commerce-flow.css" asp-append-version="true" />
+}
 
-        <div class="row g-4">
-            <div class="col-lg-6">
-                <div class="p-4 rounded-4 h-100" style="background:#fbf7f2;">
-                    <h2 class="h5 fw-bold mb-3">Thông tin giao hàng</h2>
-                    <div class="mb-2"><span class="text-secondary">Người nhận:</span> @Model.ShippingName</div>
-                    <div class="mb-2"><span class="text-secondary">Số điện thoại:</span> @Model.ShippingPhone</div>
-                    <div><span class="text-secondary">Địa chỉ:</span> @Model.ShippingAddress</div>
+<div class="commerce-flow">
+    <section class="commerce-page commerce-page-narrow">
+        <div class="commerce-card success-card">
+            <div class="success-top">
+                <div class="success-check"><i class="fa-solid fa-check"></i></div>
+                <h1 class="success-title">Đặt hàng thành công</h1>
+                <div class="success-sub">Cảm ơn bạn đã đặt hàng. Cửa hàng sẽ liên hệ xác nhận trong thời gian sớm nhất.</div>
+
+                <div class="success-code">
+                    <div>
+                        <div class="success-code-label">Mã đơn hàng</div>
+                        <div id="orderCode" class="success-code-value">@orderCode</div>
+                    </div>
+                    <button type="button" class="copy-btn" id="copyOrderCode">
+                        <i class="fa-regular fa-copy"></i>
+                        Copy
+                    </button>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="p-4 rounded-4 h-100" style="background:#fbf7f2;">
-                    <h2 class="h5 fw-bold mb-3">Tóm tắt đơn hàng</h2>
-                    @foreach (var item in Model.Details)
-                    {
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span>@(item.ProductName ?? $"Sản phẩm #{item.ProductId}") x @item.Quantity</span>
-                            <span>@((item.UnitPrice * item.Quantity).ToString("N0"))đ</span>
+
+            <div class="success-body">
+                @if (!string.IsNullOrWhiteSpace(paymentMessage))
+                {
+                    <div class="success-note">@paymentMessage</div>
+                }
+
+                <div class="success-info-grid">
+                    <div class="success-info">
+                        <div class="success-info-label">Người nhận</div>
+                        <div class="success-info-value">@Model.ShippingName</div>
+                    </div>
+                    <div class="success-info">
+                        <div class="success-info-label">Số điện thoại</div>
+                        <div class="success-info-value">@Model.ShippingPhone</div>
+                    </div>
+                    <div class="success-info wide">
+                        <div class="success-info-label">Địa chỉ giao hàng</div>
+                        <div class="success-info-value">@Model.ShippingAddress</div>
+                    </div>
+                    <div class="success-info">
+                        <div class="success-info-label">Phương thức thanh toán</div>
+                        <div class="success-info-value">@Model.PaymentMethodText</div>
+                    </div>
+                    <div class="success-info">
+                        <div class="success-info-label">Trạng thái thanh toán</div>
+                        <div class="success-info-value">
+                            <span class="pay-status @payStatusClass">@Model.PaymentStatusText</span>
                         </div>
-                    }
-                    <div class="d-flex justify-content-between fw-bold mt-3">
-                        <span>Tổng tiền</span>
-                        <span class="text-danger">@Model.TotalAmount.ToString("N0")đ</span>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        @if (showRegisterPrompt)
-        {
-            <div class="mt-4 p-4 rounded-4" style="background:#f7efe8; border:1px dashed #c89a75;">
-                <h2 class="h5 fw-bold">Gợi ý tạo tài khoản</h2>
-                <p class="mb-3">Spec yêu cầu hỗ trợ chuyển guest sang member ngay sau mua hàng. Luồng backend hiện mới ở mức placeholder, nên tôi giữ lời nhắc này để nối tiếp phần triển khai tiếp theo.</p>
+                <div class="order-progress">
+                    <div class="order-progress-step done">
+                        <div class="order-progress-icon"><i class="fa-solid fa-check"></i></div>
+                        <div class="order-progress-label">Đặt hàng</div>
+                    </div>
+                    <div class="order-progress-step active">
+                        <div class="order-progress-icon"><i class="fa-solid fa-phone"></i></div>
+                        <div class="order-progress-label">Xác nhận</div>
+                    </div>
+                    <div class="order-progress-step">
+                        <div class="order-progress-icon"><i class="fa-solid fa-box"></i></div>
+                        <div class="order-progress-label">Chuẩn bị</div>
+                    </div>
+                    <div class="order-progress-step">
+                        <div class="order-progress-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                        <div class="order-progress-label">Đang giao</div>
+                    </div>
+                    <div class="order-progress-step">
+                        <div class="order-progress-icon"><i class="fa-solid fa-house"></i></div>
+                        <div class="order-progress-label">Hoàn tất</div>
+                    </div>
+                </div>
+
+                <div class="commerce-panel p-3 mb-4">
+                    <h2 class="commerce-section-title mb-3">Tóm tắt đơn hàng</h2>
+                    @foreach (var item in Model.Details)
+                    {
+                        <div class="success-line py-2 border-bottom">
+                            <span class="lbl">@((item.ProductName ?? $"Sản phẩm #{item.ProductId}")) x @item.Quantity</span>
+                            <span class="val">@((item.UnitPrice * item.Quantity).ToString("N0"))đ</span>
+                        </div>
+                    }
+
+                    <div class="success-line mt-3">
+                        <span class="lbl">Tạm tính</span>
+                        <span class="val">@Model.TotalAmount.ToString("N0")đ</span>
+                    </div>
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <div class="success-line mt-2">
+                            <span class="lbl">Giảm giá@(string.IsNullOrWhiteSpace(Model.VoucherCode) ? "" : $" ({Model.VoucherCode})")</span>
+                            <span class="val text-danger">-@Model.DiscountAmount.ToString("N0")đ</span>
+                        </div>
+                    }
+                    <div class="summary-divider"></div>
+                    <div class="summary-total mb-0">
+                        <span class="lbl">Tổng thanh toán</span>
+                        <span class="val">@Model.FinalAmount.ToString("N0")đ</span>
+                    </div>
+                </div>
+
+                <div class="success-note">
+                    <div><i class="fa-solid fa-phone"></i> Cửa hàng sẽ gọi xác nhận đơn trước khi giao.</div>
+                    <div><i class="fa-solid fa-receipt"></i> Bạn có thể dùng mã <strong>@orderCode</strong> hoặc số điện thoại để tra cứu đơn.</div>
+                </div>
+
+                @if (showRegisterPrompt)
+                {
+                    <div class="account-suggest" id="accountSuggest">
+                        <div class="account-suggest-title">Tạo tài khoản để quản lý đơn hàng dễ hơn?</div>
+                        <div class="account-suggest-sub">
+                            Tài khoản sẽ dùng số điện thoại vừa đặt hàng. Lịch sử đơn guest sẽ được gộp vào tài khoản mới.
+                        </div>
+                        <div class="benefit-tags">
+                            <span class="benefit-tag">Xem lịch sử đơn</span>
+                            <span class="benefit-tag">Lưu địa chỉ giao hàng</span>
+                            <span class="benefit-tag">Tra cứu nhanh hơn</span>
+                        </div>
+
+                        <div id="quickRegisterStart">
+                            <button type="button" id="showQuickRegister" class="commerce-btn primary">Tạo tài khoản ngay</button>
+                            <button type="button" id="dismissQuickRegister" class="commerce-btn secondary">Để sau</button>
+                        </div>
+
+                        <form id="quickRegisterForm" class="quick-register-form mt-3">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" id="quickOrderId" value="@Model.OrderId" />
+                            <input type="hidden" id="quickPhone" value="@Model.ShippingPhone" />
+                            <input type="hidden" id="quickName" value="@Model.ShippingName" />
+                            <div class="form-grid">
+                                <div>
+                                    <label for="quickPassword" class="form-label-soft">Mật khẩu</label>
+                                    <input id="quickPassword" type="password" class="commerce-input" minlength="8" placeholder="Tối thiểu 8 ký tự" />
+                                </div>
+                                <div>
+                                    <label for="quickPasswordConfirm" class="form-label-soft">Nhập lại mật khẩu</label>
+                                    <input id="quickPasswordConfirm" type="password" class="commerce-input" minlength="8" />
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="commerce-btn primary">Hoàn tất tạo tài khoản</button>
+                            </div>
+                        </form>
+
+                        <div id="quickRegisterDone" class="quick-register-form mt-3">
+                            <div class="text-success fw-semibold">Tài khoản đã được tạo thành công.</div>
+                            <div class="small text-secondary">Bạn có thể đăng nhập bằng số điện thoại và mật khẩu vừa đặt.</div>
+                        </div>
+                    </div>
+                }
+
                 <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-dark rounded-pill" disabled>Tạo tài khoản ngay</button>
-                    <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-outline-dark rounded-pill">Tra cứu đơn hàng</a>
+                    <a asp-controller="OrderLookup" asp-action="Index" class="commerce-btn primary">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        Tra cứu đơn hàng
+                    </a>
+                    <a asp-controller="Product" asp-action="Index" class="commerce-btn secondary">
+                        <i class="fa-solid fa-bag-shopping"></i>
+                        Tiếp tục mua sắm
+                    </a>
                 </div>
             </div>
-        }
-
-        <div class="mt-4 d-flex flex-wrap gap-2">
-            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-dark rounded-pill">Tiếp tục mua hàng</a>
-            <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-dark rounded-pill">Tra cứu đơn hàng</a>
         </div>
-    </div>
-</section>
+    </section>
+</div>
+
+<div id="successToast" class="toast-inline"></div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const toast = document.getElementById('successToast');
+            function showToast(message) {
+                if (!toast) return;
+                toast.textContent = message;
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => toast.classList.remove('show'), 2600);
+            }
+
+            document.getElementById('copyOrderCode')?.addEventListener('click', async () => {
+                const code = document.getElementById('orderCode')?.textContent || '';
+                await navigator.clipboard?.writeText(code);
+                showToast('Đã copy mã đơn hàng ' + code);
+            });
+
+            document.getElementById('showQuickRegister')?.addEventListener('click', () => {
+                document.getElementById('quickRegisterStart').style.display = 'none';
+                document.getElementById('quickRegisterForm').style.display = 'block';
+            });
+
+            document.getElementById('dismissQuickRegister')?.addEventListener('click', () => {
+                document.getElementById('accountSuggest').style.display = 'none';
+            });
+
+            document.getElementById('quickRegisterForm')?.addEventListener('submit', async event => {
+                event.preventDefault();
+                const password = document.getElementById('quickPassword').value;
+                const confirm = document.getElementById('quickPasswordConfirm').value;
+                if (password.length < 8) {
+                    showToast('Mật khẩu cần tối thiểu 8 ký tự.');
+                    return;
+                }
+                if (password !== confirm) {
+                    showToast('Mật khẩu nhập lại không khớp.');
+                    return;
+                }
+
+                const token = document.querySelector('#quickRegisterForm input[name="__RequestVerificationToken"]')?.value;
+                const response = await fetch('@Url.Action("QuickRegister", "Checkout")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token || ''
+                    },
+                    body: JSON.stringify({
+                        orderId: Number(document.getElementById('quickOrderId').value),
+                        phone: document.getElementById('quickPhone').value,
+                        customerName: document.getElementById('quickName').value,
+                        password
+                    })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    showToast(data.message || 'Không thể tạo tài khoản.');
+                    return;
+                }
+
+                document.getElementById('quickRegisterForm').style.display = 'none';
+                document.getElementById('quickRegisterDone').style.display = 'block';
+                showToast(data.message || 'Tài khoản đã được tạo thành công.');
+            });
+        })();
+    </script>
+}
