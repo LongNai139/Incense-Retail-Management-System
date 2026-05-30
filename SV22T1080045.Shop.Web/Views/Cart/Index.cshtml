@@ -1,0 +1,287 @@
+@model SV22T1080045.Shop.Models.ViewModels.Cart.CartPageViewModel
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    var totalAmount = Model.Subtotal;
+    var itemCount = Model.ItemCount;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/commerce-flow.css" asp-append-version="true" />
+}
+
+<div class="commerce-flow">
+    <div class="commerce-steps-wrap">
+        <div class="commerce-steps">
+            <div class="commerce-step active">
+                <div class="commerce-step-circle">1</div>
+                <span class="commerce-step-label">Giỏ hàng</span>
+            </div>
+            <div class="commerce-step-line"></div>
+            <div class="commerce-step">
+                <div class="commerce-step-circle">2</div>
+                <span class="commerce-step-label">Thông tin & thanh toán</span>
+            </div>
+            <div class="commerce-step-line"></div>
+            <div class="commerce-step">
+                <div class="commerce-step-circle">3</div>
+                <span class="commerce-step-label">Hoàn tất</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="commerce-page">
+        <h1 class="commerce-title">Giỏ hàng <span>@(itemCount > 0 ? $"({itemCount} sản phẩm)" : "")</span></h1>
+
+        @if (!Model.Items.Any())
+        {
+            <div class="commerce-card empty-cart">
+                <div class="empty-cart-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+                <div class="empty-cart-title">Giỏ hàng đang trống</div>
+                <p class="empty-cart-sub">Hãy chọn thêm sản phẩm trước khi chuyển sang bước thanh toán.</p>
+                <a asp-controller="Product" asp-action="Index" class="commerce-btn primary">
+                    <i class="fa-solid fa-leaf"></i>
+                    Khám phá sản phẩm
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="commerce-layout">
+                <div>
+                    <div class="commerce-panel">
+                        <div class="cart-table-head">
+                            <span>Sản phẩm</span>
+                            <span>Đơn giá</span>
+                            <span>Số lượng</span>
+                            <span>Thành tiền</span>
+                            <span></span>
+                        </div>
+
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="cart-row">
+                                <div class="cart-product">
+                                    @if (!string.IsNullOrWhiteSpace(item.Photo))
+                                    {
+                                        <img class="cart-product-img" src="@item.Photo" alt="@item.ProductName" />
+                                    }
+                                    else
+                                    {
+                                        <div class="cart-product-img cart-product-placeholder">
+                                            <i class="fa-solid fa-leaf"></i>
+                                        </div>
+                                    }
+                                    <div>
+                                        <a class="cart-product-name" asp-controller="Home" asp-action="Details" asp-route-id="@item.ProductID">@item.ProductName</a>
+                                        <div class="cart-product-meta">Sản phẩm trầm hương</div>
+                                    </div>
+                                </div>
+
+                                <div class="money-amount">@item.Price.ToString("N0")đ</div>
+
+                                <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" class="cart-qty-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productID" value="@item.ProductID" />
+                                    <button type="button" class="qty-btn js-qty-minus" aria-label="Giảm số lượng">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                    <input type="number" name="quantity" value="@item.Quantity" min="1" class="qty-input" />
+                                    <button type="button" class="qty-btn js-qty-plus" aria-label="Tăng số lượng">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                    <button type="submit" class="qty-btn" aria-label="Cập nhật số lượng">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+
+                                <div class="money-amount">@item.TotalPrice.ToString("N0")đ</div>
+
+                                <form asp-controller="Cart" asp-action="RemoveFromCart" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productID" value="@item.ProductID" />
+                                    <button type="submit" class="icon-btn danger" aria-label="Xóa sản phẩm">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+
+                        <div class="cart-footer">
+                            <a asp-controller="Product" asp-action="Index" class="commerce-link">Tiếp tục mua hàng</a>
+                            <form asp-controller="Cart" asp-action="ClearCart" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="commerce-link danger">Xóa toàn bộ</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    @if (Model.UpsellProducts.Any())
+                    {
+                        <div class="upsell-wrap">
+                            <h2 class="upsell-title">Mua kèm tiết kiệm hơn</h2>
+                            <div class="upsell-grid">
+                                @foreach (var upsell in Model.UpsellProducts)
+                                {
+                                    <div class="upsell-card">
+                                        <a asp-controller="Home" asp-action="Details" asp-route-id="@upsell.ProductID" class="upsell-img-link">
+                                            @if (!string.IsNullOrWhiteSpace(upsell.Photo))
+                                            {
+                                                <img class="upsell-img" src="@upsell.Photo" alt="@upsell.ProductName" />
+                                            }
+                                            else
+                                            {
+                                                <div class="upsell-img upsell-img-placeholder"><i class="fa-solid fa-leaf"></i></div>
+                                            }
+                                        </a>
+                                        <div class="upsell-info">
+                                            <a class="upsell-name" asp-controller="Home" asp-action="Details" asp-route-id="@upsell.ProductID">@upsell.ProductName</a>
+                                            <div class="upsell-price money-amount">@upsell.Price.ToString("N0")đ</div>
+                                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="upsell-add-form">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productID" value="@upsell.ProductID" />
+                                                <input type="hidden" name="quantity" value="1" />
+                                                <button type="submit" class="upsell-add">+ Thêm vào giỏ</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <aside class="commerce-summary">
+                    <h2 class="commerce-summary-title">Tóm tắt đơn hàng</h2>
+
+                    <div class="voucher-box">
+                        <label class="voucher-label" for="cartVoucherCode">Mã giảm giá</label>
+                        <div class="voucher-row">
+                            <input id="cartVoucherCode" class="commerce-input" type="text" placeholder="Nhập mã voucher" autocomplete="off" />
+                            <button id="cartApplyVoucher" type="button" class="commerce-btn primary square voucher-apply-btn">Áp dụng</button>
+                        </div>
+                        <div id="cartVoucherOk" class="voucher-message ok"></div>
+                        <div id="cartVoucherErr" class="voucher-message err"></div>
+                    </div>
+
+                    <div class="summary-rows">
+                        <div class="summary-row">
+                            <span class="lbl">Tạm tính</span>
+                            <span class="val money-amount">@totalAmount.ToString("N0")đ</span>
+                        </div>
+                        <div id="cartDiscountRow" class="summary-row discount" style="display:none;">
+                            <span class="lbl">Giảm giá</span>
+                            <span id="cartDiscountVal" class="val money-amount">-0đ</span>
+                        </div>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-total">
+                        <span class="lbl">Tổng thanh toán</span>
+                        <span id="cartFinalAmount" class="val money-amount">@totalAmount.ToString("N0")đ</span>
+                    </div>
+
+                    <a id="cartCheckoutLink" asp-controller="Checkout" asp-action="Index" class="commerce-btn primary block">
+                        Tiến hành thanh toán
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                    <a asp-controller="Product" asp-action="Index" class="commerce-btn secondary block mt-2">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Tiếp tục mua hàng
+                    </a>
+
+                    <div class="payment-tags">
+                        <span class="payment-tag">VNPay</span>
+                        <span class="payment-tag">COD</span>
+                        <span class="payment-tag">Chuyển khoản</span>
+                    </div>
+                </aside>
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const fmt = value => new Intl.NumberFormat('vi-VN').format(Math.max(0, value)) + 'đ';
+            const subtotal = @totalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            document.querySelectorAll('.cart-qty-form').forEach(form => {
+                const input = form.querySelector('.qty-input');
+                form.querySelector('.js-qty-minus')?.addEventListener('click', () => {
+                    input.value = Math.max(1, Number(input.value || 1) - 1);
+                    form.submit();
+                });
+                form.querySelector('.js-qty-plus')?.addEventListener('click', () => {
+                    input.value = Number(input.value || 1) + 1;
+                    form.submit();
+                });
+            });
+
+            const codeInput = document.getElementById('cartVoucherCode');
+            const applyBtn = document.getElementById('cartApplyVoucher');
+            if (!codeInput || !applyBtn) return;
+
+            const ok = document.getElementById('cartVoucherOk');
+            const err = document.getElementById('cartVoucherErr');
+            const discountRow = document.getElementById('cartDiscountRow');
+            const discountVal = document.getElementById('cartDiscountVal');
+            const finalAmount = document.getElementById('cartFinalAmount');
+            const checkoutLink = document.getElementById('cartCheckoutLink');
+            const baseCheckoutUrl = checkoutLink.getAttribute('href');
+
+            function showMessage(target, message) {
+                ok.style.display = 'none';
+                err.style.display = 'none';
+                target.textContent = message;
+                target.style.display = 'block';
+            }
+
+            async function applyVoucher() {
+                const code = codeInput.value.trim().toUpperCase();
+                codeInput.value = code;
+                discountRow.style.display = 'none';
+                discountVal.textContent = '-0đ';
+                finalAmount.textContent = fmt(subtotal);
+                checkoutLink.href = baseCheckoutUrl;
+
+                if (!code) {
+                    showMessage(err, 'Vui lòng nhập mã giảm giá.');
+                    return;
+                }
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const response = await fetch('@Url.Action("ApplyVoucher", "Checkout")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token || ''
+                    },
+                    body: JSON.stringify({ code, orderAmount: subtotal })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    showMessage(err, data.message || 'Mã giảm giá không hợp lệ.');
+                    return;
+                }
+
+                const discount = Number(data.discount || 0);
+                discountRow.style.display = 'flex';
+                discountVal.textContent = '-' + fmt(discount);
+                finalAmount.textContent = fmt(subtotal - discount);
+                checkoutLink.href = baseCheckoutUrl + '?voucherCode=' + encodeURIComponent(code);
+                showMessage(ok, data.message || 'Mã giảm giá đã được áp dụng.');
+            }
+
+            applyBtn.addEventListener('click', applyVoucher);
+            codeInput.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    applyVoucher();
+                }
+            });
+        })();
+    </script>
+}

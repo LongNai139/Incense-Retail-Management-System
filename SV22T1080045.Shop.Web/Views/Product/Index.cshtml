@@ -1,0 +1,366 @@
+@model SV22T1080045.Shop.Models.ViewModels.Product.ProductListViewModel
+@{
+    ViewData["Title"] = "Sản phẩm";
+    var from = Model.TotalCount == 0 ? 0 : ((Model.CurrentPage - 1) * Model.PageSize) + 1;
+    var to = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalCount);
+    var selectedCategory = Model.Categories.FirstOrDefault(c => Model.CategoryId == c.Id)?.CategoryName;
+    var activeTags = new List<string>();
+
+    if (!string.IsNullOrWhiteSpace(selectedCategory)) activeTags.Add(selectedCategory);
+    if (!string.IsNullOrWhiteSpace(Model.Origin)) activeTags.Add(Model.Origin);
+    if (!string.IsNullOrWhiteSpace(Model.UsageTag)) activeTags.Add(Model.UsageTag);
+    if (Model.PriceMin.HasValue || Model.PriceMax.HasValue) activeTags.Add("Khoảng giá");
+    if (Model.MinRating.HasValue) activeTags.Add($"{Model.MinRating}+ sao");
+
+    string FormatMoney(decimal value) => $"{value:N0}đ";
+    string Stars(int? rating)
+    {
+        var value = Math.Clamp(rating ?? 0, 0, 5);
+        return new string('★', value) + new string('☆', 5 - value);
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product-catalog.css" asp-append-version="true" />
+}
+
+<div class="catalog-page">
+    <div class="catalog-breadcrumb">
+        <div class="catalog-breadcrumb-inner">
+            <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+            <span>›</span>
+            <span>Sản phẩm</span>
+            @if (!string.IsNullOrWhiteSpace(selectedCategory))
+            {
+                <span>·</span>
+                <span>@selectedCategory</span>
+            }
+        </div>
+    </div>
+
+    <div class="catalog-shell">
+        <aside class="catalog-sidebar">
+            <div class="catalog-sidebar-title">Bộ lọc</div>
+
+            <form method="get" asp-controller="Product" asp-action="Index" id="filterForm">
+                <input type="hidden" name="searchValue" value="@Model.SearchValue" />
+                <input type="hidden" name="sortBy" value="@Model.SortBy" />
+
+                <div class="catalog-filter-group">
+                    <span class="catalog-filter-label">Danh mục</span>
+                    <div class="catalog-filter-list">
+                        <label class="catalog-filter-item @(Model.CategoryId == null ? "active" : "")">
+                            <input type="radio" name="categoryId" value="" @(Model.CategoryId == null ? "checked" : "") onchange="submitCatalogFilter()" />
+                            <span class="catalog-filter-name">Tất cả</span>
+                            <span class="catalog-count">@Model.TotalCount</span>
+                        </label>
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <label class="catalog-filter-item @(Model.CategoryId == cat.Id ? "active" : "")">
+                                <input type="radio" name="categoryId" value="@cat.Id" @(Model.CategoryId == cat.Id ? "checked" : "") onchange="submitCatalogFilter()" />
+                                <span class="catalog-filter-name">@cat.CategoryName</span>
+                                <span class="catalog-count">@cat.ProductCount</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                @if (Model.OriginOptions.Any())
+                {
+                    <div class="catalog-filter-group">
+                        <span class="catalog-filter-label">Xuất xứ</span>
+                        <div class="catalog-filter-list">
+                            <label class="catalog-filter-item @(string.IsNullOrWhiteSpace(Model.Origin) ? "active" : "")">
+                                <input type="radio" name="origin" value="" @(string.IsNullOrWhiteSpace(Model.Origin) ? "checked" : "") onchange="submitCatalogFilter()" />
+                                <span class="catalog-filter-name">Tất cả</span>
+                            </label>
+                            @foreach (var item in Model.OriginOptions)
+                            {
+                                <label class="catalog-filter-item @(Model.Origin == item ? "active" : "")">
+                                    <input type="radio" name="origin" value="@item" @(Model.Origin == item ? "checked" : "") onchange="submitCatalogFilter()" />
+                                    <span class="catalog-filter-name">@item</span>
+                                    <span class="catalog-count">@Model.OriginCounts.GetValueOrDefault(item, 0)</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="catalog-filter-group">
+                    <span class="catalog-filter-label">Khoảng giá</span>
+                    <div class="price-inputs-fixed">
+                        <input class="catalog-input" type="number" name="priceMin" value="@Model.PriceMin" placeholder="Từ" min="0" />
+                        <input class="catalog-input" type="number" name="priceMax" value="@Model.PriceMax" placeholder="Đến" min="0" />
+                    </div>
+                </div>
+
+                <div class="catalog-filter-group">
+                    <span class="catalog-filter-label">Mục đích</span>
+                    <input class="catalog-input" type="text" name="usageTag" value="@Model.UsageTag" placeholder="VD: Thờ cúng, Thiền định" />
+                </div>
+
+                <div class="catalog-filter-group">
+                    <span class="catalog-filter-label">Đánh giá</span>
+                    <div class="catalog-filter-list">
+                        <label class="catalog-filter-item @(Model.MinRating == null ? "active" : "")">
+                            <input type="radio" name="minRating" value="" @(Model.MinRating == null ? "checked" : "") onchange="submitCatalogFilter()" />
+                            <span class="catalog-filter-name">Tất cả</span>
+                        </label>
+                        @foreach (var star in new[] { 5, 4, 3 })
+                        {
+                            <label class="catalog-filter-item @(Model.MinRating == star ? "active" : "")">
+                                <input type="radio" name="minRating" value="@star" @(Model.MinRating == star ? "checked" : "") onchange="submitCatalogFilter()" />
+                                <span class="catalog-filter-name">@Stars(star)</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <div class="catalog-filter-actions">
+                    <button type="submit" class="catalog-btn primary">Áp dụng</button>
+                    <a asp-controller="Product" asp-action="Index" class="catalog-btn secondary">Xóa bộ lọc</a>
+                </div>
+            </form>
+        </aside>
+
+        <main>
+            <div class="catalog-head">
+                <div class="catalog-result-info">
+                    Hiển thị <strong>@($"{from}-{to}")</strong> trong tổng <strong>@Model.TotalCount</strong> sản phẩm
+                </div>
+
+                <div class="catalog-tools">
+                    <form method="get" asp-controller="Product" asp-action="Index" class="catalog-search-form">
+                        <input type="hidden" name="categoryId" value="@Model.CategoryId" />
+                        <input type="hidden" name="sortBy" value="@Model.SortBy" />
+                        <input type="hidden" name="origin" value="@Model.Origin" />
+                        <input type="hidden" name="priceMin" value="@Model.PriceMin" />
+                        <input type="hidden" name="priceMax" value="@Model.PriceMax" />
+                        <input type="hidden" name="minRating" value="@Model.MinRating" />
+                        <input type="hidden" name="usageTag" value="@Model.UsageTag" />
+                        <input type="search" name="searchValue" value="@Model.SearchValue" placeholder="Tìm sản phẩm..." class="catalog-input" />
+                        <button type="submit" class="catalog-btn primary">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Tìm
+                        </button>
+                    </form>
+
+                    <form method="get" asp-controller="Product" asp-action="Index" class="catalog-sort-form">
+                        <input type="hidden" name="searchValue" value="@Model.SearchValue" />
+                        <input type="hidden" name="categoryId" value="@Model.CategoryId" />
+                        <input type="hidden" name="origin" value="@Model.Origin" />
+                        <input type="hidden" name="priceMin" value="@Model.PriceMin" />
+                        <input type="hidden" name="priceMax" value="@Model.PriceMax" />
+                        <input type="hidden" name="minRating" value="@Model.MinRating" />
+                        <input type="hidden" name="usageTag" value="@Model.UsageTag" />
+                        <select class="catalog-select" name="sortBy" onchange="this.form.submit()">
+                            <option value="default" selected="@(Model.SortBy == "default" ? "selected" : null)">Mặc định</option>
+                            <option value="bestseller" selected="@(Model.SortBy == "bestseller" ? "selected" : null)">Bán chạy</option>
+                            <option value="newest" selected="@(Model.SortBy == "newest" ? "selected" : null)">Mới nhất</option>
+                            <option value="price-asc" selected="@(Model.SortBy == "price-asc" ? "selected" : null)">Giá tăng dần</option>
+                            <option value="price-desc" selected="@(Model.SortBy == "price-desc" ? "selected" : null)">Giá giảm dần</option>
+                            <option value="rating" selected="@(Model.SortBy == "rating" ? "selected" : null)">Đánh giá cao</option>
+                        </select>
+                    </form>
+
+                    <div class="view-toggle" aria-label="Đổi kiểu hiển thị">
+                        <button type="button" id="gridViewBtn" class="active" title="Dạng lưới"><i class="fa-solid fa-grip"></i></button>
+                        <button type="button" id="listViewBtn" title="Dạng hàng"><i class="fa-solid fa-list"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            @if (activeTags.Any())
+            {
+                <div class="active-filter-tags">
+                    @foreach (var tag in activeTags)
+                    {
+                        <span class="active-filter-tag">@tag</span>
+                    }
+                </div>
+            }
+
+            <div class="catalog-grid" id="catalogGrid">
+                @if (!Model.Products.Any())
+                {
+                    <div class="catalog-empty">
+                        <div class="catalog-empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                        <div class="empty-title">Không tìm thấy sản phẩm</div>
+                        <div class="empty-sub">Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</div>
+                    </div>
+                }
+                else
+                {
+                    foreach (var item in Model.Products)
+                    {
+                        <article class="catalog-card">
+                            <div class="catalog-image">
+                                @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" alt="@item.ProductName" loading="lazy" onerror="this.onerror=null;this.src='/images/products/no-image.jpg';" />
+                                }
+                                else
+                                {
+                                    <div class="catalog-image-placeholder"><i class="fa-solid fa-leaf"></i></div>
+                                }
+
+                                @if (item.HasDiscount)
+                                {
+                                    <span class="catalog-badge sale">-@item.DiscountPercent%</span>
+                                }
+                                else if (item.IsBestSeller)
+                                {
+                                    <span class="catalog-badge hot">Bán chạy</span>
+                                }
+                                else if (item.IsNew)
+                                {
+                                    <span class="catalog-badge new">Mới</span>
+                                }
+                            </div>
+
+                            <div class="catalog-info">
+                                <div class="catalog-meta">@(item.Origin ?? "Việt Nam")</div>
+                                <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id" class="catalog-name">@item.ProductName</a>
+
+                                <div class="catalog-rating">
+                                    <span class="catalog-stars">@Stars(item.Rating)</span>
+                                    <span>(@(item.ReviewCount ?? 0))</span>
+                                    @if ((item.SoldCount ?? 0) > 0)
+                                    {
+                                        <span>· Đã bán @item.SoldCount</span>
+                                    }
+                                </div>
+
+                                <div class="catalog-price">
+                                    <span class="catalog-price-current">@FormatMoney(item.DisplayPrice)</span>
+                                    @if (item.HasDiscount)
+                                    {
+                                        <span class="catalog-price-original">@FormatMoney(item.DisplayOriginalPrice)</span>
+                                        <span class="catalog-discount">-@item.DiscountPercent%</span>
+                                    }
+                                </div>
+
+                                <div class="catalog-stock @(item.InStock ? "in" : "")">
+                                    @(item.InStock ? $"Còn hàng ({item.Quantity})" : "Hết hàng")
+                                </div>
+
+                                <div class="catalog-actions">
+                                    <form asp-controller="Cart" asp-action="AddToCartAjax" method="post" class="js-add-cart-form catalog-add-form">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productID" value="@item.Id" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <button type="submit" class="catalog-btn catalog-add" @(item.InStock ? null : "disabled")>
+                                            <i class="fa-solid fa-cart-plus"></i>
+                                            Thêm giỏ
+                                        </button>
+                                    </form>
+                                    <a asp-controller="Home" asp-action="Details" asp-route-id="@item.Id" class="catalog-btn catalog-detail">Chi tiết</a>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                }
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="catalog-pagination">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <a asp-controller="Product"
+                           asp-action="Index"
+                           asp-route-page="@i"
+                           asp-route-searchValue="@Model.SearchValue"
+                           asp-route-categoryId="@Model.CategoryId"
+                           asp-route-origin="@Model.Origin"
+                           asp-route-priceMin="@Model.PriceMin"
+                           asp-route-priceMax="@Model.PriceMax"
+                           asp-route-minRating="@Model.MinRating"
+                           asp-route-usageTag="@Model.UsageTag"
+                           asp-route-sortBy="@Model.SortBy"
+                           class="catalog-page-btn @(i == Model.CurrentPage ? "active" : "")">@i</a>
+                    }
+                </div>
+            }
+        </main>
+    </div>
+</div>
+
+<div id="catalogToast" class="catalog-toast"></div>
+
+@section Scripts {
+    <script>
+        function submitCatalogFilter() {
+            document.getElementById('filterForm').submit();
+        }
+
+        (() => {
+            const grid = document.getElementById('catalogGrid');
+            const gridBtn = document.getElementById('gridViewBtn');
+            const listBtn = document.getElementById('listViewBtn');
+            const toast = document.getElementById('catalogToast');
+
+            function setView(view) {
+                grid?.classList.toggle('list-view', view === 'list');
+                gridBtn?.classList.toggle('active', view === 'grid');
+                listBtn?.classList.toggle('active', view === 'list');
+                localStorage.setItem('catalogView', view);
+            }
+
+            gridBtn?.addEventListener('click', () => setView('grid'));
+            listBtn?.addEventListener('click', () => setView('list'));
+            setView(localStorage.getItem('catalogView') === 'list' ? 'list' : 'grid');
+
+            function showToast(message) {
+                if (!toast) return;
+                toast.textContent = message;
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
+            }
+
+            function updateCartCount(count) {
+                const cartButton = document.querySelector('.cart-btn');
+                if (!cartButton) return;
+
+                let badge = cartButton.querySelector('.cart-count');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'cart-count';
+                    cartButton.appendChild(badge);
+                }
+
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            }
+
+            document.querySelectorAll('.js-add-cart-form').forEach(form => {
+                form.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const button = form.querySelector('button[type="submit"]');
+                    button.disabled = true;
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: new FormData(form),
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const data = await response.json();
+                        if (!data.success) {
+                            showToast(data.message || 'Không thể thêm vào giỏ hàng.');
+                            return;
+                        }
+
+                        updateCartCount(Number(data.cartCount || 0));
+                        showToast(data.message || 'Đã thêm sản phẩm vào giỏ hàng.');
+                    } catch {
+                        showToast('Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+            });
+        })();
+    </script>
+}

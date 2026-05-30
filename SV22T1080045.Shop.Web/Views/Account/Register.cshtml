@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Đăng ký";
+    ViewBag.AuthMode = "Register";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_AuthPanel")

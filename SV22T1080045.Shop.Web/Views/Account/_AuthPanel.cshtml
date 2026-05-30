@@ -1,0 +1,468 @@
+@{
+    var authMode = (ViewBag.AuthMode as string ?? "Login").ToLowerInvariant();
+    var isRegisterMode = authMode == "register";
+    var errorMessage = ViewBag.ErrorMessage as string;
+    var registerName = ViewBag.RegisterName as string ?? string.Empty;
+    var registerPhone = ViewBag.RegisterPhone as string ?? string.Empty;
+}
+
+<div class="login-page">
+    <div class="page">
+        <div class="left-panel">
+            <div class="left-bg-num">🌿</div>
+            <div class="left-content">
+                <div class="left-icon">🪔</div>
+                <h2 class="left-title">Chào mừng đến với<br><em>Trầm Hương Shop</em></h2>
+                <p class="left-sub">Đăng nhập hoặc tạo tài khoản để trải nghiệm mua sắm tốt hơn</p>
+                <div class="benefit-list">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">📦</span>
+                        <div class="benefit-text">
+                            <strong>Theo dõi đơn hàng dễ dàng</strong>
+                            Xem lịch sử, trạng thái đơn bất cứ lúc nào
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">📍</span>
+                        <div class="benefit-text">
+                            <strong>Lưu địa chỉ giao hàng</strong>
+                            Thanh toán nhanh hơn ở lần mua sau
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">❤️</span>
+                        <div class="benefit-text">
+                            <strong>Danh sách yêu thích</strong>
+                            Lưu sản phẩm, theo dõi khi có Flash Sale
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🎁</span>
+                        <div class="benefit-text">
+                            <strong>Ưu đãi thành viên</strong>
+                            Nhận thông báo khuyến mãi độc quyền
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="form-box">
+                <div class="form-tabs">
+                    <a class="form-tab @(isRegisterMode ? "" : "active")" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                    <a class="form-tab @(isRegisterMode ? "active" : "")" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                </div>
+
+                <div class="form-section @(isRegisterMode ? "" : "active")" id="section-login">
+                    <div id="login-step1">
+                        <h2 class="form-title">Đăng nhập</h2>
+                        <p class="form-sub">Nhập số điện thoại và mật khẩu để tiếp tục mua sắm.</p>
+
+                        <form id="formLogin" method="post" asp-controller="Account" asp-action="Login">
+                            @Html.AntiForgeryToken()
+                            <div class="field">
+                                <label class="field-label">Số điện thoại <span>*</span></label>
+                                <div class="field-input-wrap">
+                                    <span class="field-prefix">🇻🇳</span>
+                                    <input type="tel" name="Phone" class="field-input has-prefix" id="login-phone" placeholder="Nhập số điện thoại" maxlength="10" required>
+                                </div>
+                                @if (!isRegisterMode && !string.IsNullOrWhiteSpace(errorMessage))
+                                {
+                                    <div class="field-error show" id="login-err-msg">@errorMessage</div>
+                                }
+                            </div>
+
+                            <div class="field">
+                                <label class="field-label">Mật khẩu <span>*</span></label>
+                                <input class="field-input" type="password" name="Password" id="login-password" placeholder="Nhập mật khẩu..." required>
+                            </div>
+
+                            <button type="submit" class="btn-primary" style="margin-bottom:12px;">
+                                Đăng nhập
+                            </button>
+                        </form>
+
+                        <div style="text-align:right;margin-top:-4px;">
+                            <a href="#" style="font-size:13px;color:var(--ink-3);">Quên mật khẩu?</a>
+                        </div>
+
+                        <div class="divider">hoặc</div>
+                        <div class="social-btns">
+                            <button type="button" class="social-btn">📘 Facebook</button>
+                            <button type="button" class="social-btn">🔴 Google</button>
+                        </div>
+                        <div class="helper-row">Chưa có tài khoản? <a asp-controller="Account" asp-action="Register">Đăng ký ngay</a></div>
+                    </div>
+                </div>
+
+                <div class="form-section @(isRegisterMode ? "active" : "")" id="section-register">
+                    <div class="steps" id="reg-steps">
+                        <div class="step-item">
+                            <div class="step-circle active" id="reg-s1">1</div>
+                            <div class="step-label active">Số điện thoại</div>
+                        </div>
+                        <div class="step-line" id="reg-line1"></div>
+                        <div class="step-item">
+                            <div class="step-circle pending" id="reg-s2">2</div>
+                            <div class="step-label" id="reg-s2-lbl">Xác thực OTP</div>
+                        </div>
+                        <div class="step-line" id="reg-line2"></div>
+                        <div class="step-item">
+                            <div class="step-circle pending" id="reg-s3">3</div>
+                            <div class="step-label" id="reg-s3-lbl">Mật khẩu</div>
+                        </div>
+                    </div>
+
+                    <div id="reg-step1">
+                        <h2 class="form-title">Tạo tài khoản</h2>
+                        <p class="form-sub">Chỉ cần số điện thoại, OTP và mật khẩu để bắt đầu.</p>
+
+                        @if (isRegisterMode && !string.IsNullOrWhiteSpace(errorMessage))
+                        {
+                            <div class="auth-alert">@errorMessage</div>
+                        }
+
+                        <div class="field">
+                            <label class="field-label">Họ và tên <span>*</span></label>
+                            <input class="field-input" type="text" id="reg-name" placeholder="Nguyễn Văn A" value="@registerName">
+                            <div class="field-error" id="reg-name-err">Vui lòng nhập họ tên</div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Số điện thoại <span>*</span></label>
+                            <div class="field-input-wrap">
+                                <span class="field-prefix">🇻🇳</span>
+                                <input class="field-input has-prefix" type="tel" id="reg-phone" placeholder="0901 234 567" maxlength="11" value="@registerPhone" oninput="formatPhone(this)">
+                            </div>
+                            <div class="field-hint">Sẽ dùng để nhận OTP và đăng nhập sau này</div>
+                            <div class="field-error" id="reg-phone-err">Vui lòng nhập số điện thoại hợp lệ</div>
+                        </div>
+
+                        <button type="button" class="btn-primary" onclick="sendRegOTP()">Tiếp tục →</button>
+                        <div class="helper-row">Đã có tài khoản? <a asp-controller="Account" asp-action="Login">Đăng nhập</a></div>
+                    </div>
+
+                    <div id="reg-step2" style="display:none;">
+                        <h2 class="form-title">Xác thực OTP</h2>
+                        <p class="form-sub">Mã 6 số đã gửi đến <strong id="reg-phone-display"></strong></p>
+
+                        <div class="field">
+                            <div class="otp-wrap" id="reg-otp-wrap">
+                                <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
+                                <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
+                                <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
+                                <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
+                                <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
+                                <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
+                            </div>
+                            <div class="otp-timer-row">
+                                <span class="otp-timer">Hết hạn sau <strong id="reg-otp-timer">5:00</strong></span>
+                                <span class="otp-resend disabled" id="reg-resend" onclick="resendOTP('reg')">Gửi lại OTP</span>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-primary" onclick="verifyRegOTP()" id="reg-verify-btn" disabled>Xác nhận →</button>
+                        <button type="button" class="btn-outline" style="margin-top:10px;" onclick="backToPhone('reg')">← Đổi số điện thoại</button>
+                    </div>
+
+                    <div id="reg-step3" style="display:none;">
+                        <h2 class="form-title">Đặt mật khẩu</h2>
+                        <p class="form-sub">Tạo mật khẩu để đăng nhập lần sau. Tối thiểu 8 ký tự.</p>
+
+                        <div class="field">
+                            <label class="field-label">Mật khẩu <span>*</span></label>
+                            <input class="field-input" type="password" id="reg-pw" placeholder="Tối thiểu 8 ký tự" oninput="checkPwStrength(this.value)">
+                            <div class="pw-strength" id="pw-strength-wrap">
+                                <div class="pw-bars">
+                                    <div class="pw-bar" id="pw-bar-1"></div>
+                                    <div class="pw-bar" id="pw-bar-2"></div>
+                                    <div class="pw-bar" id="pw-bar-3"></div>
+                                    <div class="pw-bar" id="pw-bar-4"></div>
+                                </div>
+                                <span class="pw-label" id="pw-label">Nhập mật khẩu</span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Xác nhận mật khẩu <span>*</span></label>
+                            <input class="field-input" type="password" id="reg-pw2" placeholder="Nhập lại mật khẩu">
+                            <div class="field-error" id="pw-match-err">Mật khẩu không khớp</div>
+                        </div>
+
+                        <button type="button" class="btn-primary" onclick="completeRegister()">Hoàn tất đăng ký 🎉</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <form id="registerForm" method="post" asp-controller="Account" asp-action="Register" style="display:none;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="CustomerName" id="register-name-hidden" />
+        <input type="hidden" name="Phone" id="register-phone-hidden" />
+        <input type="hidden" name="Password" id="register-password-hidden" />
+        <input type="hidden" name="OtpCode" id="register-otp-hidden" />
+    </form>
+</div>
+
+<script>
+    function showToast(msg, duration = 2800) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.opacity = '1';
+        t.style.transform = 'translateX(-50%) translateY(0)';
+        clearTimeout(t._t);
+        t._t = setTimeout(() => {
+            t.style.opacity = '0';
+            t.style.transform = 'translateX(-50%) translateY(12px)';
+        }, duration);
+    }
+
+    function formatPhone(el) {
+        el.value = el.value.replace(/\D/g, '');
+    }
+
+    function validatePhone(v) {
+        return /^(0|\+84)[3-9]\d{8}$/.test(v.replace(/\s/g, ''));
+    }
+
+    function show(id) {
+        document.getElementById(id).style.display = 'block';
+    }
+
+    function hide(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function getRequestVerificationToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    }
+
+    function otpInput(el, prefix) {
+        el.value = el.value.replace(/\D/g, '');
+        el.classList.toggle('filled', Boolean(el.value));
+        if (el.value && el.nextElementSibling) el.nextElementSibling.focus();
+        checkOTPComplete(prefix);
+    }
+
+    function otpKeydown(e, el) {
+        if (e.key === 'Backspace' && !el.value && el.previousElementSibling) el.previousElementSibling.focus();
+    }
+
+    function getOTPValue(prefix) {
+        return [...document.querySelectorAll(`#${prefix}-otp-wrap .otp-input`)].map(i => i.value).join('');
+    }
+
+    function checkOTPComplete(prefix) {
+        const val = getOTPValue(prefix);
+        const btn = document.getElementById(`${prefix}-verify-btn`);
+        if (btn) btn.disabled = val.length < 6;
+    }
+
+    let otpTimers = {};
+    function startTimer(prefix) {
+        clearInterval(otpTimers[prefix]);
+        let secs = 300;
+        const display = document.getElementById(`${prefix}-otp-timer`);
+        const resend = document.getElementById(`${prefix}-resend`);
+        resend.classList.add('disabled');
+        function tick() {
+            const m = Math.floor(secs / 60), s = secs % 60;
+            display.textContent = `${m}:${String(s).padStart(2, '0')}`;
+            if (secs <= 60) resend.classList.remove('disabled');
+            if (secs <= 0) {
+                clearInterval(otpTimers[prefix]);
+                display.textContent = 'Đã hết hạn';
+            }
+            secs--;
+        }
+        tick();
+        otpTimers[prefix] = setInterval(tick, 1000);
+    }
+
+    function resendOTP(prefix) {
+        if (prefix === 'reg') {
+            sendRegOTP();
+            return;
+        }
+    }
+
+    function backToPhone(prefix) {
+        clearInterval(otpTimers[prefix]);
+        if (prefix === 'reg') {
+            hide('reg-step2');
+            show('reg-step1');
+        }
+    }
+
+    let registerOtpVerified = false;
+    async function parseJsonResponse(res) {
+        const raw = await res.text();
+        try {
+            return { ok: res.ok, status: res.status, data: JSON.parse(raw) };
+        } catch {
+            return { ok: res.ok, status: res.status, data: null, raw };
+        }
+    }
+
+    function setRegStep(n) {
+        [1, 2, 3].forEach(i => {
+            const s = document.getElementById(`reg-s${i}`);
+            const l = document.getElementById(`reg-s${i}-lbl`);
+            if (!s) return;
+            s.className = 'step-circle ' + (i < n ? 'done' : i === n ? 'active' : 'pending');
+            if (l) l.className = 'step-label' + (i === n ? ' active' : '');
+        });
+        [1, 2].forEach(i => {
+            const line = document.getElementById(`reg-line${i}`);
+            if (line) line.className = 'step-line' + (i < n ? ' done' : '');
+        });
+    }
+
+    async function sendRegOTP() {
+        const name = document.getElementById('reg-name').value.trim();
+        const phone = document.getElementById('reg-phone').value.trim();
+        let valid = true;
+        if (!name) {
+            document.getElementById('reg-name-err').classList.add('show');
+            valid = false;
+        } else {
+            document.getElementById('reg-name-err').classList.remove('show');
+        }
+        if (!validatePhone(phone)) {
+            document.getElementById('reg-phone-err').classList.add('show');
+            valid = false;
+        } else {
+            document.getElementById('reg-phone-err').classList.remove('show');
+        }
+        if (!valid) return;
+
+        try {
+            const res = await fetch('@Url.Action("SendRegisterOtp", "Account")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getRequestVerificationToken()
+                },
+                body: JSON.stringify({ phone })
+            });
+            const parsed = await parseJsonResponse(res);
+            const data = parsed.data;
+            if (!parsed.ok) {
+                showToast(`❌ Máy chủ trả về lỗi ${parsed.status}`);
+                return;
+            }
+            if (!data) {
+                showToast('❌ API trả về dữ liệu không hợp lệ');
+                return;
+            }
+            if (!data.success) {
+                showToast('❌ ' + (data.message || 'Gửi OTP thất bại'));
+                return;
+            }
+            registerOtpVerified = false;
+            document.getElementById('register-otp-hidden').value = '';
+            document.getElementById('reg-phone-display').textContent = phone;
+            hide('reg-step1');
+            show('reg-step2');
+            setRegStep(2);
+            startTimer('reg');
+            document.querySelector('#reg-otp-wrap .otp-input').focus();
+            showToast('📱 ' + data.message);
+        } catch {
+            showToast('❌ Không thể kết nối máy chủ. Kiểm tra app đang chạy chưa');
+        }
+    }
+
+    async function verifyRegOTP() {
+        const otp = getOTPValue('reg');
+        const phone = document.getElementById('reg-phone').value.trim();
+        if (otp.length !== 6) {
+            showToast('❌ Vui lòng nhập đủ 6 số OTP');
+            return;
+        }
+        try {
+            const res = await fetch('@Url.Action("VerifyRegisterOtp", "Account")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getRequestVerificationToken()
+                },
+                body: JSON.stringify({ phone, code: otp })
+            });
+            const parsed = await parseJsonResponse(res);
+            const data = parsed.data;
+            if (!parsed.ok) {
+                showToast(`❌ Máy chủ trả về lỗi ${parsed.status}`);
+                return;
+            }
+            if (!data) {
+                showToast('❌ API trả về dữ liệu không hợp lệ');
+                return;
+            }
+            if (!data.success) {
+                showToast('❌ ' + (data.message || 'OTP không hợp lệ'));
+                return;
+            }
+            registerOtpVerified = true;
+            document.getElementById('register-otp-hidden').value = otp;
+            clearInterval(otpTimers['reg']);
+            hide('reg-step2');
+            show('reg-step3');
+            setRegStep(3);
+            showToast('✅ OTP hợp lệ');
+        } catch {
+            showToast('❌ Không thể kết nối máy chủ để xác thực OTP');
+        }
+    }
+
+    function checkPwStrength(pw) {
+        const bars = [1, 2, 3, 4].map(i => document.getElementById(`pw-bar-${i}`));
+        const label = document.getElementById('pw-label');
+        bars.forEach(b => b.className = 'pw-bar');
+        if (!pw.length) {
+            label.textContent = 'Nhập mật khẩu';
+            return;
+        }
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/\d/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        const cls = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong';
+        const labels = { weak: 'Yếu', medium: 'Trung bình', strong: 'Mạnh' };
+        bars.slice(0, score).forEach(b => b.classList.add(cls));
+        label.textContent = labels[cls] || '';
+        label.style.color = cls === 'weak' ? '#E74C3C' : cls === 'medium' ? '#B8860B' : '#27AE60';
+    }
+
+    function completeRegister() {
+        const name = document.getElementById('reg-name').value.trim();
+        const phone = document.getElementById('reg-phone').value.trim();
+        const pw = document.getElementById('reg-pw').value;
+        const pw2 = document.getElementById('reg-pw2').value;
+        if (!name || !validatePhone(phone)) {
+            showToast('Vui lòng nhập đúng họ tên và số điện thoại');
+            return;
+        }
+        if (pw.length < 8) {
+            showToast('Mật khẩu phải có ít nhất 8 ký tự');
+            return;
+        }
+        if (pw !== pw2) {
+            document.getElementById('pw-match-err').classList.add('show');
+            document.getElementById('reg-pw2').classList.add('error');
+            return;
+        }
+        if (!registerOtpVerified) {
+            showToast('Vui lòng xác thực OTP trước khi đăng ký');
+            return;
+        }
+        document.getElementById('pw-match-err').classList.remove('show');
+        document.getElementById('register-name-hidden').value = name;
+        document.getElementById('register-phone-hidden').value = phone;
+        document.getElementById('register-password-hidden').value = pw;
+        document.getElementById('registerForm').submit();
+    }
+</script>
