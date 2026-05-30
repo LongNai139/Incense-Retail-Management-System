@@ -1,15 +1,4 @@
-@using Microsoft.AspNetCore.Http
-@using Newtonsoft.Json
-@using SV22T1080045.Shop.BusinessLayers
-@inject IHttpContextAccessor HttpContextAccessor
-
 @{
-    var cartJson = HttpContextAccessor.HttpContext?.Session.GetString("SHOP_CART");
-    var cart = string.IsNullOrWhiteSpace(cartJson)
-        ? new List<CartItem>()
-        : JsonConvert.DeserializeObject<List<CartItem>>(cartJson) ?? new List<CartItem>();
-
-    var cartCount = cart.Sum(x => x.Quantity);
     var searchValue = ViewBag.SearchValue as string ?? string.Empty;
 }
 
@@ -54,43 +43,53 @@
                 <input type="text" name="searchValue" value="@searchValue" placeholder="Tìm sản phẩm..." />
             </form>
 
-            <nav class="nav-links">
+            <nav class="nav-links" aria-label="Điều hướng chính">
                 <a asp-controller="Home" asp-action="Index">Trang chủ</a>
                 <a asp-controller="Product" asp-action="Index">Sản phẩm</a>
-                <a asp-controller="OrderLookup" asp-action="Index">Tra cứu đơn</a>
-				<a asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                @if (User.Identity?.IsAuthenticated == true)
-                {
-                    <a asp-controller="Account" asp-action="Profile">@(User.Identity?.Name ?? "Tài khoản")</a>
-                    <a asp-controller="Account" asp-action="Logout">Đăng xuất</a>
-                }
-                @if (User.IsInRole("Admin"))
-                {
-                    <a asp-controller="Management" asp-action="Index">Quản lý</a>
-                }
-                @if (User.IsInRole("Staff") || User.IsInRole("Admin"))
-                {
-                    <a asp-controller="Staff" asp-action="Index">Staff</a>
-                }
+                <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
             </nav>
 
             <div class="nav-actions">
-                <a class="nav-btn nav-btn-ghost" asp-controller="OrderLookup" asp-action="Index">
+                <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="OrderLookup" asp-action="Index" title="Tra cứu đơn hàng">
                     <i class="fa-solid fa-receipt"></i>
-                    Đơn hàng
+                    <span class="nav-btn-label">Tra cứu</span>
                 </a>
 
-                <a class="cart-btn" asp-controller="Cart" asp-action="Index">
-                    <i class="fa-solid fa-bag-shopping"></i>
-                    @if (cartCount > 0)
+                @await Component.InvokeAsync("CartBadge")
+
+                <div class="nav-account">
+                    @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <span class="cart-count">@cartCount</span>
+                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Profile" title="Tài khoản">
+                            <i class="fa-solid fa-user"></i>
+                            <span class="nav-btn-label">@(User.Identity?.Name ?? "Tài khoản")</span>
+                        </a>
+                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Logout" title="Đăng xuất">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
                     }
-                </a>
+                    else
+                    {
+                        <a class="nav-btn nav-btn-solid" asp-controller="Account" asp-action="Login">
+                            Đăng nhập
+                        </a>
+                    }
+                </div>
 
-                <a class="nav-btn nav-btn-solid" asp-controller="Checkout" asp-action="Index">
-                    Thanh toán
-                </a>
+                @if (User.IsInRole("Staff") || User.IsInRole("Admin"))
+                {
+                    <a class="nav-btn nav-btn-ghost nav-workspace" asp-controller="Staff" asp-action="Index" title="Khu vực Staff">
+                        <i class="fa-solid fa-headset"></i>
+                        <span class="nav-btn-label">Staff</span>
+                    </a>
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="nav-btn nav-btn-ghost nav-workspace" asp-controller="Management" asp-action="Index" title="Quản lý cửa hàng">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span class="nav-btn-label">Quản lý</span>
+                    </a>
+                }
             </div>
         </div>
     </header>
