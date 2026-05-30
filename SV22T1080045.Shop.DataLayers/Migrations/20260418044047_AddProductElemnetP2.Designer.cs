@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SV22T1080045.Shop.DataLayers;
 
@@ -11,9 +12,11 @@ using SV22T1080045.Shop.DataLayers;
 namespace SV22T1080045.Shop.DataLayers.Migrations
 {
     [DbContext(typeof(ShopDbContext))]
-    partial class ShopDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260418044047_AddProductElemnetP2")]
+    partial class AddProductElemnetP2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,7 +98,7 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                         {
                             Id = 1,
                             Address = "Cửa hàng Hương Trầm",
-                            CreatedTime = new DateTime(2026, 5, 29, 9, 44, 42, 580, DateTimeKind.Local).AddTicks(105),
+                            CreatedTime = new DateTime(2026, 4, 18, 11, 40, 47, 55, DateTimeKind.Local).AddTicks(1563),
                             CustomerName = "Quản trị viên",
                             IsDeleted = false,
                             Password = "123",
@@ -157,42 +160,11 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("FinalAmount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Note")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PaymentBankCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PaymentResponseCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("PaymentStatus")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PaymentTransactionNo")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ShippingAddress")
                         .IsRequired()
@@ -211,12 +183,6 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("VoucherCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("VoucherId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
