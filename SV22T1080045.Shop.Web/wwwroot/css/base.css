@@ -1,0 +1,28 @@
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════ */
+:root {
+    --ink:        #1C1209;
+    --ink-2:      #3D2B1A;
+    --ink-3:      #6B4F35;
+    --ink-4:      #9C7A58;
+    --warm-50:    #FBF7F0;
+    --warm-100:   #F5ECD8;
+    --warm-200:   #E8D5B0;
+    --warm-300:   #D4B07A;
+    --gold:       #B8860B;
+    --gold-lt:    #D4A827;
+    --bg:         #FAF6EF;
+    --bg-alt:     #F3EBD8;
+    --cream:      #FFFDF7;
+    --white:      #FFFFFF;
+    --border:     rgba(60,35,10,.12);
+    --border-2:   rgba(60,35,10,.22);
+    --shadow:     0 2px 24px rgba(60,35,10,.08);
+    --shadow-lg:  0 8px 48px rgba(60,35,10,.14);
+    --serif:      'Cormorant Garamond', Georgia, serif;
+    --sans:       'Be Vietnam Pro', sans-serif;
+    --radius:     12px;
+    --radius-lg:  20px;
+    --transition: .25s cubic-bezier(.4,0,.2,1);
+  }

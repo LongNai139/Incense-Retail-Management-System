@@ -1,0 +1,162 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    var searchValue = ViewBag.SearchValue as string ?? string.Empty;
+    var backofficeUrl = Configuration["AppHosts:BackofficeUrl"] ?? "https://localhost:7127";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Trầm Hương Shop</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/base.css" />
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/home.css" />
+    <link rel="stylesheet" href="~/css/product-details.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    @await RenderSectionAsync("Styles", required: false)
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <style>
+            .nav-links a[href="/Account/Login"] {
+                display: none;
+            }
+        </style>
+    }
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-inner">
+            <a class="nav-logo" asp-controller="Home" asp-action="Index">
+                <div class="logo-icon">T</div>
+                <div class="logo-text">
+                    Trầm Hương
+                    <span>Shop</span>
+                </div>
+            </a>
+
+            <form class="nav-search" method="get" asp-controller="Home" asp-action="Index">
+                <i class="fa fa-search nav-search-icon"></i>
+                <input type="text" name="searchValue" value="@searchValue" placeholder="Tìm sản phẩm..." />
+            </form>
+
+            <nav class="nav-links" aria-label="Điều hướng chính">
+                <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+                <a asp-controller="Product" asp-action="Index">Sản phẩm</a>
+                <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="OrderLookup" asp-action="Index" title="Tra cứu đơn hàng">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span class="nav-btn-label">Tra cứu</span>
+                </a>
+
+                @await Component.InvokeAsync("CartBadge")
+
+                <div class="nav-account">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Profile" title="Tài khoản">
+                            <i class="fa-solid fa-user"></i>
+                            <span class="nav-btn-label">@(User.Identity?.Name ?? "Tài khoản")</span>
+                        </a>
+                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Logout" title="Đăng xuất">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="nav-btn nav-btn-solid" asp-controller="Account" asp-action="Login">
+                            Đăng nhập
+                        </a>
+                    }
+                </div>
+
+                @if (User.IsInRole("Staff") || User.IsInRole("Admin"))
+                {
+                    <a class="nav-btn nav-btn-ghost nav-workspace" href="@($"{backofficeUrl.TrimEnd('/')}/Staff")" title="Khu vực Staff">
+                        <i class="fa-solid fa-headset"></i>
+                        <span class="nav-btn-label">Staff</span>
+                    </a>
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="nav-btn nav-btn-ghost nav-workspace" href="@($"{backofficeUrl.TrimEnd('/')}/Management")" title="Quản lý cửa hàng">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span class="nav-btn-label">Quản lý</span>
+                    </a>
+                }
+            </div>
+        </div>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container-custom">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo-text">
+                        Trầm Hương
+                        <span>Shop</span>
+                    </div>
+                    <p class="footer-desc">
+                        Sản phẩm trầm hương thiên nhiên, quà tặng tinh tế và giải pháp hương thơm cho không gian sống.
+                    </p>
+                    <div class="footer-socials">
+                        <div class="social-btn"><i class="fab fa-facebook-f"></i></div>
+                        <div class="social-btn"><i class="fab fa-instagram"></i></div>
+                        <div class="social-btn"><i class="fab fa-tiktok"></i></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="footer-col-title">Điều hướng</div>
+                    <ul class="footer-links">
+                        <li><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+                        <li><a asp-controller="Cart" asp-action="Index">Giỏ hàng</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div class="footer-col-title">Hỗ trợ</div>
+                    <ul class="footer-links">
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Giao hàng</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div class="footer-col-title">Liên hệ</div>
+                    <ul class="footer-links">
+                        <li>0909 123 456</li>
+                        <li>Zalo: TramHuongShop</li>
+                        <li>TP. Hồ Chí Minh</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div>© 2026 Trầm Hương Shop</div>
+                <div class="footer-cert">
+                    <span class="cert-badge">Bảo mật</span>
+                    <span class="cert-badge">Chính hãng</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

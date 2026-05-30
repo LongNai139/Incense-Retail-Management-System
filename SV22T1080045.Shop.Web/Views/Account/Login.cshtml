@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    if (ViewBag.AuthMode == null)
+    {
+        ViewBag.AuthMode = "Login";
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_AuthPanel")
