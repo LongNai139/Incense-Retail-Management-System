@@ -23,6 +23,7 @@ namespace SV22T1080045.Shop.BusinessLayers
             services.AddScoped<IRevenueReportService, RevenueReportService>();
             services.AddScoped<IManagementService, ManagementService>();
             services.AddScoped<IStaffService, StaffService>();
+            services.AddScoped<IOperationalAlertService, OperationalAlertService>();
             services.AddScoped<IGuestOrderService, GuestOrderService>();
             services.AddScoped<IOtpService, OtpService>();
             services.AddScoped<IPasswordHasherService, PasswordHasherService>();

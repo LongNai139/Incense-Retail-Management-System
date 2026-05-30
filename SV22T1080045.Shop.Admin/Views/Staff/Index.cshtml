@@ -13,6 +13,7 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/staff.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/operational-alerts.css" asp-append-version="true" />
 }
 
 <div class="staff-shell">
@@ -454,19 +455,6 @@
             });
         });
 
-        var soundEnabled = false;
-        var soundButton = document.querySelector('[data-sound-toggle]');
-        if (soundButton) {
-            soundButton.addEventListener('click', function () {
-                soundEnabled = !soundEnabled;
-                soundButton.classList.toggle('primary', soundEnabled);
-                if (soundEnabled) {
-                    var audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=');
-                    audio.play().catch(function () { });
-                }
-            });
-        }
-
         var checkButton = document.querySelector('[data-check-toggle]');
         var checkState = document.getElementById('staffCheckState');
         var checkedIn = localStorage.getItem('staffCheckedIn') === '1';
@@ -520,4 +508,12 @@
             });
         });
     </script>
+    <script>
+        window.operationalAlertsConfig = {
+            feedUrl: '@Url.Action("Feed", "OperationalAlerts")',
+            storageKey: 'staffOperationalAlerts',
+            pollIntervalMs: 30000
+        };
+    </script>
+    <script src="~/js/operational-alerts.js" asp-append-version="true"></script>
 }

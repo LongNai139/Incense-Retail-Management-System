@@ -202,7 +202,7 @@ namespace SV22T1080045.Shop.Controllers
 
             alerts.AddRange(pendingTooLong.Select(o => new StaffAlertViewModel
             {
-                Title = $"{o.OrderCode} cho xu ly qua 2 gio",
+                Title = $"{o.OrderCode} chờ xử lý quá 2 giờ",
                 Detail = $"{o.CustomerName} - {o.OrderDate:dd/MM HH:mm}",
                 Level = "danger",
                 Icon = "fa-clock"
@@ -210,16 +210,16 @@ namespace SV22T1080045.Shop.Controllers
 
             alerts.AddRange(failedDeliveries.Select(o => new StaffAlertViewModel
             {
-                Title = $"{o.OrderCode} giao that bai",
-                Detail = $"{o.CustomerName} - can lien he lai",
+                Title = $"{o.OrderCode} giao thất bại",
+                Detail = $"{o.CustomerName} - cần liên hệ lại",
                 Level = "warning",
                 Icon = "fa-triangle-exclamation"
             }));
 
             alerts.AddRange(lowStock.Select(p => new StaffAlertViewModel
             {
-                Title = $"{p.ProductName} sap het hang",
-                Detail = $"Con {p.Quantity} {p.UnitName}",
+                Title = $"{p.ProductName} sắp hết hàng",
+                Detail = $"Còn {p.Quantity} {p.UnitName}",
                 Level = "stock",
                 Icon = "fa-box-open"
             }));
@@ -228,8 +228,8 @@ namespace SV22T1080045.Shop.Controllers
             {
                 alerts.Add(new StaffAlertViewModel
                 {
-                    Title = "Khong co canh bao gap",
-                    Detail = "Don hang va ton kho dang trong nguong on dinh.",
+                    Title = "Không có cảnh báo gấp",
+                    Detail = "Đơn hàng và tồn kho đang trong ngưỡng ổn định.",
                     Level = "info",
                     Icon = "fa-circle-check"
                 });
@@ -250,8 +250,8 @@ namespace SV22T1080045.Shop.Controllers
                 .Take(4)
                 .Select(o => new StaffNotificationViewModel
                 {
-                    Message = $"Don moi {o.OrderCode}",
-                    Detail = $"{o.CustomerName} can xac nhan trong ngay",
+                    Message = $"Đơn mới {o.OrderCode}",
+                    Detail = $"{o.CustomerName} cần xác nhận trong ngày",
                     CreatedAt = o.OrderDate,
                     Type = "order",
                     TargetAnchor = $"order-{o.Id}"
@@ -259,8 +259,8 @@ namespace SV22T1080045.Shop.Controllers
 
             notifications.AddRange(lowStock.Take(3).Select(p => new StaffNotificationViewModel
             {
-                Message = $"{p.ProductName} sap het hang",
-                Detail = $"Con {p.Quantity} {p.UnitName}, staff chi xem de bao quan ly nhap hang",
+                Message = $"{p.ProductName} sắp hết hàng",
+                Detail = $"Còn {p.Quantity} {p.UnitName} — báo quản lý nhập hàng",
                 CreatedAt = DateTime.Now,
                 Type = "stock"
             }));
@@ -269,8 +269,8 @@ namespace SV22T1080045.Shop.Controllers
             {
                 notifications.Add(new StaffNotificationViewModel
                 {
-                    Message = "Khong co viec can canh bao",
-                    Detail = "Thong bao duoc tao tu don moi trong ngay va san pham sap het hang.",
+                    Message = "Không có việc cần cảnh báo",
+                    Detail = "Thông báo được tạo từ đơn mới trong ngày và sản phẩm sắp hết hàng.",
                     CreatedAt = DateTime.Now,
                     Type = "info"
                 });
