@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SV22T1080045.Shop.Models", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SV22T1080045.Shop.Abstractions", "SV22T1080045.Shop.Abstractions\SV22T1080045.Shop.Abstractions.csproj", "{1850C56B-7468-4BBD-ABBF-B34633EEDCDF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SV22T1080045.Shop.Payments", "SV22T1080045.Shop.Payments\SV22T1080045.Shop.Payments.csproj", "{97DBE679-C951-4E62-AA11-42166554AD53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SV22T1080045.Shop.Web", "SV22T1080045.Shop.Web\SV22T1080045.Shop.Web.csproj", "{0AEAEB9B-F2DC-4521-9E2B-929AFCA4C44F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +53,14 @@ Global
 		{1850C56B-7468-4BBD-ABBF-B34633EEDCDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1850C56B-7468-4BBD-ABBF-B34633EEDCDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1850C56B-7468-4BBD-ABBF-B34633EEDCDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97DBE679-C951-4E62-AA11-42166554AD53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97DBE679-C951-4E62-AA11-42166554AD53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97DBE679-C951-4E62-AA11-42166554AD53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97DBE679-C951-4E62-AA11-42166554AD53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AEAEB9B-F2DC-4521-9E2B-929AFCA4C44F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AEAEB9B-F2DC-4521-9E2B-929AFCA4C44F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AEAEB9B-F2DC-4521-9E2B-929AFCA4C44F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AEAEB9B-F2DC-4521-9E2B-929AFCA4C44F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

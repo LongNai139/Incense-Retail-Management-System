@@ -19,7 +19,7 @@ namespace SV22T1080045.Shop.DomainModels
         public string ShippingAddress { get; set; } = "";
         public string? Note { get; set; }
 
-        // Thanh toán: 1=COD, 2=VNPay, 3=MoMo. PaymentStatus: 0=Chưa TT, 1=Đã TT, 2=Thất bại.
+        // Thanh toán: 1=COD, 2=VNPay, 3=MoMo, 4=Chuyển khoản QR. PaymentStatus: 0=Chưa TT, 1=Đã TT, 2=Thất bại.
         public int PaymentMethod { get; set; } = 1;
         public int PaymentStatus { get; set; } = 0;
         public string? PaymentTransactionNo { get; set; }
