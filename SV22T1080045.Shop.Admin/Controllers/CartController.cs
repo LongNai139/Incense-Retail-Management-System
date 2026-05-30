@@ -1,21 +1,40 @@
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.Models.Mappers;
+using SV22T1080045.Shop.Models.ViewModels.Cart;
 
 namespace SV22T1080045.Shop.Controllers
 {
     public class CartController : Controller
     {
         private readonly ICartService _cartService;
+        private readonly IProductService _productService;
 
-        public CartController(ICartService cartService)
+        public CartController(ICartService cartService, IProductService productService)
         {
             _cartService = cartService;
+            _productService = productService;
         }
 
         [HttpGet]
         public IActionResult Index()
         {
-            return View(_cartService.GetCart());
+            var cart = _cartService.GetCart();
+            var cartProductIds = cart.Select(i => i.ProductID).ToHashSet();
+            var upsell = _productService
+                .ListProducts(take: 12, sortBy: "bestseller")
+                .Where(p => !cartProductIds.Contains(p.Id))
+                .Take(3)
+                .Select(p => p.ToUpsellViewModel())
+                .ToList();
+
+            var model = new CartPageViewModel
+            {
+                Items = cart.Select(i => i.ToViewModel()).ToList(),
+                UpsellProducts = upsell
+            };
+
+            return View(model);
         }
 
         [HttpPost]
