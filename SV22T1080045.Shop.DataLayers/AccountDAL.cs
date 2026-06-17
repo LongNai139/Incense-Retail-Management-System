@@ -3,7 +3,7 @@ using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.DataLayers
 {
-    public class AccountDAL : BaseDAL
+    public class AccountDAL : _BaseDAL
     {
         public AccountDAL(string connectionString) : base(connectionString) { }
 
@@ -11,8 +11,8 @@ namespace SV22T1080045.Shop.DataLayers
         public Customer? Login(string email, string password)
         {
             using var conn = OpenConnection();
-            var sql = "SELECT * FROM Customers WHERE Email = @Email AND Password = @Password";
-            return conn.QueryFirstOrDefault<Customer>(sql, new { Email = email, Password = password });
+            var sql = "SELECT * FROM Customers WHERE Email = @Email AND PasswordHash = @PasswordHash";
+            return conn.QueryFirstOrDefault<Customer>(sql, new { Email = email, PasswordHash = password });
         }
 
         // Kiểm tra email đã tồn tại chưa (Dùng khi đăng ký)
@@ -27,8 +27,8 @@ namespace SV22T1080045.Shop.DataLayers
         public bool Register(Customer data)
         {
             using var conn = OpenConnection();
-            var sql = @"INSERT INTO Customers(CustomerName, Email, Password, Phone, Address)
-                        VALUES(@CustomerName, @Email, @Password, @Phone, @Address)";
+            var sql = @"INSERT INTO Customers(FullName, Email, PasswordHash, PhoneNumber, Address, Role, CreatedTime, IsDeleted)
+                        VALUES(@FullName, @Email, @PasswordHash, @PhoneNumber, @Address, @Role, GETDATE(), 0)";
             return conn.Execute(sql, data) > 0;
         }
 
@@ -36,16 +36,16 @@ namespace SV22T1080045.Shop.DataLayers
         public Customer? GetCustomerById(int id)
         {
             using var conn = OpenConnection();
-            return conn.QueryFirstOrDefault<Customer>("SELECT * FROM Customers WHERE CustomerID = @Id", new { Id = id });
+            return conn.QueryFirstOrDefault<Customer>("SELECT * FROM Customers WHERE Id = @Id", new { Id = id });
         }
 
         // Cập nhật thông tin cá nhân
         public bool UpdateProfile(Customer data)
         {
             using var conn = OpenConnection();
-            var sql = @"UPDATE Customers 
-                        SET CustomerName = @CustomerName, Phone = @Phone, Address = @Address
-                        WHERE CustomerID = @CustomerID";
+            var sql = @"UPDATE Customers
+                        SET FullName = @FullName, PhoneNumber = @PhoneNumber, Address = @Address
+                        WHERE Id = @Id";
             return conn.Execute(sql, data) > 0;
         }
 
@@ -53,8 +53,8 @@ namespace SV22T1080045.Shop.DataLayers
         public bool ChangePassword(int id, string newPassword)
         {
             using var conn = OpenConnection();
-            var sql = "UPDATE Customers SET Password = @Password WHERE CustomerID = @Id";
-            return conn.Execute(sql, new { Password = newPassword, Id = id }) > 0;
+            var sql = "UPDATE Customers SET PasswordHash = @PasswordHash WHERE Id = @Id";
+            return conn.Execute(sql, new { PasswordHash = newPassword, Id = id }) > 0;
         }
     }
 }

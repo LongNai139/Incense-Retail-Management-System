@@ -1,0 +1,8 @@
+@model int
+<a class="cart-btn" asp-controller="Cart" asp-action="Index" title="Giỏ hàng">
+    <i class="fa-solid fa-bag-shopping"></i>
+    @if (Model > 0)
+    {
+        <span class="cart-count">@Model</span>
+    }
+</a>

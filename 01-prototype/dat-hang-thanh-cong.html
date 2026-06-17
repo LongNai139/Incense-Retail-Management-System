@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đặt Hàng Thành Công — Trầm Hương Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1C1209;--ink-2:#3D2B1A;--ink-3:#6B4F35;--ink-4:#9C7A58;--warm-50:#FBF7F0;--warm-100:#F5ECD8;--warm-200:#E8D5B0;--gold:#B8860B;--gold-lt:#D4A827;--bg:#FAF6EF;--cream:#FFFDF7;--border:rgba(60,35,10,.12);--border-2:rgba(60,35,10,.22);--shadow:0 2px 24px rgba(60,35,10,.08);--serif:'Cormorant Garamond',Georgia,serif;--sans:'Be Vietnam Pro',sans-serif;--radius:12px;--radius-lg:20px;--tr:.22s cubic-bezier(.4,0,.2,1);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.7;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}button{cursor:pointer;font-family:var(--sans);border:none;background:none;}input{font-family:var(--sans);}
+
+.site-header{background:rgba(250,246,239,.95);border-bottom:1px solid var(--border);}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 32px;height:68px;display:flex;align-items:center;gap:24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);line-height:1.2;}
+.logo-text span{display:block;font-size:11px;font-weight:300;letter-spacing:.1em;color:var(--ink-3);}
+.nav-actions{margin-left:auto;display:flex;gap:10px;}
+.nav-btn{height:36px;padding:0 16px;border-radius:99px;font-size:13px;font-weight:500;border:1px solid var(--border-2);color:var(--ink-2);transition:var(--tr);}
+.nav-btn:hover{background:var(--warm-100);}
+
+/* SUCCESS PAGE */
+.success-wrap{max-width:680px;margin:60px auto;padding:0 24px 80px;}
+.success-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.success-top{background:linear-gradient(135deg,#1C1209 0%,#3D2B1A 100%);padding:48px 40px;text-align:center;}
+.success-checkmark{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;animation:pop .5s cubic-bezier(.68,-0.55,.27,1.55);}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.success-title{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--warm-100);margin-bottom:6px;}
+.success-sub{font-size:14px;color:rgba(255,255,255,.6);}
+.success-code-wrap{margin-top:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:14px 20px;display:inline-flex;align-items:center;gap:12px;}
+.success-code-lbl{font-size:12px;color:rgba(255,255,255,.5);}
+.success-code-val{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--gold-lt);letter-spacing:.05em;}
+.copy-btn{padding:4px 12px;border-radius:99px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);font-size:11px;color:rgba(255,255,255,.7);transition:var(--tr);}
+.copy-btn:hover{background:rgba(255,255,255,.2);}
+
+.success-body{padding:32px 40px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+.info-item{padding:14px;background:var(--warm-50);border:1px solid var(--border);border-radius:10px;}
+.info-lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-4);margin-bottom:4px;}
+.info-val{font-size:14px;font-weight:500;color:var(--ink);}
+.pay-status{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;}
+.pay-pending{background:#fff7e0;color:#b8860b;}
+.pay-paid{background:#edfaf1;color:#27ae60;}
+
+/* Steps */
+.order-steps{display:flex;gap:0;margin-bottom:24px;overflow-x:auto;}
+.ostep{flex:1;text-align:center;padding:12px 8px;position:relative;min-width:80px;}
+.ostep::after{content:'';position:absolute;top:20px;right:0;width:50%;height:2px;background:var(--warm-200);}
+.ostep:last-child::after{display:none;}
+.ostep-icon{width:36px;height:36px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.ostep.done .ostep-icon{background:var(--gold);border:2px solid var(--gold);}
+.ostep.active .ostep-icon{background:var(--ink);border:2px solid var(--ink);color:white;}
+.ostep:not(.done):not(.active) .ostep-icon{background:var(--warm-100);border:2px solid var(--warm-200);}
+.ostep-lbl{font-size:11px;color:var(--ink-4);}
+.ostep.done .ostep-lbl,.ostep.active .ostep-lbl{color:var(--ink-2);}
+
+/* Gợi ý tạo TK — FEATURE CHÍNH */
+.account-suggest{background:linear-gradient(135deg,var(--warm-50) 0%,var(--warm-100) 100%);border:1.5px solid var(--gold);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;position:relative;overflow:hidden;}
+.account-suggest::before{content:'🌿';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:80px;opacity:.08;}
+.suggest-title{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--ink);margin-bottom:6px;}
+.suggest-sub{font-size:13px;color:var(--ink-3);margin-bottom:16px;}
+.suggest-benefits{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.benefit-tag{display:flex;align-items:center;gap:6px;padding:4px 12px;background:white;border:1px solid var(--border);border-radius:99px;font-size:12px;color:var(--ink-2);}
+
+.create-account-form{display:none;animation:slideDown .3s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.pw-row{display:flex;gap:10px;margin-bottom:12px;}
+.pw-input{flex:1;height:44px;padding:0 14px;border:1.5px solid var(--border-2);border-radius:10px;font-size:14px;color:var(--ink);background:white;outline:none;transition:var(--tr);}
+.pw-input:focus{border-color:var(--ink-3);}
+.btn-create-acct{flex:1;height:44px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:14px;font-weight:600;transition:var(--tr);}
+.btn-create-acct:hover{background:var(--ink-2);}
+.pw-hint{font-size:12px;color:var(--ink-4);margin-bottom:14px;}
+
+.btn-suggest-yes{height:42px;padding:0 24px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:8px;transition:var(--tr);}
+.btn-suggest-yes:hover{background:var(--ink-2);}
+.btn-suggest-no{height:42px;padding:0 20px;border-radius:99px;border:1px solid var(--border-2);font-size:13px;color:var(--ink-4);margin-left:10px;transition:var(--tr);}
+.btn-suggest-no:hover{background:var(--warm-100);}
+
+.action-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-primary-out{flex:1;height:46px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;transition:var(--tr);min-width:160px;}
+.btn-primary-out:hover{background:var(--ink-2);}
+.btn-secondary-out{flex:1;height:46px;border-radius:99px;border:1px solid var(--border-2);font-size:14px;color:var(--ink-3);display:flex;align-items:center;justify-content:center;gap:6px;transition:var(--tr);min-width:140px;}
+.btn-secondary-out:hover{background:var(--warm-100);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:var(--warm-100);padding:12px 20px;border-radius:99px;font-size:13px;font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;}
+
+@media(max-width:600px){.success-body{padding:24px 20px;}.info-grid{grid-template-columns:1fr;}.success-top{padding:36px 24px;}.pw-row{flex-direction:column;}.btn-suggest-no{margin-left:0;}.action-btns{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-icon">🌿</div>
+      <div class="logo-text">Trầm Hương Shop<span>Hương Trầm Việt Nam</span></div>
+    </a>
+    <div class="nav-actions">
+      <a href="tra-cuu.html" class="nav-btn">Tra cứu đơn hàng</a>
+      <a href="san-pham.html" class="nav-btn">Tiếp tục mua sắm</a>
+    </div>
+  </nav>
+</header>
+
+<div class="success-wrap">
+  <div class="success-card">
+    <!-- TOP -->
+    <div class="success-top">
+      <div class="success-checkmark">✓</div>
+      <div class="success-title">Đặt hàng thành công!</div>
+      <div class="success-sub">Cảm ơn bạn đã tin tưởng Trầm Hương Shop 🙏</div>
+      <div class="success-code-wrap">
+        <div>
+          <div class="success-code-lbl">Mã đơn hàng</div>
+          <div class="success-code-val" id="orderCode">TH00000000</div>
+        </div>
+        <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="success-body">
+
+      <!-- Info -->
+      <div class="info-grid" id="infoGrid">
+        <div class="info-item"><div class="info-lbl">Người nhận</div><div class="info-val" id="infoName">—</div></div>
+        <div class="info-item"><div class="info-lbl">Số điện thoại</div><div class="info-val" id="infoPhone">—</div></div>
+        <div class="info-item" style="grid-column:1/-1"><div class="info-lbl">Địa chỉ giao hàng</div><div class="info-val" id="infoAddr">—</div></div>
+        <div class="info-item"><div class="info-lbl">Phương thức thanh toán</div><div class="info-val" id="infoPay">—</div></div>
+        <div class="info-item"><div class="info-lbl">Trạng thái thanh toán</div><div class="info-val"><span class="pay-status pay-pending" id="infoPayStatus">⏳ Chờ xử lý</span></div></div>
+      </div>
+
+      <!-- Order progress -->
+      <div class="order-steps">
+        <div class="ostep done"><div class="ostep-icon">✓</div><div class="ostep-lbl">Đặt hàng</div></div>
+        <div class="ostep active"><div class="ostep-icon">📦</div><div class="ostep-lbl">Xác nhận</div></div>
+        <div class="ostep"><div class="ostep-icon">🏭</div><div class="ostep-lbl">Chuẩn bị</div></div>
+        <div class="ostep"><div class="ostep-icon">🚚</div><div class="ostep-lbl">Đang giao</div></div>
+        <div class="ostep"><div class="ostep-icon">🏠</div><div class="ostep-lbl">Đã giao</div></div>
+      </div>
+
+      <div style="background:var(--warm-50);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:24px;font-size:13px;color:var(--ink-3);">
+        📞 Chúng tôi sẽ gọi điện xác nhận đơn trong vòng <strong>30 phút</strong> (8:00 – 18:00 T2–T7)<br>
+        🚚 Thời gian giao hàng dự kiến: <strong>2–4 ngày làm việc</strong><br>
+        📩 Thông báo cập nhật đơn hàng sẽ được gửi qua <strong>SMS / Zalo</strong>
+      </div>
+
+      <!-- GỢI Ý TẠO TÀI KHOẢN — FEATURE QUAN TRỌNG -->
+      <div class="account-suggest" id="accountSuggest">
+        <div class="suggest-title">Tạo tài khoản để quản lý đơn hàng dễ hơn?</div>
+        <div class="suggest-sub">Tài khoản được tạo tự động từ số điện thoại bạn vừa nhập — chỉ cần đặt mật khẩu!</div>
+        <div class="suggest-benefits">
+          <span class="benefit-tag">📦 Xem lịch sử đơn hàng</span>
+          <span class="benefit-tag">📍 Lưu địa chỉ giao hàng</span>
+          <span class="benefit-tag">❤️ Danh sách yêu thích</span>
+          <span class="benefit-tag">🎁 Tích điểm đổi quà</span>
+        </div>
+
+        <!-- Bước 1: Nút gợi ý -->
+        <div id="suggestStep1">
+          <button class="btn-suggest-yes" onclick="showCreateForm()">✨ Tạo tài khoản ngay — Miễn phí</button>
+          <button class="btn-suggest-no" onclick="dismissSuggest()">Không, cảm ơn</button>
+        </div>
+
+        <!-- Bước 2: Form đặt mật khẩu -->
+        <div class="create-account-form" id="suggestStep2">
+          <div style="font-size:13px;color:var(--ink-3);margin-bottom:12px;">Số điện thoại: <strong id="suggestPhone">—</strong> (từ đơn hàng vừa đặt)</div>
+          <div class="pw-row">
+            <input class="pw-input" type="password" id="pw1" placeholder="Mật khẩu (ít nhất 6 ký tự)">
+            <input class="pw-input" type="password" id="pw2" placeholder="Nhập lại mật khẩu">
+          </div>
+          <div class="pw-hint">Bằng cách tạo tài khoản, lịch sử đơn hàng của bạn sẽ được lưu vĩnh viễn.</div>
+          <div class="pw-row">
+            <button class="btn-create-acct" onclick="createAccount()">🚀 Tạo tài khoản</button>
+          </div>
+        </div>
+
+        <!-- Bước 3: Thành công -->
+        <div class="create-account-form" id="suggestStep3">
+          <div style="font-size:15px;color:#27ae60;font-weight:500;">✓ Tài khoản đã được tạo thành công!</div>
+          <div style="font-size:13px;color:var(--ink-3);margin-top:6px;">Đăng nhập bằng số điện thoại và mật khẩu vừa đặt. Lịch sử đơn hàng đã được gộp vào tài khoản.</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-btns">
+        <a href="tra-cuu.html" class="btn-primary-out">🔍 Tra cứu đơn hàng</a>
+        <a href="san-pham.html" class="btn-secondary-out">🛍️ Tiếp tục mua sắm</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';t.style.transform='translateY(0)';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(8px)';},2800);}
+
+const PAY_LABELS = {cod:'Thanh toán khi nhận hàng (COD)',vnpay:'VNPay',momo:'Ví MoMo',transfer:'Chuyển khoản ngân hàng'};
+const order = JSON.parse(localStorage.getItem('th_last_order')||'{}');
+const code = order.code || 'TH'+Date.now().toString().slice(-8);
+
+document.getElementById('orderCode').textContent = code;
+document.getElementById('infoName').textContent = order.name || 'Khách hàng';
+document.getElementById('infoPhone').textContent = order.phone ? order.phone.replace(/(\d{4})(\d+)(\d{3})/, '$1 **** $3') : '—';
+document.getElementById('infoAddr').textContent = order.address || '—';
+document.getElementById('infoPay').textContent = PAY_LABELS[order.payment] || 'COD';
+document.getElementById('suggestPhone').textContent = order.phone || '—';
+if(order.payment==='vnpay'||order.payment==='momo'){
+  document.getElementById('infoPayStatus').className='pay-status pay-paid';
+  document.getElementById('infoPayStatus').textContent='✓ Đã thanh toán';
+}
+
+function copyCode(){
+  navigator.clipboard?.writeText(code);
+  showToast('✓ Đã copy mã đơn hàng: '+code);
+}
+
+function showCreateForm(){
+  document.getElementById('suggestStep1').style.display='none';
+  document.getElementById('suggestStep2').style.display='block';
+}
+
+function dismissSuggest(){
+  document.getElementById('accountSuggest').style.display='none';
+}
+
+function createAccount(){
+  const p1=document.getElementById('pw1').value;
+  const p2=document.getElementById('pw2').value;
+  if(p1.length<6){showToast('Mật khẩu phải có ít nhất 6 ký tự');return;}
+  if(p1!==p2){showToast('Mật khẩu xác nhận không khớp');return;}
+  document.getElementById('suggestStep2').style.display='none';
+  document.getElementById('suggestStep3').style.display='block';
+  showToast('🎉 Tài khoản tạo thành công! Chào mừng bạn đến với Trầm Hương Shop!');
+}
+</script>
+</body>
+</html>

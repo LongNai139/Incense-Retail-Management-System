@@ -1,243 +1,160 @@
-﻿ @using Microsoft.AspNetCore.Http 
- @using Newtonsoft.Json 
- @using SV22T1080045.Shop.DomainModels 
- @inject IHttpContextAccessor HttpContextAccessor     
+@{
+    var searchValue = ViewBag.SearchValue as string ?? string.Empty;
+}
 
- <!DOCTYPE html> 
- <html lang="vi"> 
- <head> 
-     <meta charset="utf-8" /> 
-     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
-     <title>@ViewData["Title"] - Doraemon Tea</title> 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Trầm Hương Shop</title>
 
-     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> 
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
-     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"> 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/base.css" />
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/home.css" />
+    <link rel="stylesheet" href="~/css/product-details.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
-     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> 
-     <link rel="stylesheet" href="~/SV22T1080045.Shop.Admin.styles.css" asp-append-version="true" /> 
+    @await RenderSectionAsync("Styles", required: false)
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <style>
+            .nav-links a[href="/Account/Login"] {
+                display: none;
+            }
+        </style>
+    }
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-inner">
+            <a class="nav-logo" asp-controller="Home" asp-action="Index">
+                <div class="logo-icon">T</div>
+                <div class="logo-text">
+                    Trầm Hương
+                    <span>Shop</span>
+                </div>
+            </a>
 
-     <style> 
-         :root { 
-             --primary-color: #00a0e9; 
-             --primary-hover: #0089c7; 
-             --pink-accent: #ff69b4;  
-         } 
+            <form class="nav-search" method="get" asp-controller="Home" asp-action="Index">
+                <i class="fa fa-search nav-search-icon"></i>
+                <input type="text" name="searchValue" value="@searchValue" placeholder="Tìm sản phẩm..." />
+            </form>
 
-         body { 
-             font-family: 'Fredoka', sans-serif; 
-             background-color: #f4f8fb; 
-             color: #444; 
-         } 
+            <nav class="nav-links" aria-label="Điều hướng chính">
+                <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+                <a asp-controller="Product" asp-action="Index">Sản phẩm</a>
+                <a asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
+            </nav>
 
-         .navbar { 
-             background: rgba(255, 255, 255, 0.95); 
-             backdrop-filter: blur(15px); 
-             padding: 12px 0; 
-             transition: all 0.3s ease; 
-         } 
+            <div class="nav-actions">
+                <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="OrderLookup" asp-action="Index" title="Tra cứu đơn hàng">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span class="nav-btn-label">Tra cứu</span>
+                </a>
 
-         .navbar-brand { 
-             font-weight: 700; 
-             font-size: 1.5rem; 
-             color: var(--primary-color) !important; 
-             letter-spacing: -0.5px; 
-         } 
+                @await Component.InvokeAsync("CartBadge")
 
-         .nav-link { 
-             font-weight: 600; 
-             color: #666 !important; 
-             margin: 0 5px; 
-             padding: 8px 16px !important; 
-             border-radius: 50px; 
-             transition: all 0.2s ease; 
-         } 
+                <div class="nav-account">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Profile" title="Tài khoản">
+                            <i class="fa-solid fa-user"></i>
+                            <span class="nav-btn-label">@(User.Identity?.Name ?? "Tài khoản")</span>
+                        </a>
+                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Logout" title="Đăng xuất">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="nav-btn nav-btn-solid" asp-controller="Account" asp-action="Login">
+                            Đăng nhập
+                        </a>
+                    }
+                </div>
 
-             .nav-link:hover, .nav-link.active { 
-                 color: var(--primary-color) !important; 
-                 background-color: rgba(0, 160, 233, 0.08); 
-             } 
+                @if (User.IsInRole("Staff") || User.IsInRole("Admin"))
+                {
+                    <a class="nav-btn nav-btn-ghost nav-workspace" asp-controller="Staff" asp-action="Index" title="Khu vực Staff">
+                        <i class="fa-solid fa-headset"></i>
+                        <span class="nav-btn-label">Staff</span>
+                    </a>
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="nav-btn nav-btn-ghost nav-workspace" asp-controller="Management" asp-action="Index" title="Quản lý cửa hàng">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span class="nav-btn-label">Quản lý</span>
+                    </a>
+                }
+            </div>
+        </div>
+    </header>
 
-         .nav-btn-icon { 
-             width: 40px; 
-             height: 40px; 
-             display: flex; 
-             align-items: center; 
-             justify-content: center; 
-             border-radius: 50%; 
-             background-color: #fff; 
-             color: #333; 
-             border: 1px solid #eee; 
-             transition: all 0.2s; 
-             position: relative; 
-         } 
+    <main>
+        @RenderBody()
+    </main>
 
-             .nav-btn-icon:hover { 
-                 background-color: var(--primary-color); 
-                 color: #fff; 
-                 border-color: var(--primary-color); 
-                 transform: translateY(-2px); 
-                 box-shadow: 0 4px 10px rgba(0, 160, 233, 0.3); 
-             } 
+    <footer class="site-footer">
+        <div class="container-custom">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo-text">
+                        Trầm Hương
+                        <span>Shop</span>
+                    </div>
+                    <p class="footer-desc">
+                        Sản phẩm trầm hương thiên nhiên, quà tặng tinh tế và giải pháp hương thơm cho không gian sống.
+                    </p>
+                    <div class="footer-socials">
+                        <div class="social-btn"><i class="fab fa-facebook-f"></i></div>
+                        <div class="social-btn"><i class="fab fa-instagram"></i></div>
+                        <div class="social-btn"><i class="fab fa-tiktok"></i></div>
+                    </div>
+                </div>
 
-         .cart-badge { 
-             position: absolute; 
-             top: -5px; 
-             right: -5px; 
-             background-color: #ff4757; 
-             color: white; 
-             font-size: 0.7rem; 
-             font-weight: bold; 
-             padding: 4px 7px; 
-             border-radius: 20px; 
-             border: 2px solid #fff; 
-         } 
+                <div>
+                    <div class="footer-col-title">Điều hướng</div>
+                    <ul class="footer-links">
+                        <li><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+                        <li><a asp-controller="Cart" asp-action="Index">Giỏ hàng</a></li>
+                    </ul>
+                </div>
 
-         /* --- USER DROPDOWN --- */ 
-         .user-menu-btn { 
-             padding: 5px 15px 5px 5px; 
-             border-radius: 50px; 
-             border: 1px solid #eee; 
-             background: #fff; 
-             transition: 0.2s; 
-         } 
+                <div>
+                    <div class="footer-col-title">Hỗ trợ</div>
+                    <ul class="footer-links">
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Giao hàng</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
 
-             .user-menu-btn:hover { 
-                 border-color: var(--primary-color); 
-                 box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-             } 
+                <div>
+                    <div class="footer-col-title">Liên hệ</div>
+                    <ul class="footer-links">
+                        <li>0909 123 456</li>
+                        <li>Zalo: TramHuongShop</li>
+                        <li>TP. Hồ Chí Minh</li>
+                    </ul>
+                </div>
+            </div>
 
-         .dropdown-item:active, .dropdown-item:hover { 
-             background-color: var(--primary-color); 
-             color: white; 
-         } 
+            <div class="footer-bottom">
+                <div>© 2026 Trầm Hương Shop</div>
+                <div class="footer-cert">
+                    <span class="cert-badge">Bảo mật</span>
+                    <span class="cert-badge">Chính hãng</span>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-         /* --- BUTTONS --- */ 
-         .btn-primary-custom { 
-             background-color: var(--primary-color); 
-             border: none; 
-             padding: 8px 24px; 
-             border-radius: 50px; 
-             font-weight: 600; 
-             transition: 0.3s; 
-         } 
-
-             .btn-primary-custom:hover { 
-                 background-color: var(--primary-hover); 
-                 transform: translateY(-2px); 
-                 box-shadow: 0 4px 12px rgba(0, 160, 233, 0.3); 
-             } 
-     </style> 
-     @await RenderSectionAsync("Styles", required: false) 
- </head> 
- <body> 
-     <header> 
-         <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm"> 
-             <div class="container"> 
-                 <a class="navbar-brand d-flex align-items-center" href="/"> 
-                     <img src="https://upload.wikimedia.org/wikipedia/en/c/c8/Doraemon_volume_1_cover.jpg" 
-                          style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" 
-                          class="me-2 shadow-sm border" alt="Doraemon Tea"> 
-                     Doraemon Tea 
-                 </a> 
-
-                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"> 
-                     <span class="navbar-toggler-icon"></span> 
-                 </button> 
-
-                 <div class="collapse navbar-collapse" id="navbarContent"> 
-                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4"> 
-                         <li class="nav-item"> 
-                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" 
-                                asp-controller="Home" asp-action="Index"> 
-                                 Trang chủ 
-                             </a> 
-                         </li> 
-                        
-                     </ul> 
-
-                     <ul class="navbar-nav ms-auto align-items-center gap-3"> 
-
-                         @if (User.Identity.IsAuthenticated) 
-                         { 
-                             <li class="nav-item dropdown"> 
-                                 <a class="nav-link p-0 user-menu-btn d-flex align-items-center text-dark text-decoration-none" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> 
-                                     <div class="bg-light rounded-circle d-flex justify-content-center align-items-center border me-2" style="width: 35px; height: 35px; flex-shrink: 0;"> 
-                                         <i class="fa-solid fa-user text-primary"></i> 
-                                     </div> 
-                                     <span class="fw-bold small text-truncate" style="max-width: 100px;">@User.Identity.Name</span> 
-                                     <i class="fa-solid fa-chevron-down ms-2 small text-muted"></i> 
-                                 </a> 
-                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2" aria-labelledby="userDropdown"> 
-                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Account/Profile"><i class="fa-solid fa-id-card me-2 text-muted"></i> Hồ sơ cá nhân</a></li> 
-                                     <li><a class="dropdown-item rounded-3 mb-1" href="/Order/History"><i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i> Lịch sử đơn hàng</a></li> 
-                                     <li><hr class="dropdown-divider opacity-50"></li> 
-                                     <li><a class="dropdown-item rounded-3 text-danger fw-bold" href="/Account/Logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li> 
-                                 </ul> 
-                             </li> 
-                         } 
-                         else 
-                         { 
-                             <li class="nav-item"> 
-                                 <a class="btn btn-outline-primary rounded-pill px-4 fw-bold me-2" href="/Account/Login" style="border-width: 2px;"> 
-                                     Đăng nhập 
-                                 </a> 
-                             </li> 
-                             <li class="nav-item"> 
-                                 <a class="btn btn-primary-custom text-white text-decoration-none" href="/Account/Register"> 
-                                     Đăng ký ngay 
-                                 </a> 
-                             </li> 
-                         } 
-                     </ul> 
-                 </div> 
-             </div> 
-         </nav> 
-     </header> 
-
-     <div style="padding-top: 90px; min-height: 85vh;"> 
-         <main role="main" class="pb-3"> 
-             @RenderBody() 
-         </main> 
-     </div> 
-
-     <footer class="bg-white border-top py-5 mt-auto"> 
-         <div class="container"> 
-             <div class="row g-4"> 
-                 <div class="col-lg-4 text-center text-lg-start"> 
-                     <a href="/" class="text-decoration-none d-inline-flex align-items-center mb-3"> 
-                         <h5 class="fw-bold text-primary m-0">Doraemon Tea Shop</h5> 
-                     </a> 
-                     <p class="text-muted small"> 
-                         Mang đến cho bạn những ly trà sữa thơm ngon nhất với công thức chuẩn Nhật Bản. Niềm vui trong từng ngụm trà. 
-                     </p> 
-                 </div> 
-                 <div class="col-lg-4 text-center"> 
-                     <h6 class="fw-bold mb-3">Liên kết nhanh</h6> 
-                     <ul class="list-unstyled small"> 
-                         <li class="mb-2"><a href="/" class="text-decoration-none text-muted hover-primary">Trang chủ</a></li> 
-                         <li class="mb-2"><a href="/Home/Search" class="text-decoration-none text-muted hover-primary">Thực đơn</a></li> 
-                         <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Về chúng tôi</a></li> 
-                     </ul> 
-                 </div> 
-                 <div class="col-lg-4 text-center text-lg-end"> 
-                     <h6 class="fw-bold mb-3">Theo dõi chúng tôi</h6> 
-                     <div class="d-flex justify-content-center justify-content-lg-end gap-3"> 
-                         <a href="#" class="text-secondary fs-5"><i class="fab fa-facebook"></i></a> 
-                         <a href="#" class="text-secondary fs-5"><i class="fab fa-instagram"></i></a> 
-                         <a href="#" class="text-secondary fs-5"><i class="fab fa-tiktok"></i></a> 
-                     </div> 
-                 </div> 
-             </div> 
-             <div class="border-top mt-4 pt-4 text-center text-muted small"> 
-                 &copy; 2026 - Doraemon Tea Shop - SV22T1080045 
-             </div> 
-         </div> 
-     </footer> 
-
-     <script src="~/lib/jquery/dist/jquery.min.js"></script> 
-     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script> 
-     <script src="~/js/site.js" asp-append-version="true"></script> 
-     @await RenderSectionAsync("Scripts", required: false) 
- </body> 
- </html> 
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

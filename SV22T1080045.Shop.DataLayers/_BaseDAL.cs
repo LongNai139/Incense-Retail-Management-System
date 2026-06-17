@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 
 namespace SV22T1080045.Shop.DataLayers
 {
-    public abstract class BaseDAL
+    public abstract class _BaseDAL
+
     {
         protected string connectionString;
         /// <param name="connectionString">Chuỗi tham số kết nối đến CSDL</param>
-        public BaseDAL(string connectionString) 
+        public _BaseDAL(string connectionString) 
         {
             this.connectionString = connectionString;
         }

@@ -1,74 +1,71 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using SV22T1080045.Shop.BusinessLayers; // Nhớ thêm dòng này
+using Microsoft.AspNetCore.Authentication.Cookies;
+using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DataLayers;
-// using SV22T1080045.Shop.App.Models; // Nếu cần
 
-public class Program
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
+
+var connectionString = builder.Configuration.GetConnectionString("ShopConnectionString")!;
+
+builder.Services.AddSession(options =>
 {
-    public static void Main(string[] args)
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        var builder = WebApplication.CreateBuilder(args);
+        options.Cookie.Name = "SV22T1080045_Shop_Backoffice_Auth";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    });
 
-        builder.Services.AddControllersWithViews();
-        builder.Services.AddHttpContextAccessor(); 
+builder.Services.AddDataLayers(connectionString);
+builder.Services.AddBusinessLayers();
 
-        string connectionString = builder.Configuration.GetConnectionString("ShopConnectionString");
-        builder.Services.AddDbContext<ShopDbContext>(options =>
-        {
-            options.UseSqlServer(connectionString);
-        });
+var app = builder.Build();
 
-        builder.Services.AddSession(options =>
-        {
-            options.IdleTimeout = TimeSpan.FromMinutes(30);
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = true;
-        });
+SeedStaffAccounts(app);
 
-        // --- 4. CẤU HÌNH AUTHENTICATION ---
-        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
-            {
-                options.Cookie.Name = "SV22T1080045_Shop_Auth";
-                options.LoginPath = "/Account/Login";
-                options.AccessDeniedPath = "/Account/AccessDenied";
-                options.ExpireTimeSpan = TimeSpan.FromDays(30);
-            });
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
-        // --- 5. ĐĂNG KÝ DI (DEPENDENCY INJECTION) ---
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseSession();
+app.UseAuthentication();
+app.UseAuthorization();
 
-        // SỬA LỖI TẠI ĐÂY: Phải truyền connectionString vào Constructor
-        builder.Services.AddScoped<IProductDAL, ProductDAL>();
+var storefrontUrl = app.Configuration["AppHosts:StorefrontUrl"] ?? "https://localhost:7126";
 
-        // B. Business Logic Layer (BLL) - QUAN TRỌNG
-        // Phải đăng ký cái này thì Controller mới chạy được
-        builder.Services.AddScoped<IProductService, ProductService>();
+app.MapGet("/", () => Results.Redirect("/Management"));
+app.MapGet("/Home", () => Results.Redirect($"{storefrontUrl.TrimEnd('/')}"));
 
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Management}/{action=Index}/{id?}");
 
-        // --- BUILD APP ---
-        var app = builder.Build();
+app.Run();
 
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Home/Error");
-            app.UseHsts();
-        }
-
-        app.UseHttpsRedirection();
-        app.UseStaticFiles();
-
-        app.UseRouting();
-
-        app.UseSession();
-        app.UseAuthentication();
-        app.UseAuthorization(); 
-
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
-
-        app.Run();
+static void SeedStaffAccounts(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    try
+    {
+        scope.ServiceProvider.GetRequiredService<IStartupSeedService>().SeedStaffAccounts();
+    }
+    catch
+    {
+        // Database may be offline during startup.
     }
 }

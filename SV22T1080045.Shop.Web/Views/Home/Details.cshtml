@@ -1,0 +1,466 @@
+@model SV22T1080045.Shop.Models.ViewModels.Product.ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.ProductName;
+    var quantity = Math.Max(0, Model.Quantity ?? 0);
+    var rating = Math.Clamp(Model.Rating ?? 0, 0, 5);
+    var reviewCount = Model.ReviewCount ?? 0;
+    var soldCount = Model.SoldCount ?? 0;
+    var stockText = quantity > 0 ? $"Còn hàng ({quantity:N0} sản phẩm)" : "Hiện đang hết hàng";
+    var galleryImages = Model.GalleryImageUrls.Any()
+        ? Model.GalleryImageUrls
+        : new List<string> { Model.ImageUrl ?? "" }.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+
+    string FormatMoney(decimal value) => $"{value:N0}đ";
+    string Stars(int value) => new string('★', value) + new string('☆', 5 - value);
+}
+
+<div class="breadcrumb">
+    <div class="breadcrumb-inner">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span>›</span>
+        <a asp-controller="Product" asp-action="Index">Sản phẩm</a>
+        @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
+        {
+            <span>›</span>
+            <span>@Model.CategoryName</span>
+        }
+        <span>›</span>
+        <span style="color:var(--ink-3);">@Model.ProductName</span>
+    </div>
+</div>
+
+<div class="page-wrap">
+    <div class="product-layout">
+        <div class="gallery">
+            <div class="gallery-main" id="mainImage">
+                @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.ProductName" style="width:100%;height:100%;object-fit:cover;" />
+                }
+                else
+                {
+                    <span style="font-size:120px;"><i class="fa-solid fa-leaf"></i></span>
+                }
+                <button type="button" class="gallery-zoom" aria-label="Phóng to ảnh">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </button>
+            </div>
+
+            @if (galleryImages.Any())
+            {
+                <div class="gallery-thumbs">
+                    @foreach (var imageUrl in galleryImages)
+                    {
+                        <button type="button"
+                                class="gallery-thumb @(imageUrl == Model.ImageUrl ? "active" : "")"
+                                data-image-url="@imageUrl"
+                                data-product-name="@Model.ProductName"
+                                onclick="setMainImage(this.dataset.imageUrl, this.dataset.productName, this)">
+                            <img src="@imageUrl" alt="@Model.ProductName" style="width:100%;height:100%;object-fit:cover;" />
+                        </button>
+                    }
+                </div>
+            }
+
+            <div class="gallery-cert">
+                <i class="fa-solid fa-certificate"></i>
+                Sản phẩm dùng thông tin nguồn gốc, tồn kho và giá từ hệ thống quản lý hiện tại.
+            </div>
+        </div>
+
+        <div class="pinfo">
+            <div class="pinfo-badges">
+                @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
+                {
+                    <span class="pinfo-badge badge-cat">@Model.CategoryName</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Origin))
+                {
+                    <span class="pinfo-badge badge-origin"><i class="fa-solid fa-location-dot"></i> @Model.Origin</span>
+                }
+                @if (Model.HasDiscount)
+                {
+                    <span class="pinfo-badge badge-sale">Giảm @Model.DiscountPercent%</span>
+                }
+            </div>
+
+            <h1 class="pinfo-name">@Model.ProductName</h1>
+            <div class="pinfo-code">
+                Mã sản phẩm: #@Model.Id
+                @if (soldCount > 0)
+                {
+                    <span>&nbsp;|&nbsp; Đã bán: <strong>@soldCount.ToString("N0")</strong></span>
+                }
+            </div>
+
+            <div class="pinfo-stars">
+                <span class="stars-big">@Stars(rating)</span>
+                <span class="rating-num">@(rating > 0 ? rating.ToString("N1") : "Chưa có đánh giá")</span>
+                <button type="button" class="review-link" onclick="switchTab('reviews', document.querySelector('[data-tab-button=reviews]'))">
+                    (@reviewCount.ToString("N0") đánh giá)
+                </button>
+                @if (soldCount > 0)
+                {
+                    <span class="sold-num">@soldCount.ToString("N0") đã mua</span>
+                }
+            </div>
+
+            <div class="specs-mini">
+                @if (!string.IsNullOrWhiteSpace(Model.Origin))
+                {
+                    <div class="spec-item"><div class="spec-lbl">Xuất xứ</div><div class="spec-val">@Model.Origin</div></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.AgeYear))
+                {
+                    <div class="spec-item"><div class="spec-lbl">Độ tuổi trầm</div><div class="spec-val">@Model.AgeYear</div></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.OilContent))
+                {
+                    <div class="spec-item"><div class="spec-lbl">Hàm lượng tinh dầu</div><div class="spec-val">@Model.OilContent</div></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.BurningTime))
+                {
+                    <div class="spec-item"><div class="spec-lbl">Thời gian cháy</div><div class="spec-val">@Model.BurningTime</div></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Length))
+                {
+                    <div class="spec-item"><div class="spec-lbl">Kích thước</div><div class="spec-val">@Model.Length</div></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Weight))
+                {
+                    <div class="spec-item"><div class="spec-lbl">Trọng lượng</div><div class="spec-val">@Model.Weight</div></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.UnitName))
+                {
+                    <div class="spec-item"><div class="spec-lbl">Đơn vị tính</div><div class="spec-val">@Model.UnitName</div></div>
+                }
+            </div>
+
+            @if (Model.UsageTags.Any())
+            {
+                <div class="usage-tags">
+                    @foreach (var tag in Model.UsageTags)
+                    {
+                        <span class="usage-tag">@tag</span>
+                    }
+                </div>
+            }
+
+            <div class="price-block">
+                <div class="price-row">
+                    <span class="price-main">@FormatMoney(Model.DisplayPrice)</span>
+                    @if (Model.HasDiscount)
+                    {
+                        <span class="price-orig">@FormatMoney(Model.DisplayOriginalPrice)</span>
+                        <span class="price-pct">-@Model.DiscountPercent%</span>
+                    }
+                </div>
+                <div class="price-note">Giá hiển thị là giá bán sau giảm; giá gạch ngang là giá niêm yết trước khuyến mãi.</div>
+                <div class="stock-status @(quantity > 0 ? "stock-ok" : "stock-low")">
+                    <span class="stock-dot"></span>
+                    @stockText
+                </div>
+            </div>
+
+            <form asp-controller="Cart" asp-action="AddToCartAjax" method="post" id="detailsAddCartForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productID" value="@Model.Id" />
+                <input type="hidden" name="quantity" id="cartQuantityValue" value="1" />
+
+                <div class="qty-row">
+                    <span class="qty-lbl">Số lượng:</span>
+                    <div class="qty-ctrl">
+                        <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+                        <input class="qty-num" type="number" id="qtyInput" value="1" min="1" max="@(quantity > 0 ? quantity : 1)" />
+                        <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+                    </div>
+                    <span class="stock-left">@stockText</span>
+                </div>
+
+                <div class="action-row">
+                    <button type="button" id="buyNowBtn" class="btn-buy" @(quantity > 0 ? null : "disabled")>
+                        <i class="fa-solid fa-bolt"></i>
+                        Mua ngay
+                    </button>
+                    <button type="submit" class="btn-addcart" @(quantity > 0 ? null : "disabled")>
+                        <i class="fa-solid fa-cart-plus"></i>
+                        Thêm vào giỏ
+                    </button>
+                    <button type="button" class="btn-wish-big" id="wishBtn" onclick="toggleWish()" aria-label="Yêu thích">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="share-row">
+                <span>Chia sẻ:</span>
+                <button type="button" class="share-btn"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
+                <button type="button" class="share-btn"><i class="fa-solid fa-comment"></i> Zalo</button>
+                <button type="button" class="share-btn" id="copyLinkBtn"><i class="fa-solid fa-link"></i> Copy link</button>
+            </div>
+
+            <div class="guarantees">
+                <div class="guarantee-item"><span class="guarantee-icon"><i class="fa-solid fa-leaf"></i></span><span>Thông tin sản phẩm từ backend hiện tại</span></div>
+                <div class="guarantee-item"><span class="guarantee-icon"><i class="fa-solid fa-boxes-stacked"></i></span><span>Tồn kho hiển thị theo Quantity</span></div>
+                <div class="guarantee-item"><span class="guarantee-icon"><i class="fa-solid fa-tag"></i></span><span>Giá hiển thị đã bao gồm khuyến mãi (nếu có)</span></div>
+                <div class="guarantee-item"><span class="guarantee-icon"><i class="fa-solid fa-truck-fast"></i></span><span>Đặt hàng qua giỏ hàng hiện tại</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs-wrap">
+        <div class="tab-nav">
+            <button type="button" class="tab-btn active" data-tab-button="desc" onclick="switchTab('desc', this)">Mô tả sản phẩm</button>
+            <button type="button" class="tab-btn" data-tab-button="usage" onclick="switchTab('usage', this)">Thông tin sử dụng</button>
+            <button type="button" class="tab-btn" data-tab-button="reviews" onclick="switchTab('reviews', this)">Đánh giá (@reviewCount.ToString("N0"))</button>
+        </div>
+
+        <div id="tab-desc" class="tab-content active">
+            <div class="desc-content">
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <p>@Model.Description</p>
+                }
+                else
+                {
+                    <p>Sản phẩm chưa có mô tả chi tiết. Bạn có thể bổ sung nội dung này ở phần quản lý sản phẩm.</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Ingredient))
+                {
+                    <h3>Thành phần</h3>
+                    <p>@Model.Ingredient</p>
+                }
+            </div>
+        </div>
+
+        <div id="tab-usage" class="tab-content">
+            <div class="desc-content">
+                <h3>Thông số</h3>
+                <ul>
+                    <li><strong>Xuất xứ:</strong> @(Model.Origin ?? "Đang cập nhật")</li>
+                    <li><strong>Thời gian cháy:</strong> @(Model.BurningTime ?? "Đang cập nhật")</li>
+                    <li><strong>Độ tuổi trầm:</strong> @(Model.AgeYear ?? "Đang cập nhật")</li>
+                    <li><strong>Hàm lượng tinh dầu:</strong> @(Model.OilContent ?? "Đang cập nhật")</li>
+                    <li><strong>Kích thước:</strong> @(Model.Length ?? "Đang cập nhật")</li>
+                    <li><strong>Trọng lượng:</strong> @(Model.Weight ?? "Đang cập nhật")</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="tab-reviews" class="tab-content">
+            <div class="reviews-summary">
+                <div class="rating-big">
+                    <div class="rating-big-num">@(rating > 0 ? rating.ToString("N1") : "0")</div>
+                    <div class="rating-big-stars">@Stars(rating)</div>
+                    <div class="rating-big-count">@reviewCount.ToString("N0") đánh giá</div>
+                </div>
+                <div class="rating-bars">
+                    @for (var star = 5; star >= 1; star--)
+                    {
+                        var width = rating >= star ? 82 : Math.Max(0, (rating * 16) - ((star - 1) * 16));
+                        <div class="rating-bar-row">
+                            <span class="rating-bar-lbl">@($"{star}★")</span>
+                            <div class="rating-bar-track"><div class="rating-bar-fill" style="width:@width%"></div></div>
+                            <span class="rating-bar-num">@(star == rating ? reviewCount : 0)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="review-form">
+                <h3>Viết đánh giá của bạn</h3>
+                <p class="text-secondary small">Phần lưu đánh giá chưa có backend riêng, form này giữ vai trò giao diện theo mẫu.</p>
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <input class="form-input" type="tel" placeholder="09xx xxx xxx" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Đánh giá của bạn</label>
+                    <div class="star-picker" id="starPicker">
+                        @for (var i = 1; i <= 5; i++)
+                        {
+                            <span onclick="setRating(@i)" data-v="@i">★</span>
+                        }
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nhận xét</label>
+                    <textarea class="form-textarea" placeholder="Chia sẻ cảm nhận về sản phẩm..."></textarea>
+                </div>
+                <button type="button" class="btn-submit" onclick="submitReview()">Gửi đánh giá</button>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.RelatedProducts.Any())
+    {
+        <div>
+            <div style="margin-bottom:24px;">
+                <span class="label">Có thể bạn thích</span>
+                <h2 style="font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-top:4px;">Sản phẩm liên quan</h2>
+            </div>
+
+            <div class="related-grid">
+                @foreach (var product in Model.RelatedProducts)
+                {
+                    <a asp-controller="Home" asp-action="Details" asp-route-id="@product.Id" class="related-card">
+                        <div class="related-img">
+                            @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.ProductName" />
+                            }
+                            else
+                            {
+                                <span><i class="fa-solid fa-leaf"></i></span>
+                            }
+                        </div>
+                        <div class="related-info">
+                            <div class="related-name">@product.ProductName</div>
+                            <div class="related-price">@FormatMoney(product.DisplayPrice)</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<div class="sticky-buy">
+    <button type="button" class="btn-addcart" onclick="submitDetailAddCart()" @(quantity > 0 ? null : "disabled")>
+        <i class="fa-solid fa-cart-plus"></i>
+        Thêm giỏ hàng
+    </button>
+    <button type="button" class="btn-buy" onclick="buyNow()" @(quantity > 0 ? null : "disabled")>
+        <i class="fa-solid fa-bolt"></i>
+        Mua ngay
+    </button>
+</div>
+
+<div id="toast"></div>
+
+@section Scripts {
+    <script>
+        const maxQty = @((quantity > 0 ? quantity : 1));
+
+        function setMainImage(imageUrl, productName, button) {
+            document.getElementById('mainImage').innerHTML =
+                `<img src="${imageUrl}" alt="${productName}" style="width:100%;height:100%;object-fit:cover;" />
+                 <button type="button" class="gallery-zoom" aria-label="Phóng to ảnh"><i class="fa-solid fa-magnifying-glass-plus"></i></button>`;
+
+            document.querySelectorAll('.gallery-thumb').forEach(item => item.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        function switchTab(name, button) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            button?.classList.add('active');
+            document.getElementById(`tab-${name}`)?.classList.add('active');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+            }, 2500);
+        }
+
+        function syncQtyHidden() {
+            const input = document.getElementById('qtyInput');
+            const value = Math.max(1, Math.min(maxQty, Number(input.value || 1)));
+            input.value = value;
+            document.getElementById('cartQuantityValue').value = value;
+            return value;
+        }
+
+        function changeQty(delta) {
+            const input = document.getElementById('qtyInput');
+            input.value = Math.max(1, Math.min(maxQty, Number(input.value || 1) + delta));
+            syncQtyHidden();
+        }
+
+        function updateCartCount(count) {
+            const cartButton = document.querySelector('.cart-btn');
+            if (!cartButton) return;
+
+            let badge = cartButton.querySelector('.cart-count');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'cart-count';
+                cartButton.appendChild(badge);
+            }
+
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+
+        async function submitDetailAddCart() {
+            const form = document.getElementById('detailsAddCartForm');
+            syncQtyHidden();
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                showToast(data.message || 'Không thể thêm vào giỏ hàng.');
+                return false;
+            }
+
+            updateCartCount(Number(data.cartCount || 0));
+            showToast(`Đã thêm ${document.getElementById('cartQuantityValue').value} sản phẩm vào giỏ hàng.`);
+            return true;
+        }
+
+        async function buyNow() {
+            const ok = await submitDetailAddCart();
+            if (ok) window.location.href = '@Url.Action("Index", "Checkout")';
+        }
+
+        document.getElementById('detailsAddCartForm')?.addEventListener('submit', async event => {
+            event.preventDefault();
+            await submitDetailAddCart();
+        });
+
+        document.getElementById('buyNowBtn')?.addEventListener('click', buyNow);
+        document.getElementById('qtyInput')?.addEventListener('change', syncQtyHidden);
+
+        function toggleWish() {
+            const icon = document.querySelector('#wishBtn i');
+            const active = icon.classList.contains('fa-solid');
+            icon.classList.toggle('fa-solid', !active);
+            icon.classList.toggle('fa-regular', active);
+            showToast(active ? 'Đã bỏ yêu thích.' : 'Đã thêm vào yêu thích.');
+        }
+
+        document.getElementById('copyLinkBtn')?.addEventListener('click', async () => {
+            await navigator.clipboard?.writeText(window.location.href);
+            showToast('Đã copy liên kết sản phẩm.');
+        });
+
+        let selectedRating = 0;
+        function setRating(value) {
+            selectedRating = value;
+            document.querySelectorAll('#starPicker span').forEach((star, index) => {
+                star.classList.toggle('on', index < value);
+            });
+        }
+
+        function submitReview() {
+            if (!selectedRating) {
+                showToast('Vui lòng chọn số sao đánh giá.');
+                return;
+            }
+
+            showToast('Cảm ơn bạn đã đánh giá. Tính năng lưu đánh giá sẽ nối backend sau.');
+        }
+    </script>
+}

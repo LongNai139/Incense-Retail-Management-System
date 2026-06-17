@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SV22T1080045.Shop</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SV22T1080045.Shop.Abstractions\SV22T1080045.Shop.Abstractions.csproj" />
+    <ProjectReference Include="..\SV22T1080045.Shop.BusinessLayers\SV22T1080045.Shop.BusinessLayers.csproj" />
+    <ProjectReference Include="..\SV22T1080045.Shop.DataLayers\SV22T1080045.Shop.DataLayers.csproj" />
+    <ProjectReference Include="..\SV22T1080045.Shop.Models\SV22T1080045.Shop.Models.csproj" />
+    <ProjectReference Include="..\SV22T1080045.Shop.Payments\SV22T1080045.Shop.Payments.csproj" />
+  </ItemGroup>
+
+</Project>
