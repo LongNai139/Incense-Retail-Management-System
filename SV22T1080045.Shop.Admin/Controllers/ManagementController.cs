@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SV22T1080045.Shop.Abstractions.Models.Management;
 using SV22T1080045.Shop.Abstractions.Models.Reports;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
@@ -7,10 +8,11 @@ using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models.Mappers;
 using SV22T1080045.Shop.Models.ViewModels.Management;
 using SV22T1080045.Shop.Models.ViewModels.Product;
+using System.Security.Claims;
 
 namespace SV22T1080045.Shop.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class ManagementController : Controller
     {
         private const int ProductPageSize = 10;
@@ -20,37 +22,49 @@ namespace SV22T1080045.Shop.Controllers
         private readonly IUnitService _unitService;
         private readonly IRevenueReportService _revenueReportService;
         private readonly IManagementService _managementService;
+        private readonly ILogger<ManagementController> _logger;
 
         public ManagementController(
             IProductService productService,
             ICategoryService categoryService,
             IUnitService unitService,
             IRevenueReportService revenueReportService,
-            IManagementService managementService)
+            IManagementService managementService,
+            ILogger<ManagementController> logger)
         {
             _productService = productService;
             _categoryService = categoryService;
             _unitService = unitService;
             _revenueReportService = revenueReportService;
             _managementService = managementService;
+            _logger = logger;
         }
 
         public IActionResult Index(
+            string revenuePeriod = "day",
+            DateTime? revenueDate = null)
+        {
+            // Debug: Check if user is authenticated and has Admin role
+            _logger.LogInformation("Management Index called. IsAuthenticated: {IsAuthenticated}", User.Identity?.IsAuthenticated);
+            var userRoles = string.Join(", ", User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value));
+            _logger.LogInformation("User roles: {Roles}", userRoles);
+            _logger.LogInformation("IsInRole Admin: {IsInRole}", User.IsInRole(CustomerRoles.Admin));
+
+            return View("Index", BuildDashboardModel(
+                revenuePeriod,
+                revenueDate));
+        }
+
+        public IActionResult Products(
             int? editProductId = null,
             string searchValue = "",
             int? categoryId = null,
             string productStatus = "",
             int productPage = 1,
             int? savedProductId = null,
-            string? savedAction = null,
-            string revenuePeriod = "day",
-            DateTime? revenueDate = null,
-            string reportPeriod = "month",
-            DateTime? reportDate = null,
-            int? selectedCustomerId = null,
-            bool showFullCustomerHistory = false)
+            string? savedAction = null)
         {
-            return View(BuildDashboardModel(
+            return View("Products", BuildProductModel(
                 editProductId,
                 productForm: null,
                 searchValue,
@@ -58,13 +72,33 @@ namespace SV22T1080045.Shop.Controllers
                 productStatus,
                 productPage,
                 savedProductId,
-                savedAction,
-                revenuePeriod,
-                revenueDate,
-                reportPeriod,
-                reportDate,
-                selectedCustomerId,
-                showFullCustomerHistory));
+                savedAction));
+        }
+
+        public IActionResult Orders()
+        {
+            return View("Orders", BuildOrderModel());
+        }
+
+        public IActionResult Customers(
+            int? selectedCustomerId = null,
+            bool showFullCustomerHistory = false)
+        {
+            return View("Customers", BuildCustomerModel(selectedCustomerId, showFullCustomerHistory));
+        }
+
+        public IActionResult Discounts(
+            ManagementVoucherInput? voucherForm = null,
+            string? voucherMessage = null)
+        {
+            return View("Discounts", BuildDiscountModel(voucherForm, voucherMessage));
+        }
+
+        public IActionResult Reports(
+            string reportPeriod = "month",
+            DateTime? reportDate = null)
+        {
+            return View("Reports", BuildReportModel(reportPeriod, reportDate));
         }
 
         [HttpPost]
@@ -72,7 +106,7 @@ namespace SV22T1080045.Shop.Controllers
         public IActionResult SaveProduct(ProductEditViewModel model)
         {
             if (!ModelState.IsValid)
-                return View("Index", BuildDashboardModel(model.Id > 0 ? model.Id : null, model));
+                return View("Products", BuildProductModel(model.Id > 0 ? model.Id : null, model));
 
             var saveAction = model.Id > 0 ? "updated" : "created";
             var savedProductId = 0;
@@ -83,12 +117,12 @@ namespace SV22T1080045.Shop.Controllers
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                return View("Index", BuildDashboardModel(model.Id > 0 ? model.Id : null, model));
+                return View("Products", BuildProductModel(model.Id > 0 ? model.Id : null, model));
             }
 
             var productPage = FindProductPage(savedProductId);
-            var productsUrl = Url.Action(nameof(Index), new { savedProductId, savedAction = saveAction, productPage }) ?? Url.Action(nameof(Index)) ?? "/";
-            return Redirect($"{productsUrl}#products");
+            var productsUrl = Url.Action(nameof(Products), new { savedProductId, savedAction = saveAction, productPage }) ?? Url.Action(nameof(Products)) ?? "/";
+            return Redirect(productsUrl);
         }
 
         [HttpPost]
@@ -96,7 +130,7 @@ namespace SV22T1080045.Shop.Controllers
         public IActionResult SaveVoucher(ManagementVoucherInput model)
         {
             if (!ModelState.IsValid)
-                return View("Index", BuildDashboardModel(voucherForm: model, voucherMessage: "Khong the tao ma giam gia. Vui long kiem tra lai thong tin."));
+                return View("Discounts", BuildDiscountModel(voucherForm: model, voucherMessage: "Khong the tao ma giam gia. Vui long kiem tra lai thong tin."));
 
             var result = _managementService.CreateVoucher(new Voucher
             {
@@ -113,10 +147,10 @@ namespace SV22T1080045.Shop.Controllers
             });
 
             if (!result.Success)
-                return View("Index", BuildDashboardModel(voucherForm: model, voucherMessage: result.Message));
+                return View("Discounts", BuildDiscountModel(voucherForm: model, voucherMessage: result.Message));
 
             TempData["VoucherMessage"] = result.Message;
-            return Redirect(Url.Action(nameof(Index)) + "#discounts");
+            return RedirectToAction(nameof(Discounts));
         }
 
         [HttpPost]
@@ -130,7 +164,7 @@ namespace SV22T1080045.Shop.Controllers
                     return NotFound(new { message = result.Message });
 
                 TempData["VoucherMessage"] = result.Message;
-                return Redirect(Url.Action(nameof(Index)) + "#discounts");
+                return RedirectToAction(nameof(Discounts));
             }
 
             if (IsAjaxRequest())
@@ -145,7 +179,7 @@ namespace SV22T1080045.Shop.Controllers
             }
 
             TempData["VoucherMessage"] = result.Message;
-            return Redirect(Url.Action(nameof(Index)) + "#discounts");
+            return RedirectToAction(nameof(Discounts));
         }
 
         [HttpGet]
@@ -181,6 +215,7 @@ namespace SV22T1080045.Shop.Controllers
                     orderDate = item.OrderDate.ToString("dd/MM/yyyy"),
                     item.TotalAmount,
                     statusText = StatusText(item.Status),
+                    item.ItemCount,
                     item.ProductNames
                 })
             });
@@ -213,6 +248,33 @@ namespace SV22T1080045.Shop.Controllers
         }
 
         private ManagementDashboardViewModel BuildDashboardModel(
+            string revenuePeriod = "day",
+            DateTime? revenueDate = null)
+        {
+            var allProducts = _productService.ListProducts(sortBy: "newest");
+            var bestSellers = allProducts.OrderByDescending(p => p.SoldCount ?? 0).Take(5).ToList();
+            var lowStockProducts = allProducts.Where(p => p.DisplayQuantity > 0 && p.DisplayQuantity <= p.DisplayLowStockThreshold).OrderBy(p => p.DisplayQuantity).Take(5).ToList();
+            var outOfStockCount = allProducts.Count(p => p.DisplayQuantity <= 0);
+
+            var selectedRevenueDate = (revenueDate ?? DateTime.Today).Date;
+            var revenueData = _revenueReportService.GetRevenueReport(revenuePeriod, selectedRevenueDate);
+            var recentOrders = ToManagementOrders(_managementService.ListRecentOrders(10));
+
+            return new ManagementDashboardViewModel
+            {
+                AllProducts = ToManagementProducts(allProducts),
+                RevenuePeriod = revenueData.Period,
+                RevenueDate = selectedRevenueDate,
+                RevenueRangeStart = revenueData.StartDate,
+                RevenueRangeEnd = revenueData.EndDate,
+                RevenueSummary = ToManagementSummary(revenueData.Summary),
+                RevenuePoints = ToRevenuePoints(revenueData.RevenuePoints),
+                RecentOrders = recentOrders,
+                OrderStatusGroups = BuildOrderStatusGroups(recentOrders)
+            };
+        }
+
+        private ProductManagementViewModel BuildProductModel(
             int? editProductId = null,
             ProductEditViewModel? productForm = null,
             string searchValue = "",
@@ -220,15 +282,7 @@ namespace SV22T1080045.Shop.Controllers
             string productStatus = "",
             int productPage = 1,
             int? savedProductId = null,
-            string? savedAction = null,
-            string revenuePeriod = "day",
-            DateTime? revenueDate = null,
-            string reportPeriod = "month",
-            DateTime? reportDate = null,
-            int? selectedCustomerId = null,
-            bool showFullCustomerHistory = false,
-            ManagementVoucherInput? voucherForm = null,
-            string? voucherMessage = null)
+            string? savedAction = null)
         {
             var categories = _categoryService.ListCategories();
             var units = _unitService.ListUnits();
@@ -243,21 +297,10 @@ namespace SV22T1080045.Shop.Controllers
 
             productForm ??= BuildProductForm(editProductId, categories.FirstOrDefault()?.Id, units.FirstOrDefault()?.Id);
 
-            var selectedRevenueDate = (revenueDate ?? DateTime.Today).Date;
-            var revenueData = _revenueReportService.GetRevenueReport(revenuePeriod, selectedRevenueDate);
-            var selectedReportDate = (reportDate ?? DateTime.Today).Date;
-            var reportData = _revenueReportService.GetRevenueReport(reportPeriod, selectedReportDate);
-            var customers = ToCustomerRows(_managementService.ListCustomers());
-            var selectedCustomer = selectedCustomerId.HasValue
-                ? customers.FirstOrDefault(c => c.Id == selectedCustomerId.Value)
-                : customers.FirstOrDefault();
-            var recentOrders = ToManagementOrders(_managementService.ListRecentOrders(10));
-
-            return new ManagementDashboardViewModel
+            return new ProductManagementViewModel
             {
                 Categories = ToCategoryOptions(categories),
                 Units = ToUnitOptions(units),
-                AllProducts = ToManagementProducts(allProducts),
                 Products = ToManagementProducts(products),
                 ProductForm = productForm,
                 SearchValue = searchValue?.Trim() ?? "",
@@ -268,24 +311,61 @@ namespace SV22T1080045.Shop.Controllers
                 ProductTotalCount = filteredProducts.Count,
                 ProductTotalPages = totalPages,
                 LastSavedProductId = savedProductId,
-                LastSavedAction = savedAction,
-                RevenuePeriod = revenueData.Period,
-                RevenueDate = selectedRevenueDate,
-                RevenueRangeStart = revenueData.StartDate,
-                RevenueRangeEnd = revenueData.EndDate,
-                RevenueSummary = ToManagementSummary(revenueData.Summary),
-                RevenuePoints = ToRevenuePoints(revenueData.RevenuePoints),
+                LastSavedAction = savedAction
+            };
+        }
+
+        private OrderManagementViewModel BuildOrderModel()
+        {
+            var recentOrders = ToManagementOrders(_managementService.ListRecentOrders(10));
+            return new OrderManagementViewModel
+            {
                 RecentOrders = recentOrders,
-                OrderStatusGroups = BuildOrderStatusGroups(recentOrders),
+                OrderStatusGroups = BuildOrderStatusGroups(recentOrders)
+            };
+        }
+
+        private CustomerManagementViewModel BuildCustomerModel(
+            int? selectedCustomerId = null,
+            bool showFullCustomerHistory = false)
+        {
+            var customers = ToCustomerRows(_managementService.ListCustomers());
+            var selectedCustomer = selectedCustomerId.HasValue
+                ? customers.FirstOrDefault(c => c.Id == selectedCustomerId.Value)
+                : customers.FirstOrDefault();
+
+            return new CustomerManagementViewModel
+            {
                 Customers = customers,
                 SelectedCustomer = selectedCustomer,
                 SelectedCustomerHistory = selectedCustomer == null
                     ? new List<CustomerPurchaseHistoryViewModel>()
                     : ToCustomerHistory(_managementService.ListCustomerHistory(selectedCustomer.Id, showFullCustomerHistory ? 20 : 3)),
-                ShowFullCustomerHistory = showFullCustomerHistory,
+                ShowFullCustomerHistory = showFullCustomerHistory
+            };
+        }
+
+        private DiscountManagementViewModel BuildDiscountModel(
+            ManagementVoucherInput? voucherForm = null,
+            string? voucherMessage = null)
+        {
+            return new DiscountManagementViewModel
+            {
                 VoucherForm = voucherForm ?? new ManagementVoucherInput { ExpiresAt = DateTime.Today.AddMonths(1) },
                 Vouchers = ToManagementVouchers(_managementService.ListVouchers(10)),
-                VoucherMessage = voucherMessage ?? TempData["VoucherMessage"] as string,
+                VoucherMessage = voucherMessage ?? TempData["VoucherMessage"] as string
+            };
+        }
+
+        private ReportManagementViewModel BuildReportModel(
+            string reportPeriod = "month",
+            DateTime? reportDate = null)
+        {
+            var selectedReportDate = (reportDate ?? DateTime.Today).Date;
+            var reportData = _revenueReportService.GetRevenueReport(reportPeriod, selectedReportDate);
+
+            return new ReportManagementViewModel
+            {
                 ReportPeriod = reportData.Period,
                 ReportDate = selectedReportDate,
                 ReportRangeStart = reportData.StartDate,

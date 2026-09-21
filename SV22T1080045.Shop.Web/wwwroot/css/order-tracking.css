@@ -1,0 +1,455 @@
+/* Danh sách đơn + timeline theo dõi (dọc, cập nhật động) */
+
+.lookup-hint {
+    font-size: 13px;
+    min-height: 20px;
+}
+
+.lookup-alert {
+    background: #fff7e0;
+    border: 1px solid #e8c96a;
+    border-radius: 12px;
+    color: #7a5a00;
+    font-size: 14px;
+    padding: 12px 16px;
+}
+
+.lookup-empty {
+    background: var(--warm-50, #fbf7f2);
+    border: 1px dashed var(--border, #ead8c9);
+    border-radius: 8px;
+    padding: 28px 20px;
+    text-align: center;
+}
+
+.orders-shell {
+    display: grid;
+    gap: 20px;
+}
+
+.orders-hero {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--border, #ead8c9);
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgba(61, 50, 34, 0.08);
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    padding: 22px;
+}
+
+.orders-title {
+    color: var(--ink, #3d3222);
+    font-family: var(--font-serif, Georgia, serif);
+    font-size: 30px;
+    line-height: 1.15;
+    margin: 4px 0 6px;
+}
+
+.orders-subtitle {
+    color: var(--ink-4, #8a7a68);
+    font-size: 14px;
+    margin: 0;
+}
+
+.orders-stats {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, minmax(76px, 1fr));
+    min-width: 260px;
+}
+
+.orders-stats div {
+    background: var(--warm-50, #fbf7f2);
+    border: 1px solid var(--border, #ead8c9);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+
+.orders-stats strong {
+    color: var(--ink, #3d3222);
+    display: block;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.orders-stats span {
+    color: var(--ink-4, #8a7a68);
+    display: block;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.orders-section {
+    display: grid;
+    gap: 12px;
+}
+
+.orders-section-head {
+    align-items: flex-end;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.orders-section-head h2 {
+    color: var(--ink, #3d3222);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 3px;
+}
+
+.orders-section-head p,
+.orders-section-head span {
+    color: var(--ink-4, #8a7a68);
+    font-size: 13px;
+    margin: 0;
+}
+
+.orders-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.orders-muted-state {
+    background: #fff;
+    border: 1px dashed var(--border, #ead8c9);
+    border-radius: 8px;
+    color: var(--ink-4, #8a7a68);
+    font-size: 14px;
+    padding: 18px;
+}
+
+.orders-footer-actions {
+    border-top: 1px solid var(--border, #ead8c9);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 18px;
+}
+
+.order-list-card {
+    background: #fff;
+    border: 1px solid var(--border, #ead8c9);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    padding: 16px 18px;
+}
+
+.order-card-modern {
+    box-shadow: 0 10px 28px rgba(61, 50, 34, 0.06);
+    margin-bottom: 0;
+}
+
+.order-card-modern.completed {
+    background: linear-gradient(180deg, #ffffff 0%, #f6fff8 100%);
+}
+
+.order-list-card-head {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.order-list-code {
+    font-family: var(--font-serif, Georgia, serif);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.order-list-meta {
+    color: var(--ink-4, #8a7a68);
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.order-list-card-foot {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.order-actions form {
+    margin: 0;
+}
+
+.order-mini-timeline {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin: 12px 0 14px;
+}
+
+.order-mini-step {
+    background: var(--warm-200, #e8ddd0);
+    border-radius: 999px;
+    display: block;
+    height: 6px;
+}
+
+.order-mini-step.done {
+    background: var(--gold, #b8860b);
+}
+
+.order-mini-step.active {
+    background: var(--ink, #3d3222);
+}
+
+.order-mini-step.cancelled {
+    background: #e8a99a;
+}
+
+.order-list-amount {
+    color: var(--ink, #3d3222);
+    font-size: 17px;
+}
+
+.order-status-pill {
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    white-space: nowrap;
+}
+
+.order-status-pill.status-pending {
+    background: #fff7e0;
+    color: #9a6a00;
+}
+
+.order-status-pill.status-shipping {
+    background: #eef4ff;
+    color: #2c5aa0;
+}
+
+.order-status-pill.status-done {
+    background: #edfaf1;
+    color: #218c52;
+}
+
+.order-status-pill.status-cancel {
+    background: #fff0ed;
+    color: #c0392b;
+}
+
+.track-header {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.track-progress-card {
+    background: linear-gradient(180deg, #fff 0%, var(--warm-50, #fbf7f2) 100%);
+    border: 1px solid var(--border, #ead8c9);
+    border-radius: 8px;
+    margin: 0 0 22px;
+    padding: 16px;
+}
+
+.track-progress-main {
+    align-items: baseline;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.track-progress-label {
+    color: var(--ink-4, #8a7a68);
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.track-progress-main strong {
+    color: var(--ink, #3d3222);
+    font-size: 18px;
+}
+
+.track-progress-rail {
+    background: var(--warm-200, #e8ddd0);
+    border-radius: 999px;
+    height: 8px;
+    margin: 12px 0 8px;
+    overflow: hidden;
+}
+
+.track-progress-rail span {
+    background: linear-gradient(90deg, var(--gold, #b8860b), var(--ink, #3d3222));
+    border-radius: inherit;
+    display: block;
+    height: 100%;
+    transition: width 0.25s ease;
+}
+
+.track-progress-caption {
+    color: var(--ink-4, #8a7a68);
+    display: flex;
+    font-size: 12px;
+    justify-content: space-between;
+}
+
+.track-kicker {
+    color: var(--ink-4, #8a7a68);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.track-code {
+    font-family: var(--font-serif, Georgia, serif);
+    font-size: 28px;
+    margin: 4px 0;
+}
+
+.track-meta {
+    color: var(--ink-4, #8a7a68);
+    font-size: 13px;
+}
+
+.track-poll-hint {
+    color: var(--ink-4, #8a7a68);
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.track-timeline {
+    margin: 0 0 28px;
+    padding: 4px 0 4px 6px;
+}
+
+.track-step {
+    display: flex;
+    gap: 14px;
+    padding-bottom: 0;
+    position: relative;
+}
+
+.track-step:not(:last-child) {
+    padding-bottom: 22px;
+}
+
+.track-step:not(:last-child)::before {
+    background: var(--warm-200, #e8ddd0);
+    bottom: 0;
+    content: "";
+    left: 9px;
+    position: absolute;
+    top: 22px;
+    width: 2px;
+}
+
+.track-step.done:not(:last-child)::before {
+    background: var(--gold, #b8860b);
+}
+
+.track-step.active:not(:last-child)::before {
+    background: linear-gradient(180deg, var(--gold, #b8860b) 0%, var(--warm-200, #e8ddd0) 100%);
+}
+
+.track-step-dot {
+    background: var(--warm-100, #f3ebe0);
+    border: 2px solid var(--warm-200, #e8ddd0);
+    border-radius: 50%;
+    flex-shrink: 0;
+    height: 20px;
+    margin-top: 2px;
+    position: relative;
+    width: 20px;
+    z-index: 1;
+}
+
+.track-step.done .track-step-dot {
+    background: var(--gold, #b8860b);
+    border-color: var(--gold, #b8860b);
+    box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.15);
+}
+
+.track-step.active .track-step-dot {
+    animation: track-pulse 1.6s ease-in-out infinite;
+    background: var(--ink, #3d3222);
+    border-color: var(--ink, #3d3222);
+}
+
+.track-step.cancelled .track-step-dot {
+    background: #fff0ed;
+    border-color: #e8a99a;
+}
+
+.track-step-label {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.track-step.done .track-step-label {
+    color: var(--ink, #3d3222);
+}
+
+.track-step.active .track-step-label {
+    color: var(--ink, #3d3222);
+    font-weight: 600;
+}
+
+.track-step.pending .track-step-label {
+    color: var(--ink-4, #8a7a68);
+}
+
+.track-step.cancelled .track-step-label {
+    color: #c0392b;
+}
+
+@keyframes track-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(61, 50, 34, 0.25); }
+    50% { box-shadow: 0 0 0 8px rgba(61, 50, 34, 0); }
+}
+
+@media (max-width: 768px) {
+    .track-code {
+        font-size: 22px;
+    }
+
+    .order-list-card-foot .commerce-btn {
+        width: 100%;
+    }
+
+    .orders-hero {
+        padding: 18px;
+    }
+
+    .orders-hero,
+    .orders-section-head,
+    .order-list-card-head,
+    .track-progress-main,
+    .track-progress-caption {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .orders-stats {
+        grid-template-columns: repeat(3, 1fr);
+        min-width: 0;
+        width: 100%;
+    }
+
+    .order-actions,
+    .order-actions form,
+    .order-actions .commerce-btn,
+    .orders-footer-actions .commerce-btn {
+        width: 100%;
+    }
+}

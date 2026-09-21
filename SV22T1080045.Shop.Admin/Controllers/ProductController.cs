@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models.Mappers;
 using SV22T1080045.Shop.Models.ViewModels.Product;
 
 namespace SV22T1080045.Shop.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = CustomerRoles.Admin)]
     public class ProductController : Controller
     {
         private readonly IProductService _productService;

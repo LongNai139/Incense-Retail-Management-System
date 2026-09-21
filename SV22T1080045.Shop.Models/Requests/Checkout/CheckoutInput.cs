@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SV22T1080045.Shop.Abstractions;
 
 namespace SV22T1080045.Shop.Models.Requests.Checkout
 {
@@ -13,7 +14,7 @@ namespace SV22T1080045.Shop.Models.Requests.Checkout
         public string ShippingName { get; set; } = "";
 
         [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
-        [RegularExpression(@"^(0|\+84)[3-9]\d{8}$", ErrorMessage = "Số điện thoại không hợp lệ")]
+        [RegularExpression(PhoneNumberHelper.VietnameseMobilePattern, ErrorMessage = "Số điện thoại không hợp lệ")]
         public string ShippingPhone { get; set; } = "";
 
         [Required(ErrorMessage = "Vui lòng nhập địa chỉ")]

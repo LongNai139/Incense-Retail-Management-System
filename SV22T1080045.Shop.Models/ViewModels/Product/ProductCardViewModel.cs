@@ -22,18 +22,28 @@ namespace SV22T1080045.Shop.Models.ViewModels.Product
         public string? CategoryName { get; set; }
         public DateTime CreatedTime { get; set; }
 
+        /// <summary>Giá bán niêm yết trước giảm (giống prototype: originalPrice).</summary>
         public decimal DisplayOriginalPrice => SalePrice > 0 ? SalePrice : OriginalPrice;
 
-        public decimal DisplayPrice => PriceAfterDiscount > 0
-            ? PriceAfterDiscount
-            : Math.Round(DisplayOriginalPrice * (100 - DiscountPercentValue) / 100, 0);
+        /// <summary>Giá khách mua (giống prototype: price).</summary>
+        public decimal DisplayPrice => PriceAfterDiscount;
 
-        public bool HasDiscount => DisplayOriginalPrice > DisplayPrice;
+        public bool HasDiscount => DisplayOriginalPrice > DisplayPrice && DisplayPrice > 0;
 
-        public int DiscountPercent =>
-            HasDiscount && DisplayOriginalPrice > 0
-                ? (int)Math.Round((1 - (double)DisplayPrice / (double)DisplayOriginalPrice) * 100)
-                : 0;
+        public int DiscountPercent
+        {
+            get
+            {
+                if (!HasDiscount || DisplayOriginalPrice <= 0)
+                    return 0;
+
+                var percent = DiscountPercentValue > 0
+                    ? DiscountPercentValue
+                    : (decimal)((1 - (double)DisplayPrice / (double)DisplayOriginalPrice) * 100);
+
+                return (int)Math.Round(percent);
+            }
+        }
 
         public bool InStock => Quantity > 0;
         public bool IsLowStock => Quantity > 0 && Quantity <= LowStockThreshold;

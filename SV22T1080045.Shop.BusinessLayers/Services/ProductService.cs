@@ -163,12 +163,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
         }
 
         private static decimal CalculatePriceAfterDiscount(decimal salePrice, decimal discountPercent)
-        {
-            if (salePrice <= 0)
-                return 0;
-
-            return Math.Round(salePrice * (100 - discountPercent) / 100, 0);
-        }
+            => ProductPricingRules.CalculatePriceAfterDiscount(salePrice, discountPercent);
 
         private static void ValidateImageUpload(FileUploadData? upload)
         {

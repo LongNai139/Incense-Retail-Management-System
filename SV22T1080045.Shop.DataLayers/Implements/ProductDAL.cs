@@ -172,16 +172,24 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
 
             if (filter.PriceMin.HasValue)
+            {
+                var min = filter.PriceMin.Value;
                 query = query.Where(p =>
-                    (p.PriceAfterDiscount > 0
-                        ? p.PriceAfterDiscount
-                        : (p.SalePrice > 0 ? p.SalePrice * (100 - p.DiscountPercent) / 100 : p.OriginalPrice)) >= filter.PriceMin.Value);
+                    (p.DiscountPercent > 0
+                        ? (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice) * (100 - p.DiscountPercent) / 100
+                        : (p.PriceAfterDiscount > 0 ? p.PriceAfterDiscount : (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice)))
+                    >= min);
+            }
 
             if (filter.PriceMax.HasValue)
+            {
+                var max = filter.PriceMax.Value;
                 query = query.Where(p =>
-                    (p.PriceAfterDiscount > 0
-                        ? p.PriceAfterDiscount
-                        : (p.SalePrice > 0 ? p.SalePrice * (100 - p.DiscountPercent) / 100 : p.OriginalPrice)) <= filter.PriceMax.Value);
+                    (p.DiscountPercent > 0
+                        ? (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice) * (100 - p.DiscountPercent) / 100
+                        : (p.PriceAfterDiscount > 0 ? p.PriceAfterDiscount : (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice)))
+                    <= max);
+            }
 
             if (includeOrigin && !string.IsNullOrWhiteSpace(filter.Origin))
                 query = query.Where(p => p.Origin == filter.Origin);
@@ -206,8 +214,14 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             {
                 "bestseller" => query.OrderByDescending(p => p.SoldCount ?? 0).ThenByDescending(p => p.CreatedTime),
                 "newest" => query.OrderByDescending(p => p.CreatedTime),
-                "price-asc" => query.OrderBy(p => p.PriceAfterDiscount > 0 ? p.PriceAfterDiscount : (p.SalePrice > 0 ? p.SalePrice * (100 - p.DiscountPercent) / 100 : p.OriginalPrice)),
-                "price-desc" => query.OrderByDescending(p => p.PriceAfterDiscount > 0 ? p.PriceAfterDiscount : (p.SalePrice > 0 ? p.SalePrice * (100 - p.DiscountPercent) / 100 : p.OriginalPrice)),
+                "price-asc" => query.OrderBy(p =>
+                    p.DiscountPercent > 0
+                        ? (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice) * (100 - p.DiscountPercent) / 100
+                        : (p.PriceAfterDiscount > 0 ? p.PriceAfterDiscount : (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice))),
+                "price-desc" => query.OrderByDescending(p =>
+                    p.DiscountPercent > 0
+                        ? (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice) * (100 - p.DiscountPercent) / 100
+                        : (p.PriceAfterDiscount > 0 ? p.PriceAfterDiscount : (p.SalePrice > 0 ? p.SalePrice : p.OriginalPrice))),
                 "rating" => query.OrderByDescending(p => p.Rating ?? 0).ThenByDescending(p => p.CreatedTime),
                 _ => query.OrderByDescending(p => p.CreatedTime)
             };

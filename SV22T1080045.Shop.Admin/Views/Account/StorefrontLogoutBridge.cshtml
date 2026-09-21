@@ -1,0 +1,20 @@
+@{
+    Layout = null;
+    var storefrontLogoutUrl = ViewBag.StorefrontLogoutUrl as string ?? "";
+    var storefrontLoginUrl = ViewBag.StorefrontLoginUrl as string ?? "/Account/Login";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Đang đăng xuất...</title>
+</head>
+<body>
+    <p>Đang đăng xuất phiên cửa hàng (7126)...</p>
+    <form id="logoutBridge" method="post" action="@storefrontLogoutUrl"></form>
+    <script>
+        document.getElementById('logoutBridge').submit();
+        setTimeout(function () { window.location.href = '@storefrontLoginUrl'; }, 800);
+    </script>
+</body>
+</html>

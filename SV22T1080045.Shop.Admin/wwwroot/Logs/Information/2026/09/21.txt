@@ -1,0 +1,574 @@
+Information: 9/21/2026 12:30:28 PM Executed DbCommand (105ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 12:30:29 PM Executed DbCommand (2ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 12:30:30 PM Now listening on: https://0.0.0.0:7127
+Information: 9/21/2026 12:30:30 PM Now listening on: http://0.0.0.0:5298
+Information: 9/21/2026 12:30:30 PM Application started. Press Ctrl+C to shut down.
+Information: 9/21/2026 12:30:30 PM Hosting environment: Development
+Information: 9/21/2026 12:30:30 PM Content root path: C:\Users\ADMIN\source\repos\LongNai139\Incense-Retail-Management-System\SV22T1080045.Shop.Admin
+Information: 9/21/2026 12:30:46 PM Login attempt. Phone: 0909123456, Password length: 3
+Information: 9/21/2026 3:28:56 PM Executed DbCommand (178ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 3:28:57 PM Executed DbCommand (7ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 3:28:58 PM Now listening on: https://0.0.0.0:7127
+Information: 9/21/2026 3:28:58 PM Now listening on: http://0.0.0.0:5298
+Information: 9/21/2026 3:28:58 PM Application started. Press Ctrl+C to shut down.
+Information: 9/21/2026 3:28:58 PM Hosting environment: Development
+Information: 9/21/2026 3:28:58 PM Content root path: C:\Users\ADMIN\source\repos\LongNai139\Incense-Retail-Management-System\SV22T1080045.Shop.Admin
+Information: 9/21/2026 3:29:36 PM Login attempt. Phone: 0905000000, Password length: 10
+Information: 9/21/2026 3:29:37 PM Executed DbCommand (1ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 3:29:37 PM Login result: Success
+Information: 9/21/2026 3:29:37 PM Customer found. ID: 4, Role: Admin
+Information: 9/21/2026 3:29:37 PM Login successful. Customer ID: 4, Role: Admin
+Information: 9/21/2026 3:29:37 PM Redirecting to Admin: True
+Information: 9/21/2026 3:29:37 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 3:29:37 PM User roles: Admin
+Information: 9/21/2026 3:29:37 PM IsInRole Admin: True
+Information: 9/21/2026 3:29:37 PM Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 3:29:37 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 3:29:37 PM Executed DbCommand (10ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 3:34:40 PM Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Role] IN (N'Admin', N'Staff')
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 3:34:40 PM Executed DbCommand (33ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 3:34:56 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 3:34:56 PM User roles: Admin
+Information: 9/21/2026 3:34:56 PM IsInRole Admin: True
+Information: 9/21/2026 3:34:56 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 3:34:56 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 3:34:56 PM Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 3:34:59 PM Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Role] IN (N'Admin', N'Staff')
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 3:34:59 PM Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 3:36:13 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 3:36:13 PM User roles: Admin
+Information: 9/21/2026 3:36:13 PM IsInRole Admin: True
+Information: 9/21/2026 3:36:13 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 3:36:13 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 3:36:13 PM Executed DbCommand (12ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 3:41:45 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Role] IN (N'Admin', N'Staff')
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 3:41:45 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 4:03:02 PM Executed DbCommand (84ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:03:02 PM Executed DbCommand (3ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:03:03 PM Now listening on: https://0.0.0.0:7127
+Information: 9/21/2026 4:03:03 PM Now listening on: http://0.0.0.0:5298
+Information: 9/21/2026 4:03:03 PM Application started. Press Ctrl+C to shut down.
+Information: 9/21/2026 4:03:03 PM Hosting environment: Development
+Information: 9/21/2026 4:03:03 PM Content root path: C:\Users\ADMIN\source\repos\LongNai139\Incense-Retail-Management-System\SV22T1080045.Shop.Admin
+Information: 9/21/2026 4:03:04 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:03:04 PM User roles: Admin
+Information: 9/21/2026 4:03:04 PM IsInRole Admin: True
+Information: 9/21/2026 4:03:05 PM Executed DbCommand (10ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:03:15 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 4:03:16 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 4:03:16 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:03:31 PM Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Role] IN (N'Admin', N'Staff')
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 4:03:31 PM Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 4:04:50 PM Executed DbCommand (15ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 4:04:50 PM Executed DbCommand (17ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 4:04:50 PM Executed DbCommand (36ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:04:57 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:04:57 PM User roles: Admin
+Information: 9/21/2026 4:04:57 PM IsInRole Admin: True
+Information: 9/21/2026 4:04:57 PM Executed DbCommand (49ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:06:57 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:06:57 PM User roles: Admin
+Information: 9/21/2026 4:06:57 PM IsInRole Admin: True
+Information: 9/21/2026 4:06:57 PM Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:06:59 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:06:59 PM User roles: Admin
+Information: 9/21/2026 4:06:59 PM IsInRole Admin: True
+Information: 9/21/2026 4:06:59 PM Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:07:01 PM Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 4:07:01 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 4:07:01 PM Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:07:03 PM Executed DbCommand (32ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 4:07:03 PM Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 4:07:03 PM Executed DbCommand (33ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:08:02 PM Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 4:08:02 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 4:08:02 PM Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:09:42 PM Executed DbCommand (35ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:09:42 PM Executed DbCommand (2ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:09:43 PM Now listening on: https://0.0.0.0:7127
+Information: 9/21/2026 4:09:43 PM Now listening on: http://0.0.0.0:5298
+Information: 9/21/2026 4:09:43 PM Application started. Press Ctrl+C to shut down.
+Information: 9/21/2026 4:09:43 PM Hosting environment: Development
+Information: 9/21/2026 4:09:43 PM Content root path: C:\Users\ADMIN\source\repos\LongNai139\Incense-Retail-Management-System\SV22T1080045.Shop.Admin
+Information: 9/21/2026 4:11:44 PM Executed DbCommand (109ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:11:45 PM Executed DbCommand (4ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:11:46 PM Now listening on: https://0.0.0.0:7127
+Information: 9/21/2026 4:11:46 PM Now listening on: http://0.0.0.0:5298
+Information: 9/21/2026 4:11:46 PM Application started. Press Ctrl+C to shut down.
+Information: 9/21/2026 4:11:46 PM Hosting environment: Development
+Information: 9/21/2026 4:11:46 PM Content root path: C:\Users\ADMIN\source\repos\LongNai139\Incense-Retail-Management-System\SV22T1080045.Shop.Admin
+Information: 9/21/2026 4:11:48 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:11:48 PM User roles: Admin
+Information: 9/21/2026 4:11:48 PM IsInRole Admin: True
+Information: 9/21/2026 4:11:48 PM Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:11:53 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:11:53 PM User roles: Admin
+Information: 9/21/2026 4:11:53 PM IsInRole Admin: True
+Information: 9/21/2026 4:11:53 PM Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:11:56 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:11:56 PM User roles: Admin
+Information: 9/21/2026 4:11:56 PM IsInRole Admin: True
+Information: 9/21/2026 4:11:56 PM Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:11:57 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:11:57 PM User roles: Admin
+Information: 9/21/2026 4:11:57 PM IsInRole Admin: True
+Information: 9/21/2026 4:11:57 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:12:43 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:12:43 PM User roles: Admin
+Information: 9/21/2026 4:12:43 PM IsInRole Admin: True
+Information: 9/21/2026 4:12:43 PM Executed DbCommand (17ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:14:02 PM Executed DbCommand (52ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:14:02 PM Executed DbCommand (2ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:14:03 PM Now listening on: https://0.0.0.0:7127
+Information: 9/21/2026 4:14:03 PM Now listening on: http://0.0.0.0:5298
+Information: 9/21/2026 4:14:03 PM Application started. Press Ctrl+C to shut down.
+Information: 9/21/2026 4:14:03 PM Hosting environment: Development
+Information: 9/21/2026 4:14:03 PM Content root path: C:\Users\ADMIN\source\repos\LongNai139\Incense-Retail-Management-System\SV22T1080045.Shop.Admin
+Information: 9/21/2026 4:14:04 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:14:04 PM User roles: Admin
+Information: 9/21/2026 4:14:04 PM IsInRole Admin: True
+Information: 9/21/2026 4:14:04 PM Executed DbCommand (10ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:14:18 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CategoryName]
+Information: 9/21/2026 4:14:18 PM Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName]
+FROM [Units] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [u].[UnitName]
+Information: 9/21/2026 4:14:18 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:14:23 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Role] IN (N'Admin', N'Staff')
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 4:14:23 PM Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 4:15:30 PM Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Role] IN (N'Admin', N'Staff')
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 4:15:30 PM Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [c].[CreatedTime] DESC
+Information: 9/21/2026 4:16:40 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:16:40 PM User roles: Admin
+Information: 9/21/2026 4:16:40 PM IsInRole Admin: True
+Information: 9/21/2026 4:16:40 PM Executed DbCommand (15ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:16:42 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:16:42 PM User roles: Admin
+Information: 9/21/2026 4:16:42 PM IsInRole Admin: True
+Information: 9/21/2026 4:16:42 PM Executed DbCommand (18ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:16:43 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:16:43 PM User roles: Admin
+Information: 9/21/2026 4:16:43 PM IsInRole Admin: True
+Information: 9/21/2026 4:16:43 PM Executed DbCommand (18ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:16:44 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:16:44 PM User roles: Admin
+Information: 9/21/2026 4:16:44 PM IsInRole Admin: True
+Information: 9/21/2026 4:16:44 PM Executed DbCommand (28ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:16:44 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:16:44 PM User roles: Admin
+Information: 9/21/2026 4:16:44 PM IsInRole Admin: True
+Information: 9/21/2026 4:16:45 PM Executed DbCommand (15ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:16:45 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:16:45 PM User roles: Admin
+Information: 9/21/2026 4:16:45 PM IsInRole Admin: True
+Information: 9/21/2026 4:16:45 PM Executed DbCommand (23ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:16:48 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:16:48 PM User roles: Admin
+Information: 9/21/2026 4:16:48 PM IsInRole Admin: True
+Information: 9/21/2026 4:16:48 PM Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:17:30 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:17:30 PM User roles: Admin
+Information: 9/21/2026 4:17:30 PM IsInRole Admin: True
+Information: 9/21/2026 4:17:30 PM Executed DbCommand (15ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:19:07 PM Executed DbCommand (40ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:19:07 PM Executed DbCommand (5ms) [Parameters=[@__normalizedPhone_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [c].[Id], [c].[Address], [c].[CreatedTime], [c].[CustomerName], [c].[Email], [c].[IsDeleted], [c].[Password], [c].[Phone], [c].[Role]
+FROM [Customers] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND [c].[Phone] = @__normalizedPhone_0
+Information: 9/21/2026 4:19:07 PM Now listening on: https://0.0.0.0:7127
+Information: 9/21/2026 4:19:07 PM Now listening on: http://0.0.0.0:5298
+Information: 9/21/2026 4:19:07 PM Application started. Press Ctrl+C to shut down.
+Information: 9/21/2026 4:19:07 PM Hosting environment: Development
+Information: 9/21/2026 4:19:07 PM Content root path: C:\Users\ADMIN\source\repos\LongNai139\Incense-Retail-Management-System\SV22T1080045.Shop.Admin
+Information: 9/21/2026 4:19:55 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:19:55 PM User roles: Admin
+Information: 9/21/2026 4:19:55 PM IsInRole Admin: True
+Information: 9/21/2026 4:19:55 PM Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:19:59 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:19:59 PM User roles: Admin
+Information: 9/21/2026 4:19:59 PM IsInRole Admin: True
+Information: 9/21/2026 4:20:00 PM Executed DbCommand (22ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:20:10 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:20:10 PM User roles: Admin
+Information: 9/21/2026 4:20:10 PM IsInRole Admin: True
+Information: 9/21/2026 4:20:10 PM Executed DbCommand (18ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC
+Information: 9/21/2026 4:22:25 PM Management Index called. IsAuthenticated: True
+Information: 9/21/2026 4:22:25 PM User roles: Admin
+Information: 9/21/2026 4:22:25 PM IsInRole Admin: True
+Information: 9/21/2026 4:22:25 PM Executed DbCommand (25ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[AgeYear], [p].[BurningTime], [p].[CategoryId], [p].[CreatedTime], [p].[Description], [p].[DiscountPercent], [p].[ImageUrl], [p].[ImageUrl2], [p].[ImageUrl3], [p].[ImageUrl4], [p].[ImportPrice], [p].[Ingredient], [p].[IsDeleted], [p].[Length], [p].[OilContent], [p].[Origin], [p].[OriginalPrice], [p].[PriceAfterDiscount], [p].[ProductName], [p].[Quantity], [p].[Rating], [p].[ReviewCount], [p].[SalePrice], [p].[SoldCount], [p].[UnitId], [p].[UsageTags], [p].[Weight], [c].[Id], [c].[CategoryName], [c].[CreatedTime], [c].[Description], [c].[ImageUrl], [c].[IsDeleted], [u].[Id], [u].[CreatedTime], [u].[IsDeleted], [u].[UnitName], [p0].[ProductId], [p0].[LowStockThreshold], [p0].[Quantity], [p0].[UpdatedTime]
+FROM [Products] AS [p]
+INNER JOIN [Categories] AS [c] ON [p].[CategoryId] = [c].[Id]
+INNER JOIN [Units] AS [u] ON [p].[UnitId] = [u].[Id]
+LEFT JOIN [ProductInventories] AS [p0] ON [p].[Id] = [p0].[ProductId]
+WHERE [p].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [p].[CreatedTime] DESC

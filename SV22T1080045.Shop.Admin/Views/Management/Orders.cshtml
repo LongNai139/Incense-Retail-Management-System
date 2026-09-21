@@ -1,0 +1,184 @@
+@{
+    Layout = "_ManagementLayout";
+}
+
+@model SV22T1080045.Shop.Models.ViewModels.Management.OrderManagementViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Models.ViewModels.Management
+
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+    string MaskPhone(string? phone) => string.IsNullOrWhiteSpace(phone) || phone.Length < 4 ? "***" : "***" + phone[^4..];
+    string StatusText(int status) => status switch { 1 => "Chờ xử lý", 2 => "Đang chuẩn bị", 3 => "Đang giao", 4 => "Hoàn thành", -1 => "Đã hủy", _ => "Khác" };
+    string StatusClass(int status) => status switch { 1 => "status-pending", 2 => "status-ready", 3 => "status-shipped", 4 => "status-done", -1 => "status-cancel", _ => "status-ready" };
+}
+
+<section class="management-hero">
+    <div>
+        <div class="management-kicker">Quản lý đơn hàng</div>
+        <h1>Danh sách đơn hàng</h1>
+        <p>Đơn hàng mới nhất được lấy từ bảng Orders, ghép Customers và OrderDetails để hiển thị khách, số món, tổng tiền và trạng thái.</p>
+    </div>
+    <div class="management-actions">
+        <button class="admin-btn"><i class="fa-solid fa-print"></i> In hóa đơn</button>
+        <button class="admin-btn"><i class="fa-solid fa-truck-fast"></i> Phiếu giao GHN</button>
+    </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-section-head">
+        <div>
+            <h2>Quản lý đơn hàng</h2>
+            <p class="admin-section-desc">Đơn hàng mới nhất được lấy từ bảng Orders, ghép Customers và OrderDetails để hiển thị khách, số món, tổng tiền và trạng thái.</p>
+        </div>
+    </div>
+
+    <div class="order-board">
+        @foreach (var group in Model.OrderStatusGroups)
+        {
+            <div class="order-column">
+                <div class="order-column-title">@group.StatusText (@group.Orders.Count)</div>
+                @if (group.Orders.Any())
+                {
+                    foreach (var order in group.Orders)
+                    {
+                        <button class="order-ticket" type="button" data-order-link data-order-id="@order.Id">
+                            <strong>@order.OrderCode</strong>
+                            <span>@(order.IsGuest ? $"Guest {MaskPhone(order.CustomerPhone)}" : order.CustomerName) | @FormatMoney(order.TotalAmount) | @order.ItemCount món</span>
+                        </button>
+                    }
+                }
+                else
+                {
+                    <div class="item-meta">Không có đơn.</div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="admin-table-wrap" style="margin-top:16px;">
+        <table class="admin-table">
+            <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>SĐT</th><th>Số món</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th></tr></thead>
+            <tbody>
+                @foreach (var order in Model.RecentOrders)
+                {
+                    <tr data-order-row="@order.Id">
+                        <td>@order.OrderCode</td>
+                        <td>@(order.IsGuest ? "Khách vãng lai" : order.CustomerName)</td>
+                        <td>@MaskPhone(order.CustomerPhone)</td>
+                        <td>@order.ItemCount</td>
+                        <td>@FormatMoney(order.TotalAmount)</td>
+                        <td><span class="status-badge @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
+                        <td><button class="link-button" type="button" data-order-link data-order-id="@order.Id">@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-panel order-detail-panel" id="orderDetailPanel">
+        <div class="panel-title">
+            <span>Chi tiết đơn hàng</span>
+            <span class="status-badge status-ready" id="selectedOrderCode">Chọn một đơn</span>
+        </div>
+        <div id="orderDetailContent" class="customer-history">
+            <div class="item-meta">Nhấp vào mã đơn trong bảng hoặc thẻ trạng thái để xem sản phẩm, số lượng, đơn giá và tổng tiền ngay tại đây.</div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function formatMoneyVnd(value) {
+            return new Intl.NumberFormat('vi-VN').format(value || 0) + 'đ';
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderOrderDetails(data) {
+            var panel = document.getElementById('orderDetailPanel');
+            var code = document.getElementById('selectedOrderCode');
+            var content = document.getElementById('orderDetailContent');
+            if (!data || !data.order || !content) {
+                return;
+            }
+
+            if (code) {
+                code.textContent = data.order.orderCode;
+            }
+
+            document.querySelectorAll('[data-order-row], [data-order-link]').forEach(function (item) {
+                var selected = item.getAttribute('data-order-id') === String(data.order.id) ||
+                    item.getAttribute('data-order-row') === String(data.order.id);
+                item.classList.toggle('product-row-highlight', selected);
+                item.classList.toggle('is-selected', selected);
+            });
+
+            var rows = (data.details || []).map(function (item) {
+                return '<tr>' +
+                    '<td>' + escapeHtml(item.productName) + '</td>' +
+                    '<td>' + escapeHtml(item.quantity) + '</td>' +
+                    '<td>' + formatMoneyVnd(item.unitPrice) + '</td>' +
+                    '<td>' + formatMoneyVnd(item.lineTotal) + '</td>' +
+                    '</tr>';
+            }).join('');
+
+            content.innerHTML =
+                '<div class="order-detail-summary">' +
+                '<div><strong>' + escapeHtml(data.order.customerName) + '</strong><span>' + escapeHtml(data.order.customerPhone) + '</span></div>' +
+                '<div><strong>' + formatMoneyVnd(data.order.totalAmount) + '</strong><span>' + escapeHtml(data.order.statusText) + ' | ' + escapeHtml(data.order.orderDate) + '</span></div>' +
+                '</div>' +
+                '<div class="item-meta">' + escapeHtml(data.order.shippingAddress) + '</div>' +
+                '<div class="admin-table-wrap order-detail-table">' +
+                '<table class="admin-table"><thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>' +
+                (rows || '<tr><td colspan="4">Đơn hàng chưa có chi tiết.</td></tr>') +
+                '</tbody></table></div>';
+
+            if (panel) {
+                panel.classList.remove('is-loading');
+            }
+        }
+
+        document.addEventListener('click', function (event) {
+            var trigger = event.target.closest('[data-order-link]');
+            if (!trigger) {
+                return;
+            }
+
+            event.preventDefault();
+            var orderId = trigger.getAttribute('data-order-id');
+            var panel = document.getElementById('orderDetailPanel');
+            if (panel) {
+                panel.classList.add('is-loading');
+            }
+
+            fetch('/Management/OrderDetails?orderId=' + encodeURIComponent(orderId), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Không tải được chi tiết đơn hàng.');
+                    }
+                    return response.json();
+                })
+                .then(renderOrderDetails)
+                .catch(function () {
+                    var content = document.getElementById('orderDetailContent');
+                    if (content) {
+                        content.innerHTML = '<div class="item-meta">Không tải được chi tiết đơn hàng. Vui lòng thử lại.</div>';
+                    }
+                    if (panel) {
+                        panel.classList.remove('is-loading');
+                    }
+                });
+        });
+    </script>
+}

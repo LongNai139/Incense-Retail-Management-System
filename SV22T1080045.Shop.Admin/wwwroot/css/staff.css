@@ -34,7 +34,7 @@
 .staff-shell {
     display: grid;
     grid-template-columns: 252px minmax(0, 1fr);
-    min-height: calc(100vh - 96px);
+    min-height: calc(100vh - 68px);
     background: var(--warm-bg);
     color: var(--ink);
     font-size: 14px;

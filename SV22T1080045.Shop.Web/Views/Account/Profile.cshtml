@@ -19,8 +19,11 @@
                 </div>
 
                 <div class="d-grid gap-2">
+                    <a asp-controller="MyOrders" asp-action="Index" class="btn btn-dark rounded-pill">
+                        Đơn hàng của tôi
+                    </a>
                     <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-outline-dark rounded-pill">
-                        Tra cứu đơn hàng
+                        Tra cứu đơn (SĐT + OTP)
                     </a>
                     <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger rounded-pill">
                         Đăng xuất

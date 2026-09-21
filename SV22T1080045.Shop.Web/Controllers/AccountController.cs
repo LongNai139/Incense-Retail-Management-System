@@ -6,6 +6,7 @@ using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models;
+using SV22T1080045.Shop.Models.ViewModels.Account;
 using System.Security.Claims;
 
 namespace SV22T1080045.Shop.Controllers
@@ -14,15 +15,17 @@ namespace SV22T1080045.Shop.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IOtpService _otpService;
+        private readonly IConfiguration _configuration;
         private const int MaxLoginFailCount = 5;
         private const int MaxRegisterOtpVerifyFailCount = 5;
         private const int RegisterOtpVerifiedMinutes = 5;
         private const int LockMinutes = 5;
 
-        public AccountController(IAccountService accountService, IOtpService otpService)
+        public AccountController(IAccountService accountService, IOtpService otpService, IConfiguration configuration)
         {
             _accountService = accountService;
             _otpService = otpService;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -57,13 +60,27 @@ namespace SV22T1080045.Shop.Controllers
 
             if (customer != null)
             {
-                await SignInCustomerAsync(customer);
-
                 HttpContext.Session.Remove($"login_fail_{model.Phone}");
                 HttpContext.Session.Remove($"login_lock_{model.Phone}");
-                if (string.Equals(customer.Role, "Staff", StringComparison.OrdinalIgnoreCase))
-                    return RedirectToAction("Index", "Staff");
 
+                var backofficeUrl = (_configuration["AppHosts:BackofficeUrl"] ?? "https://localhost:7127").TrimEnd('/');
+
+                if (IsBackofficeRole(customer.Role))
+                {
+                    await SignInCustomerAsync(customer);
+
+                    return View("BackofficeLoginBridge", new BackofficeLoginBridgeViewModel
+                    {
+                        BackofficeLoginUrl = $"{backofficeUrl}/Account/BridgeLogin",
+                        Phone = model.Phone,
+                        Password = model.Password,
+                        ReturnUrl = string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase)
+                            ? "/Management"
+                            : "/Staff"
+                    });
+                }
+
+                await SignInCustomerAsync(customer);
                 return RedirectToAction("Index", "Home");
             }
 
@@ -224,10 +241,35 @@ namespace SV22T1080045.Shop.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        public async Task<IActionResult> Logout()
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> LogoutBridge()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Content("OK");
+        }
+
+        public async Task<IActionResult> Logout()
+        {
+            var isBackoffice = User.IsInRole(CustomerRoles.Admin) || User.IsInRole(CustomerRoles.Staff);
+            var backofficeUrl = (_configuration["AppHosts:BackofficeUrl"] ?? "https://localhost:7127").TrimEnd('/');
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (isBackoffice)
+            {
+                ViewBag.BackofficeLogoutUrl = $"{backofficeUrl}/Account/LogoutBridge";
+                return View("BackofficeLogoutBridge");
+            }
+
             return RedirectToAction("Login");
+        }
+
+        private static bool IsBackofficeRole(string? role)
+        {
+            return string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase);
         }
 
         private void PrepareRegisterView(RegisterViewModel model, string message)

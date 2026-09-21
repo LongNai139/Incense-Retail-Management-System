@@ -2,6 +2,9 @@
 @{
     var searchValue = ViewBag.SearchValue as string ?? string.Empty;
     var backofficeUrl = Configuration["AppHosts:BackofficeUrl"] ?? "https://localhost:7127";
+    var showStaffLink = User.IsInRole(SV22T1080045.Shop.DomainModels.CustomerRoles.Staff)
+        || User.IsInRole(SV22T1080045.Shop.DomainModels.CustomerRoles.Admin);
+    var showManagementLink = User.IsInRole(SV22T1080045.Shop.DomainModels.CustomerRoles.Admin);
 }
 
 <!DOCTYPE html>
@@ -62,36 +65,45 @@
                 <div class="nav-account">
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Profile" title="Tài khoản">
-                            <i class="fa-solid fa-user"></i>
-                            <span class="nav-btn-label">@(User.Identity?.Name ?? "Tài khoản")</span>
-                        </a>
-                        <a class="nav-btn nav-btn-ghost nav-btn-compact" asp-controller="Account" asp-action="Logout" title="Đăng xuất">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                        </a>
+                        <div class="nav-dropdown" data-nav-dropdown>
+                            <button type="button" class="nav-btn nav-btn-ghost nav-btn-compact nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                                <i class="fa-solid fa-user"></i>
+                                <span class="nav-btn-label">@(User.Identity?.Name ?? "Tài khoản")</span>
+                                <i class="fa-solid fa-chevron-down nav-dropdown-caret" aria-hidden="true"></i>
+                            </button>
+                            <div class="nav-dropdown-menu" role="menu">
+                                <a role="menuitem" asp-controller="MyOrders" asp-action="Index">
+                                    <i class="fa-solid fa-box-archive"></i> Đơn hàng của tôi
+                                </a>
+                                <a role="menuitem" asp-controller="Account" asp-action="Profile">
+                                    <i class="fa-solid fa-id-card"></i> Hồ sơ
+                                </a>
+
+                                @if (showStaffLink)
+                                {
+                                    <a role="menuitem" href="@($"{backofficeUrl.TrimEnd('/')}/Staff")" target="_blank" rel="noopener">
+                                        <i class="fa-solid fa-headset"></i> Staff
+                                    </a>
+                                }
+                                @if (showManagementLink)
+                                {
+                                    <a role="menuitem" href="@($"{backofficeUrl.TrimEnd('/')}/Management")" target="_blank" rel="noopener">
+                                        <i class="fa-solid fa-chart-line"></i> Quản lý
+                                    </a>
+                                }
+
+                                <div class="nav-dropdown-divider" role="separator"></div>
+                                <a role="menuitem" asp-controller="Account" asp-action="Logout">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+                                </a>
+                            </div>
+                        </div>
                     }
                     else
                     {
-                        <a class="nav-btn nav-btn-solid" asp-controller="Account" asp-action="Login">
-                            Đăng nhập
-                        </a>
+                        <a class="nav-btn nav-btn-solid" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                     }
                 </div>
-
-                @if (User.IsInRole("Staff") || User.IsInRole("Admin"))
-                {
-                    <a class="nav-btn nav-btn-ghost nav-workspace" href="@($"{backofficeUrl.TrimEnd('/')}/Staff")" title="Khu vực Staff">
-                        <i class="fa-solid fa-headset"></i>
-                        <span class="nav-btn-label">Staff</span>
-                    </a>
-                }
-                @if (User.IsInRole("Admin"))
-                {
-                    <a class="nav-btn nav-btn-ghost nav-workspace" href="@($"{backofficeUrl.TrimEnd('/')}/Management")" title="Quản lý cửa hàng">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span class="nav-btn-label">Quản lý</span>
-                    </a>
-                }
             </div>
         </div>
     </header>

@@ -1,4 +1,5 @@
 using Dapper;
+using SV22T1080045.Shop.Abstractions;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 using System.Security.Cryptography;
@@ -13,8 +14,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
         // ── HASH SĐT (SHA-256, không lưu SĐT gốc) ────────────────────────────
         public static string HashPhone(string phone)
         {
-            var normalized = phone.Trim().Replace(" ", "")
-                                  .Replace("+84", "0");
+            var normalized = PhoneNumberHelper.NormalizeVietnameseMobile(phone);
             using var sha = SHA256.Create();
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(normalized));
             return Convert.ToHexString(bytes).ToLower();
@@ -22,7 +22,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         private static string LastFour(string phone)
         {
-            var digits = phone.Replace(" ", "").Replace("+84", "0");
+            var digits = PhoneNumberHelper.NormalizeVietnameseMobile(phone);
             return digits.Length >= 4 ? digits[^4..] : digits;
         }
 
@@ -30,13 +30,13 @@ namespace SV22T1080045.Shop.DataLayers.Implements
         {
             using var conn = OpenConnection();
             var exists = conn.ExecuteScalar<int>(
-                "SELECT COUNT(1) FROM GuestOrders WHERE OrderId = @orderId",
+                "SELECT COUNT(1) FROM GuestOrders WHERE OrderId = @orderId AND IsDeleted = 0",
                 new { orderId });
             if (exists > 0) return;
 
             conn.Execute(@"
-                INSERT INTO GuestOrders (OrderId, PhoneHash, PhoneLastFour, CreatedAt)
-                VALUES (@orderId, @phoneHash, @phoneLastFour, GETDATE())",
+                INSERT INTO GuestOrders (OrderId, PhoneHash, PhoneLastFour, CreatedAt, Id, CreatedTime, IsDeleted)
+                VALUES (@orderId, @phoneHash, @phoneLastFour, GETDATE(), @orderId, GETDATE(), 0)",
                 new
                 {
                     orderId,
@@ -55,6 +55,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 FROM   Orders o
                 JOIN   GuestOrders g ON g.OrderId = o.Id
                 WHERE  g.PhoneHash = @hash
+                  AND  g.IsDeleted = 0
+                  AND  o.IsDeleted = 0
                 ORDER BY o.OrderDate DESC",
                 new { hash }).ToList();
         }
@@ -69,6 +71,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 FROM   Orders o
                 JOIN   GuestOrders g ON g.OrderId = o.Id
                 WHERE  g.PhoneHash = @hash
+                  AND  g.IsDeleted = 0
                   AND  (o.CustomerId = 0 OR o.CustomerId IS NULL)",
                 new { hash, customerId });
 

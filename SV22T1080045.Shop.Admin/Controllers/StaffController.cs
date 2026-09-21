@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.Abstractions.Models.Staff;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models.ViewModels.Staff;
 using System.Security.Claims;
 
 namespace SV22T1080045.Shop.Controllers
 {
-    [Authorize(Roles = "Staff,Admin")]
+    [Authorize(Roles = $"{CustomerRoles.Staff},{CustomerRoles.Admin}")]
     public class StaffController : Controller
     {
         private const int ProductPageSize = 12;

@@ -61,22 +61,20 @@ namespace SV22T1080045.Shop.DomainModels
         public virtual ProductInventory? Inventory { get; set; }
 
         [NotMapped]
-        public decimal DisplaySalePrice => SalePrice > 0 ? SalePrice : OriginalPrice;
+        public decimal DisplaySalePrice =>
+            ProductPricingRules.GetListPrice(SalePrice, OriginalPrice);
 
         [NotMapped]
-        public decimal DisplayPrice
-        {
-            get
-            {
-                if (PriceAfterDiscount > 0)
-                    return PriceAfterDiscount;
+        public decimal DisplayPrice =>
+            ProductPricingRules.GetCustomerPrice(SalePrice, OriginalPrice, DiscountPercent, PriceAfterDiscount);
 
-                if (DisplaySalePrice <= 0)
-                    return 0;
+        [NotMapped]
+        public decimal DisplayDiscountPercent =>
+            ProductPricingRules.GetDiscountPercent(DisplaySalePrice, DisplayPrice, DiscountPercent);
 
-                return Math.Round(DisplaySalePrice * (100 - DiscountPercent) / 100, 0);
-            }
-        }
+        [NotMapped]
+        public bool HasCustomerDiscount =>
+            DisplaySalePrice > 0 && DisplayPrice > 0 && DisplayPrice < DisplaySalePrice;
 
         [NotMapped]
         public int DisplayQuantity => Inventory?.Quantity ?? Quantity ?? 0;

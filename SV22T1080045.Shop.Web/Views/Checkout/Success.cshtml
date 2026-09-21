@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Đặt hàng thành công";
     var showRegisterPrompt = ViewBag.ShowRegisterPrompt is bool value && value;
+    var hasCustomerId = ViewBag.HasCustomerId is bool cid && cid;
     var paymentMessage = ViewBag.PaymentMessage as string;
     var orderCode = $"TH{Model.OrderId:D6}";
     var payStatusClass = Model.PaymentStatus switch
@@ -67,26 +68,11 @@
                     </div>
                 </div>
 
-                <div class="order-progress">
-                    <div class="order-progress-step done">
-                        <div class="order-progress-icon"><i class="fa-solid fa-check"></i></div>
-                        <div class="order-progress-label">Đặt hàng</div>
-                    </div>
-                    <div class="order-progress-step active">
-                        <div class="order-progress-icon"><i class="fa-solid fa-phone"></i></div>
-                        <div class="order-progress-label">Xác nhận</div>
-                    </div>
-                    <div class="order-progress-step">
-                        <div class="order-progress-icon"><i class="fa-solid fa-box"></i></div>
-                        <div class="order-progress-label">Chuẩn bị</div>
-                    </div>
-                    <div class="order-progress-step">
-                        <div class="order-progress-icon"><i class="fa-solid fa-truck-fast"></i></div>
-                        <div class="order-progress-label">Đang giao</div>
-                    </div>
-                    <div class="order-progress-step">
-                        <div class="order-progress-icon"><i class="fa-solid fa-house"></i></div>
-                        <div class="order-progress-label">Hoàn tất</div>
+                <div class="success-track-callout">
+                    <div class="success-track-callout-icon"><i class="fa-solid fa-location-dot"></i></div>
+                    <div>
+                        <strong>Theo dõi đơn hàng mọi lúc</strong>
+                        <p>Trạng thái cập nhật tự động khi cửa hàng xử lý đơn — bạn có thể quay lại bất cứ lúc nào (kể cả sau khi tắt trình duyệt).</p>
                     </div>
                 </div>
 
@@ -169,10 +155,24 @@
                 }
 
                 <div class="d-flex flex-wrap gap-2">
-                    <a asp-controller="OrderLookup" asp-action="Index" class="commerce-btn primary">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        Tra cứu đơn hàng
+                    <a asp-controller="OrderTracking" asp-action="Detail" asp-route-id="@Model.OrderId" class="commerce-btn primary">
+                        <i class="fa-solid fa-location-dot"></i>
+                        Theo dõi đơn hàng
                     </a>
+                    @if (hasCustomerId)
+                    {
+                        <a asp-controller="MyOrders" asp-action="Index" class="commerce-btn secondary">
+                            <i class="fa-solid fa-box-archive"></i>
+                            Đơn hàng của tôi
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="OrderLookup" asp-action="Index" class="commerce-btn secondary">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Tra cứu bằng SĐT
+                        </a>
+                    }
                     <a asp-controller="Product" asp-action="Index" class="commerce-btn secondary">
                         <i class="fa-solid fa-bag-shopping"></i>
                         Tiếp tục mua sắm

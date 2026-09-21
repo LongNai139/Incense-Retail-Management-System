@@ -1,4 +1,5 @@
 
+using SV22T1080045.Shop.Abstractions;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 
@@ -17,7 +18,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
 
         public bool Send(string phone, string purpose)
         {
-            var normalizedPhone = phone.Trim();
+            var normalizedPhone = PhoneNumberHelper.NormalizeVietnameseMobile(phone);
             var code = _phoneOtpDAL.Generate(normalizedPhone, purpose);
             var message = purpose switch
             {
@@ -33,7 +34,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
 
         public bool Verify(string phone, string purpose, string code)
         {
-            return _phoneOtpDAL.Verify(phone.Trim(), purpose, code.Trim());
+            return _phoneOtpDAL.Verify(PhoneNumberHelper.NormalizeVietnameseMobile(phone), purpose, code.Trim());
         }
     }
 }

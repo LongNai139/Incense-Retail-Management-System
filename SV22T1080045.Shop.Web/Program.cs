@@ -14,8 +14,10 @@ var connectionString = builder.Configuration.GetConnectionString("ShopConnection
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.Name = "SV22T1080045_Shop_Web_Session";
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -25,6 +27,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     });
 
 builder.Services.AddDataLayers(connectionString);
@@ -49,6 +55,16 @@ app.MapControllerRoute(
     name: "tracuu",
     pattern: "tra-cuu-don-hang",
     defaults: new { controller = "OrderLookup", action = "Index" });
+
+app.MapControllerRoute(
+    name: "myorders",
+    pattern: "don-hang-cua-toi",
+    defaults: new { controller = "MyOrders", action = "Index" });
+
+app.MapControllerRoute(
+    name: "orderTrack",
+    pattern: "don-hang/theo-doi/{id:int}",
+    defaults: new { controller = "OrderTracking", action = "Detail" });
 
 app.MapControllerRoute(
     name: "default",

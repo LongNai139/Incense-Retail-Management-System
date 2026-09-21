@@ -1,0 +1,184 @@
+@model SV22T1080045.Shop.Models.ViewModels.Orders.MyOrdersViewModel
+@{
+    ViewData["Title"] = "Lịch sử mua hàng";
+    var totalOrders = Model.Orders.Count;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/commerce-flow.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order-tracking.css" asp-append-version="true" />
+}
+
+<div class="commerce-flow">
+    <section class="commerce-page commerce-page-narrow">
+        <div class="orders-shell">
+            <header class="orders-hero">
+                <div>
+                    <div class="track-kicker">Đơn hàng</div>
+                    <h1 class="orders-title">Lịch sử mua hàng</h1>
+                    <p class="orders-subtitle">
+                        @(Model.IsGuestLookup
+                            ? $"Đơn hàng đã xác thực bằng SĐT {Model.LookupPhone}."
+                            : "Đơn hàng gắn với tài khoản hiện tại.")
+                    </p>
+                </div>
+                <div class="orders-stats">
+                    <div>
+                        <strong>@totalOrders</strong>
+                        <span>Tổng đơn</span>
+                    </div>
+                    <div>
+                        <strong>@Model.ActiveOrders.Count</strong>
+                        <span>Đang giao</span>
+                    </div>
+                    <div>
+                        <strong>@Model.CompletedOrders.Count</strong>
+                        <span>Hoàn thành</span>
+                    </div>
+                </div>
+            </header>
+
+            @if (totalOrders == 0)
+            {
+                <div class="lookup-empty">
+                    <p class="mb-3">Bạn chưa có đơn hàng nào.</p>
+                    <a asp-controller="Product" asp-action="Index" class="commerce-btn primary">Mua sắm ngay</a>
+                </div>
+            }
+            else
+            {
+                <section class="orders-section">
+                    <div class="orders-section-head">
+                        <div>
+                            <h2>Đang xử lý / đang giao</h2>
+                            <p>Theo dõi các đơn chưa hoàn tất quá trình mua và nhận hàng.</p>
+                        </div>
+                        <span>@Model.ActiveOrders.Count đơn</span>
+                    </div>
+
+                    @if (!Model.ActiveOrders.Any())
+                    {
+                        <div class="orders-muted-state">Không có đơn nào đang giao.</div>
+                    }
+                    else
+                    {
+                        <div class="orders-grid">
+                            @foreach (var order in Model.ActiveOrders)
+                            {
+                                var badgeClass = order.Status >= 2 ? "status-shipping" : "status-pending";
+                                <article class="order-list-card order-card-modern">
+                                    <div class="order-list-card-head">
+                                        <div>
+                                            <div class="order-list-code">@order.OrderCode</div>
+                                            <div class="order-list-meta">@order.OrderDate.ToString("dd/MM/yyyy HH:mm") · @order.ItemCount sản phẩm</div>
+                                        </div>
+                                        <span class="order-status-pill @badgeClass">@order.StatusText</span>
+                                    </div>
+
+                                    <div class="order-mini-timeline" aria-label="Tiến trình đơn hàng">
+                                        @foreach (var step in order.Timeline)
+                                        {
+                                            <span class="order-mini-step @step.State" title="@step.Label"></span>
+                                        }
+                                    </div>
+
+                                    <div class="order-list-card-foot">
+                                        <strong class="order-list-amount">@order.FinalAmount.ToString("N0")đ</strong>
+                                        <a href="@order.TrackUrl" class="commerce-btn primary">
+                                            <i class="fa-solid fa-location-dot"></i> Theo dõi
+                                        </a>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+                </section>
+
+                <section class="orders-section">
+                    <div class="orders-section-head">
+                        <div>
+                            <h2>Đã hoàn thành</h2>
+                            <p>Mua lại nhanh các sản phẩm từ đơn đã nhận thành công.</p>
+                        </div>
+                        <span>@Model.CompletedOrders.Count đơn</span>
+                    </div>
+
+                    @if (!Model.CompletedOrders.Any())
+                    {
+                        <div class="orders-muted-state">Chưa có đơn hoàn thành.</div>
+                    }
+                    else
+                    {
+                        <div class="orders-grid">
+                            @foreach (var order in Model.CompletedOrders)
+                            {
+                                <article class="order-list-card order-card-modern completed">
+                                    <div class="order-list-card-head">
+                                        <div>
+                                            <div class="order-list-code">@order.OrderCode</div>
+                                            <div class="order-list-meta">@order.OrderDate.ToString("dd/MM/yyyy HH:mm") · @order.ItemCount sản phẩm</div>
+                                        </div>
+                                        <span class="order-status-pill status-done">@order.StatusText</span>
+                                    </div>
+
+                                    <div class="order-list-card-foot">
+                                        <strong class="order-list-amount">@order.FinalAmount.ToString("N0")đ</strong>
+                                        <div class="order-actions">
+                                            <a href="@order.TrackUrl" class="commerce-btn secondary">Chi tiết</a>
+                                            <form asp-controller="MyOrders" asp-action="Reorder" asp-route-id="@order.OrderId" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="commerce-btn primary">
+                                                    <i class="fa-solid fa-cart-plus"></i> Mua lại
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+                </section>
+
+                @if (Model.ClosedOrders.Any())
+                {
+                    <section class="orders-section">
+                        <div class="orders-section-head">
+                            <div>
+                                <h2>Đã hủy</h2>
+                                <p>Các đơn đã kết thúc trước khi giao hàng.</p>
+                            </div>
+                            <span>@Model.ClosedOrders.Count đơn</span>
+                        </div>
+                        <div class="orders-grid">
+                            @foreach (var order in Model.ClosedOrders)
+                            {
+                                <article class="order-list-card order-card-modern">
+                                    <div class="order-list-card-head">
+                                        <div>
+                                            <div class="order-list-code">@order.OrderCode</div>
+                                            <div class="order-list-meta">@order.OrderDate.ToString("dd/MM/yyyy HH:mm") · @order.ItemCount sản phẩm</div>
+                                        </div>
+                                        <span class="order-status-pill status-cancel">@order.StatusText</span>
+                                    </div>
+                                    <div class="order-list-card-foot">
+                                        <strong class="order-list-amount">@order.FinalAmount.ToString("N0")đ</strong>
+                                        <a href="@order.TrackUrl" class="commerce-btn secondary">Xem chi tiết</a>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    </section>
+                }
+            }
+
+            <div class="orders-footer-actions">
+                <a asp-controller="OrderLookup" asp-action="Index" class="commerce-btn secondary">
+                    <i class="fa-solid fa-magnifying-glass"></i> Tra cứu bằng SĐT + OTP
+                </a>
+                <a asp-controller="Product" asp-action="Index" class="commerce-btn primary">
+                    <i class="fa-solid fa-bag-shopping"></i> Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
+    </section>
+</div>

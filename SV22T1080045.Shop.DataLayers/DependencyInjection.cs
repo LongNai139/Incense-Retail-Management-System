@@ -18,6 +18,7 @@ namespace SV22T1080045.Shop.DataLayers
             services.AddScoped<ICategoryDAL, CategoryDAL>();
             services.AddScoped<IUnitDAL, UnitDAL>();
             services.AddScoped<ICustomerDAL, CustomerDAL>();
+            services.AddScoped<ISystemDAL, SystemDAL>();
             services.AddScoped<IOrderDAL>(_ => new OrderDAL(connectionString));
             services.AddScoped<IRevenueReportDAL>(_ => new RevenueReportDAL(connectionString));
             services.AddScoped<IManagementDAL>(_ => new ManagementDAL(connectionString));

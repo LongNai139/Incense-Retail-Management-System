@@ -1,0 +1,142 @@
+@{
+    Layout = "_ManagementLayout";
+}
+
+@model SV22T1080045.Shop.Models.ViewModels.Management.ReportManagementViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Models.ViewModels.Management
+
+@{
+    ViewData["Title"] = "Báo cáo";
+
+    var reportSummary = Model.ReportSummary;
+    var bestReportPoint = Model.ReportRevenuePoints.OrderByDescending(p => p.Revenue).FirstOrDefault();
+    var reportDateValue = Model.ReportDate.ToString("yyyy-MM-dd");
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+    string FormatRange(DateTime start, DateTime end) => start.Date == end.AddDays(-1).Date
+        ? start.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"))
+        : $"{start.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"))} - {end.AddDays(-1).ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"))}";
+    string FormatPercent(decimal value) => (value >= 0 ? "+" : "") + value.ToString("N1", CultureInfo.GetCultureInfo("vi-VN")) + "%";
+    string MaskPhone(string? phone) => string.IsNullOrWhiteSpace(phone) || phone.Length < 4 ? "***" : "***" + phone[^4..];
+}
+
+<section class="management-hero">
+    <div>
+        <div class="management-kicker">Báo cáo</div>
+        <h1>Báo cáo tổng hợp</h1>
+        <p>Báo cáo tổng hợp theo ngày/tuần/tháng, có doanh thu, số đơn, giá trị trung bình, top sản phẩm và top khách hàng.</p>
+    </div>
+    <div class="management-actions">
+        <form class="management-actions" asp-controller="Management" asp-action="Reports" method="get">
+            <select class="admin-select" name="reportPeriod">
+                <option value="day" selected="@(Model.ReportPeriod == "day" ? "selected" : null)">Theo ngày</option>
+                <option value="week" selected="@(Model.ReportPeriod == "week" ? "selected" : null)">Theo tuần</option>
+                <option value="month" selected="@(Model.ReportPeriod == "month" ? "selected" : null)">Theo tháng</option>
+            </select>
+            <input class="admin-input" type="date" name="reportDate" value="@reportDateValue" />
+            <button class="admin-btn" type="submit"><i class="fa-solid fa-chart-line"></i> Xem báo cáo</button>
+            <button class="admin-btn success" type="submit" formaction="@Url.Action("ExportRevenueReport", "Management")"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</button>
+        </form>
+    </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-section-head">
+        <div>
+            <h2>Báo cáo</h2>
+            <p class="admin-section-desc">Báo cáo tổng hợp theo ngày/tuần/tháng, có doanh thu, số đơn, giá trị trung bình, top sản phẩm và top khách hàng.</p>
+        </div>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Doanh thu kỳ báo cáo</div>
+            <div class="kpi-value">@FormatMoney(reportSummary.Revenue)</div>
+            <div class="kpi-note">@FormatRange(Model.ReportRangeStart, Model.ReportRangeEnd)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Tổng đơn</div>
+            <div class="kpi-value">@reportSummary.OrderCount</div>
+            <div class="kpi-note">@reportSummary.CompletedOrderCount đơn hoàn thành</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Giá trị trung bình</div>
+            <div class="kpi-value">@FormatMoney(reportSummary.AverageOrderValue)</div>
+            <div class="kpi-note">Tính trên đơn trong kỳ</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Khách mới</div>
+            <div class="kpi-value">@reportSummary.NewCustomerCount</div>
+            <div class="kpi-note">@reportSummary.GuestOrderCount đơn guest</div>
+        </div>
+    </div>
+
+    <div class="report-grid dashboard-grid">
+        <div class="admin-panel">
+            <div class="panel-title">
+                <span>Doanh thu trong kỳ</span>
+                <span class="status-badge status-ready">@FormatPercent(reportSummary.RevenueChangePercent)</span>
+            </div>
+            <div class="chart-guide">
+                <strong>Kết luận nhanh:</strong>
+                @if (bestReportPoint != null && bestReportPoint.Revenue > 0)
+                {
+                    <span>@bestReportPoint.Label là mốc doanh thu cao nhất: @FormatMoney(bestReportPoint.Revenue) từ @bestReportPoint.OrderCount đơn.</span>
+                }
+                else
+                {
+                    <span>Kỳ báo cáo này chưa có doanh thu.</span>
+                }
+            </div>
+            <div class="revenue-list" aria-label="Bảng thanh doanh thu báo cáo">
+                @foreach (var point in Model.ReportRevenuePoints.OrderByDescending(p => p.Revenue))
+                {
+                    <div class="revenue-row">
+                        <div class="revenue-row-label">@point.Label</div>
+                        <div class="revenue-row-track">
+                            <div class="revenue-row-fill" style="width:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
+                        </div>
+                        <div class="revenue-row-money">@FormatMoney(point.Revenue)</div>
+                        <div class="revenue-row-orders">@point.OrderCount đơn</div>
+                    </div>
+                }
+            </div>
+            <div class="chart-caption">Tổng @FormatMoney(reportSummary.Revenue), trung bình @FormatMoney(reportSummary.AverageOrderValue) mỗi đơn.</div>
+        </div>
+        <div class="admin-panel">
+            <div class="panel-title">Top sản phẩm theo doanh thu</div>
+            <div class="selling-list">
+                @if (Model.ProductSalesReports.Any())
+                {
+                    foreach (var item in Model.ProductSalesReports)
+                    {
+                        <div class="selling-item">
+                            <div>
+                                <div class="item-name">@item.ProductName</div>
+                                <div class="item-meta">@item.Quantity.ToString("N0") sản phẩm | @item.OrderCount đơn</div>
+                            </div>
+                            <strong>@FormatMoney(item.Revenue)</strong>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="item-meta">Chưa có dữ liệu bán hàng trong kỳ này.</div>
+                }
+            </div>
+            <div class="panel-title" style="margin-top:18px;">Top khách hàng</div>
+            <div class="selling-list">
+                @foreach (var customer in Model.TopCustomers)
+                {
+                    <div class="selling-item">
+                        <div>
+                            <div class="item-name">@customer.CustomerName</div>
+                            <div class="item-meta">@customer.OrderCount đơn | @MaskPhone(customer.Phone)</div>
+                        </div>
+                        <strong>@FormatMoney(customer.TotalSpent)</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
