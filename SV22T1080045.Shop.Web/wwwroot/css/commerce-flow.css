@@ -981,6 +981,37 @@
     color: #c0392b;
 }
 
+.success-track-callout {
+    align-items: flex-start;
+    background: linear-gradient(135deg, var(--warm-50), var(--warm-100));
+    border: 1px solid var(--gold);
+    border-radius: 14px;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding: 16px 18px;
+}
+
+.success-track-callout-icon {
+    align-items: center;
+    background: var(--gold);
+    border-radius: 12px;
+    color: var(--ink);
+    display: flex;
+    flex-shrink: 0;
+    font-size: 18px;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+}
+
+.success-track-callout p {
+    color: var(--ink-3);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 6px 0 0;
+}
+
 .order-progress {
     display: flex;
     margin-bottom: 24px;

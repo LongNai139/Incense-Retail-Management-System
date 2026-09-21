@@ -3,14 +3,16 @@ using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.Models
 {
+    // Use UserSignInRequest from Common layer instead
+    // This file can be removed after migration
     public class LoginViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc.")]
         [RegularExpression(@"^(0|\+84)[3-9]\d{8}$", ErrorMessage = "Số điện thoại không hợp lệ.")]
         public string Phone { get; set; } = "";
 
-        [Required]
-        [MinLength(5, ErrorMessage = "Mật khẩu tối thiểu 8 ký tự.")]
+        [Required(ErrorMessage = "Mật khẩu là bắt buộc.")]
+        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự.")]
         public string Password { get; set; } = "";
     }
 

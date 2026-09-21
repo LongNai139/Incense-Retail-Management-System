@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = ViewBag.Title as string ?? "Không có quyền";
+    var message = ViewBag.Message as string ?? "Bạn không có quyền truy cập trang này.";
+    var workspaceUrl = ViewBag.WorkspaceUrl as string;
+    var workspaceLabel = ViewBag.WorkspaceLabel as string ?? "Quay lại";
+    var storefrontUrl = ViewBag.StorefrontUrl as string ?? "https://localhost:7126";
+}
+
+<div class="container-custom" style="padding: 48px 16px; max-width: 560px; margin: 0 auto;">
+    <h1 style="font-family: var(--font-serif, Georgia, serif); margin-bottom: 12px;">@ViewData["Title"]</h1>
+    <p style="margin-bottom: 24px; line-height: 1.6;">@message</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+        @if (!string.IsNullOrWhiteSpace(workspaceUrl))
+        {
+            <a class="nav-btn nav-btn-solid" href="@workspaceUrl">@workspaceLabel</a>
+        }
+        <a class="nav-btn nav-btn-ghost" href="@storefrontUrl" target="_blank" rel="noopener">Mở cửa hàng (tab mới)</a>
+    </div>
+</div>

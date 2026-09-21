@@ -4,13 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SV22T1080045.Shop.Abstractions;
 
 namespace SV22T1080045.Shop.Models.Requests.Auth
 {
     public class VerifyOtpRequest
     {
         [Required]
-        [RegularExpression(@"^(0|\+84)[3-9]\d{8}$")]
+        [RegularExpression(PhoneNumberHelper.VietnameseMobilePattern)]
         public string Phone { get; set; } = "";
 
         [Required]

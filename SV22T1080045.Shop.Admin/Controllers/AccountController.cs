@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.Common.Model.Users;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models;
 using System.Security.Claims;
@@ -13,35 +14,97 @@ namespace SV22T1080045.Shop.Controllers
     public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
-        private readonly IOtpService _otpService;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<AccountController> _logger;
         private const int MaxLoginFailCount = 5;
-        private const int MaxRegisterOtpVerifyFailCount = 5;
-        private const int RegisterOtpVerifiedMinutes = 5;
         private const int LockMinutes = 5;
 
-        public AccountController(IAccountService accountService, IOtpService otpService)
+        public AccountController(IAccountService accountService, IConfiguration configuration, ILogger<AccountController> logger)
         {
             _accountService = accountService;
-            _otpService = otpService;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
+            if (User.IsInRole(CustomerRoles.Admin))
+                return RedirectToAction("Index", "Management");
+
+            if (User.IsInRole(CustomerRoles.Staff))
+                return RedirectToAction("Index", "Staff");
+
             ViewBag.AuthMode = "Login";
+            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.StorefrontUrl = GetStorefrontUrl();
+            ViewBag.InfoMessage = TempData["LoginMessage"] as string;
             return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult AccessDenied()
+        {
+            ViewBag.StorefrontUrl = GetStorefrontUrl();
+
+            if (User.IsInRole(CustomerRoles.Staff))
+            {
+                ViewBag.Title = "Không có quyền truy cập";
+                ViewBag.Message = "Tài khoản Staff chỉ dùng khu vực /Staff. Trang Quản lý (/Management) dành cho Admin.";
+                ViewBag.WorkspaceUrl = Url.Action("Index", "Staff");
+                ViewBag.WorkspaceLabel = "Về khu Staff";
+                return View();
+            }
+
+            if (User.IsInRole(CustomerRoles.Admin))
+                return RedirectToAction("Index", "Management");
+
+            return RedirectToAction(nameof(Login));
+        }
+
+        [AcceptVerbs("GET", "POST")]
+        public IActionResult Register()
+        {
+            return Redirect($"{GetStorefrontUrl()}/Account/Register");
+        }
+
+        /// <summary>
+        /// Nhận đăng nhập từ cửa hàng (7126) sau khi xác thực — tạo cookie quản trị trên 7127.
+        /// </summary>
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> BridgeLogin(UserSignInRequest model, string? returnUrl = null)
+        {
+            var customer = _accountService.Login(model.Phone, model.Password);
+            if (customer == null || !IsBackofficeRole(customer.Role))
+                return RedirectToAction(nameof(Login), new { returnUrl });
+
+            await SignInCustomerAsync(customer);
+
+            if (string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase))
+                return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Management"));
+
+            return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Staff"));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(UserSignInRequest model, string? returnUrl = null)
         {
+            _logger.LogInformation("Login attempt. Phone: {Phone}, Password length: {PasswordLength}", model.Phone, model.Password?.Length);
+
             ViewBag.AuthMode = "Login";
+            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.StorefrontUrl = GetStorefrontUrl();
 
             if (!ModelState.IsValid)
             {
-                ViewBag.ErrorMessage = "Vui lòng nhập đúng định dạng thông tin đăng nhập.";
-                return View();
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                _logger.LogWarning("ModelState invalid: {Errors}", errors);
+                ModelState.AddModelError("", errors);
+                return View(new LoginViewModel { Phone = model.Phone, Password = model.Password });
             }
 
             var lockUntil = HttpContext.Session.GetString($"login_lock_{model.Phone}");
@@ -49,141 +112,59 @@ namespace SV22T1080045.Shop.Controllers
                 DateTime.TryParse(lockUntil, out var lockTime) &&
                 lockTime > DateTime.Now)
             {
-                ViewBag.ErrorMessage = $"Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau {LockMinutes} phút.";
-                return View();
+                _logger.LogWarning("Account locked until: {LockUntil}", lockUntil);
+                ModelState.AddModelError("", $"Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau {LockMinutes} phút.");
+                return View(new LoginViewModel { Phone = model.Phone, Password = model.Password });
             }
 
             var customer = _accountService.Login(model.Phone, model.Password);
+            _logger.LogInformation("Login result: {Result}", customer != null ? "Success" : "Failed");
 
             if (customer != null)
             {
+                _logger.LogInformation("Customer found. ID: {CustomerId}, Role: {Role}", customer.Id, customer.Role);
+
+                if (!IsBackofficeRole(customer.Role))
+                {
+                    _logger.LogWarning("Role check failed. Role: {Role}", customer.Role);
+                    ModelState.AddModelError("", $"Tài khoản khách hàng chỉ đăng nhập tại cửa hàng ({GetStorefrontUrl()}).");
+                    ViewBag.StorefrontUrl = GetStorefrontUrl();
+                    return View(new LoginViewModel { Phone = model.Phone, Password = model.Password });
+                }
+
                 await SignInCustomerAsync(customer);
 
                 HttpContext.Session.Remove($"login_fail_{model.Phone}");
                 HttpContext.Session.Remove($"login_lock_{model.Phone}");
-                if (string.Equals(customer.Role, "Staff", StringComparison.OrdinalIgnoreCase))
-                    return RedirectToAction("Index", "Staff");
 
-                return RedirectToAction("Index", "Home");
+                _logger.LogInformation("Login successful. Customer ID: {CustomerId}, Role: {Role}", customer.Id, customer.Role);
+                _logger.LogInformation("Redirecting to Admin: {IsAdmin}", string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase));
+
+                if (string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase))
+                    return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Management"));
+
+                return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Staff"));
             }
 
             var failKey = $"login_fail_{model.Phone}";
             var failCount = int.TryParse(HttpContext.Session.GetString(failKey), out var c) ? c + 1 : 1;
             HttpContext.Session.SetString(failKey, failCount.ToString());
 
+            _logger.LogWarning("Login failed. Fail count: {FailCount}", failCount);
+
             if (failCount >= MaxLoginFailCount)
             {
+                _logger.LogWarning("Account locked. Phone: {Phone}", model.Phone);
                 HttpContext.Session.SetString($"login_lock_{model.Phone}", DateTime.Now.AddMinutes(LockMinutes).ToString("o"));
                 HttpContext.Session.Remove(failKey);
+                ModelState.AddModelError("", $"Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau {LockMinutes} phút.");
+            }
+            else
+            {
+                ModelState.AddModelError("", "Số điện thoại hoặc mật khẩu không đúng!");
             }
 
-            ViewBag.ErrorMessage = "Số điện thoại hoặc mật khẩu không đúng!";
-            return View();
-        }
-
-        [HttpGet]
-        public IActionResult Register()
-        {
-            ViewBag.AuthMode = "Register";
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                PrepareRegisterView(model, "Dữ liệu đăng ký không hợp lệ.");
-                return View("Register");
-            }
-
-            var otpVerified = IsRegisterOtpVerified(model.Phone) ||
-                _otpService.Verify(model.Phone, OtpPurpose.Register, model.OtpCode);
-            if (!otpVerified)
-            {
-                PrepareRegisterView(model, "OTP không đúng hoặc đã hết hạn.");
-                return View("Register");
-            }
-
-            bool isRegistered = _accountService.Register(model.ToCustomer());
-            if (isRegistered)
-            {
-                HttpContext.Session.Remove(GetRegisterOtpVerifiedKey(model.Phone));
-                return await Login(new LoginViewModel { Phone = model.Phone, Password = model.Password });
-            }
-
-            PrepareRegisterView(model, "Số điện thoại đã tồn tại hoặc đăng ký thất bại.");
-            return View("Register");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult SendRegisterOtp([FromBody] SendOtpViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return Json(new { success = false, message = "Số điện thoại không hợp lệ." });
-
-            var sessionKey = $"otp_sent_register_{model.Phone}";
-            var lastSent = HttpContext.Session.GetString(sessionKey);
-            if (lastSent != null &&
-                DateTime.TryParse(lastSent, out var lastSentTime) &&
-                (DateTime.Now - lastSentTime).TotalSeconds < 60)
-            {
-                return Json(new { success = false, message = "Vui lòng chờ 60 giây trước khi gửi lại OTP." });
-            }
-
-            bool ok = _otpService.Send(model.Phone, OtpPurpose.Register);
-            if (ok)
-            {
-                HttpContext.Session.SetString(sessionKey, DateTime.Now.ToString("o"));
-                HttpContext.Session.Remove(GetRegisterOtpVerifiedKey(model.Phone));
-            }
-
-            return Json(new
-            {
-                success = ok,
-                message = ok ? $"Đã gửi OTP đến {model.Phone}." : "Gửi OTP thất bại, vui lòng thử lại."
-            });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult VerifyRegisterOtp([FromBody] VerifyOtpViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return Json(new { success = false, message = "Dữ liệu OTP không hợp lệ." });
-
-            var lockKey = $"otp_verify_lock_register_{model.Phone}";
-            var lockedUntil = HttpContext.Session.GetString(lockKey);
-            if (!string.IsNullOrWhiteSpace(lockedUntil) &&
-                DateTime.TryParse(lockedUntil, out var lockTime) &&
-                lockTime > DateTime.Now)
-            {
-                return Json(new { success = false, message = $"Bạn đã nhập sai OTP quá nhiều lần. Vui lòng thử lại sau {LockMinutes} phút." });
-            }
-
-            bool ok = _otpService.Verify(model.Phone, OtpPurpose.Register, model.Code);
-            if (!ok)
-            {
-                var failKey = $"otp_verify_fail_register_{model.Phone}";
-                var failCount = int.TryParse(HttpContext.Session.GetString(failKey), out var c) ? c + 1 : 1;
-                HttpContext.Session.SetString(failKey, failCount.ToString());
-
-                if (failCount >= MaxRegisterOtpVerifyFailCount)
-                {
-                    HttpContext.Session.SetString(lockKey, DateTime.Now.AddMinutes(LockMinutes).ToString("o"));
-                    HttpContext.Session.Remove(failKey);
-                }
-
-                return Json(new { success = false, message = "Mã OTP không đúng hoặc đã hết hạn." });
-            }
-
-            HttpContext.Session.Remove($"otp_verify_fail_register_{model.Phone}");
-            HttpContext.Session.Remove(lockKey);
-            HttpContext.Session.SetString(GetRegisterOtpVerifiedKey(model.Phone), DateTime.Now.ToString("o"));
-
-            return Json(new { success = true, message = "OTP hợp lệ." });
+            return View(new LoginViewModel { Phone = model.Phone, Password = model.Password });
         }
 
         [Authorize]
@@ -224,31 +205,22 @@ namespace SV22T1080045.Shop.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> LogoutBridge()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Content("OK");
+        }
+
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
-        }
 
-        private void PrepareRegisterView(RegisterViewModel model, string message)
-        {
-            ViewBag.AuthMode = "Register";
-            ViewBag.ErrorMessage = message;
-            ViewBag.RegisterName = model.CustomerName;
-            ViewBag.RegisterPhone = model.Phone;
-        }
-
-        private bool IsRegisterOtpVerified(string phone)
-        {
-            var verifiedAt = HttpContext.Session.GetString(GetRegisterOtpVerifiedKey(phone));
-            return !string.IsNullOrWhiteSpace(verifiedAt) &&
-                DateTime.TryParse(verifiedAt, out var verifiedTime) &&
-                DateTime.Now <= verifiedTime.AddMinutes(RegisterOtpVerifiedMinutes);
-        }
-
-        private static string GetRegisterOtpVerifiedKey(string phone)
-        {
-            return $"otp_verified_register_{phone}";
+            ViewBag.StorefrontLogoutUrl = $"{GetStorefrontUrl()}/Account/LogoutBridge";
+            ViewBag.StorefrontLoginUrl = $"{GetStorefrontUrl()}/Account/Login";
+            return View("StorefrontLogoutBridge");
         }
 
         private async Task SignInCustomerAsync(Customer customer)
@@ -279,6 +251,25 @@ namespace SV22T1080045.Shop.Controllers
             return customerIdClaim != null && int.TryParse(customerIdClaim.Value, out var customerId)
                 ? customerId
                 : 0;
+        }
+
+        private string GetStorefrontUrl()
+        {
+            return (_configuration["AppHosts:StorefrontUrl"] ?? "https://localhost:7126").TrimEnd('/');
+        }
+
+        private static bool IsBackofficeRole(string? role)
+        {
+            return string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private IActionResult RedirectToLocal(string? returnUrl, Func<IActionResult> fallback)
+        {
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return fallback();
         }
     }
 }

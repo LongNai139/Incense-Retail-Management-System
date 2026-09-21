@@ -28,6 +28,7 @@ namespace SV22T1080045.Shop.BusinessLayers
             services.AddScoped<IOtpService, OtpService>();
             services.AddScoped<IPasswordHasherService, PasswordHasherService>();
             services.AddScoped<IStartupSeedService, StartupSeedService>();
+            services.AddScoped<ISystemService, SystemService>();
             services.AddSingleton<ISmsService, FakeSmsService>();
 
             return services;

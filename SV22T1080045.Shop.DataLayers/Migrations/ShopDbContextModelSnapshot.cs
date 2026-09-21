@@ -95,7 +95,7 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                         {
                             Id = 1,
                             Address = "Cửa hàng Hương Trầm",
-                            CreatedTime = new DateTime(2026, 5, 29, 9, 44, 42, 580, DateTimeKind.Local).AddTicks(105),
+                            CreatedTime = new DateTime(2026, 5, 30, 17, 20, 4, 732, DateTimeKind.Local).AddTicks(6644),
                             CustomerName = "Quản trị viên",
                             IsDeleted = false,
                             Password = "123",
@@ -323,6 +323,9 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -334,6 +337,9 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
 
                     b.Property<string>("ImageUrl4")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ImportPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Ingredient")
                         .HasColumnType("nvarchar(max)");
@@ -369,6 +375,9 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Property<int?>("ReviewCount")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("SalePrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int?>("SoldCount")
                         .HasColumnType("int");
 
@@ -388,6 +397,31 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.HasIndex("UnitId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("SV22T1080045.Shop.DomainModels.ProductInventory", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LowStockThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<int>("Quantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("UpdatedTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.HasKey("ProductId");
+
+                    b.ToTable("ProductInventories", (string)null);
                 });
 
             modelBuilder.Entity("SV22T1080045.Shop.DomainModels.Unit", b =>
@@ -526,9 +560,25 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Navigation("Unit");
                 });
 
+            modelBuilder.Entity("SV22T1080045.Shop.DomainModels.ProductInventory", b =>
+                {
+                    b.HasOne("SV22T1080045.Shop.DomainModels.Product", "Product")
+                        .WithOne("Inventory")
+                        .HasForeignKey("SV22T1080045.Shop.DomainModels.ProductInventory", "ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("SV22T1080045.Shop.DomainModels.Order", b =>
                 {
                     b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("SV22T1080045.Shop.DomainModels.Product", b =>
+                {
+                    b.Navigation("Inventory");
                 });
 #pragma warning restore 612, 618
         }

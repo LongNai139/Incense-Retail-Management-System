@@ -3,6 +3,7 @@
     ViewData["Title"] = "Giỏ hàng";
     var totalAmount = Model.Subtotal;
     var itemCount = Model.ItemCount;
+    var cartMessage = TempData["CartMessage"] as string;
 }
 
 @section Styles {
@@ -31,6 +32,11 @@
 
     <section class="commerce-page">
         <h1 class="commerce-title">Giỏ hàng <span>@(itemCount > 0 ? $"({itemCount} sản phẩm)" : "")</span></h1>
+
+        @if (!string.IsNullOrWhiteSpace(cartMessage))
+        {
+            <div class="success-note mb-3">@cartMessage</div>
+        }
 
         @if (!Model.Items.Any())
         {

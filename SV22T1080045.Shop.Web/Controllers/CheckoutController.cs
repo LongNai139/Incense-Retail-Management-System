@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.Abstractions;
 using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.Models.Mappers;
@@ -69,6 +70,8 @@ namespace SV22T1080045.Shop.Controllers
             var cart = _cartService.GetCart();
             if (!cart.Any())
                 return RedirectToAction("Index", "Cart");
+
+            input.ShippingPhone = PhoneNumberHelper.NormalizeVietnameseMobile(input.ShippingPhone);
 
             if (!ModelState.IsValid)
             {
@@ -189,9 +192,16 @@ namespace SV22T1080045.Shop.Controllers
                 return NotFound();
 
             var model = order.ToCheckoutSuccessViewModel(_orderService.GetOrderDetails(orderId));
-            ViewBag.IsGuest = isGuest;
-            ViewBag.ShowRegisterPrompt = isGuest;
+            var hasCustomerId = order.CustomerId > 0 && GetCurrentCustomerId() == order.CustomerId;
+            var isGuestOrder = isGuest || order.CustomerId <= 0 || !hasCustomerId;
+            ViewBag.IsGuest = isGuestOrder;
+            ViewBag.HasCustomerId = hasCustomerId;
+            ViewBag.ShowRegisterPrompt = isGuestOrder;
             ViewBag.PaymentMessage = TempData["PaymentMessage"] as string;
+
+            if (!string.IsNullOrWhiteSpace(order.ShippingPhone))
+                HttpContext.Session.SetString("verified_phone", PhoneNumberHelper.NormalizeVietnameseMobile(order.ShippingPhone));
+
             return View(model);
         }
 
@@ -287,9 +297,10 @@ namespace SV22T1080045.Shop.Controllers
             if (order == null)
                 return Json(new { success = false, message = "Đơn hàng không tồn tại." });
 
-            if (!string.Equals(order.ShippingPhone?.Trim(), req.Phone.Trim(), StringComparison.Ordinal))
+            if (!string.Equals(PhoneNumberHelper.NormalizeVietnameseMobile(order.ShippingPhone), PhoneNumberHelper.NormalizeVietnameseMobile(req.Phone), StringComparison.Ordinal))
                 return Json(new { success = false, message = "Số điện thoại không khớp với đơn hàng." });
 
+            req.Phone = PhoneNumberHelper.NormalizeVietnameseMobile(req.Phone);
             var customer = req.ToCustomer(order);
             if (!_accountService.Register(customer))
                 return Json(new { success = false, message = "Số điện thoại đã tồn tại hoặc đăng ký thất bại." });

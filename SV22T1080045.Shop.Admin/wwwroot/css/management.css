@@ -1,6 +1,6 @@
 .management-shell {
     background: #f7f3ea;
-    min-height: 100vh;
+    min-height: calc(100vh - 68px);
     color: var(--ink);
 }
 

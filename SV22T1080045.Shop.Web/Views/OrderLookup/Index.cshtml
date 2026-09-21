@@ -1,109 +1,179 @@
 @{
     ViewData["Title"] = "Tra cứu đơn hàng";
+    var verifiedPhone = ViewBag.VerifiedPhone as string;
+    var infoMessage = ViewBag.InfoMessage as string;
 }
 
-<section class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="p-4 p-lg-5 rounded-4 shadow-sm" style="background:#fff; border:1px solid #ead8c9;">
-                <h1 class="h3 fw-bold mb-3">Tra cứu đơn hàng bằng số điện thoại</h1>
-                <p class="text-secondary">Luồng này bám theo spec guest checkout: nhập số điện thoại, nhận OTP 6 số, xác thực rồi xem danh sách đơn hàng.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/commerce-flow.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order-tracking.css" asp-append-version="true" />
+}
 
-                <div class="row g-3">
-                    <div class="col-md-8">
-                        <label class="form-label">Số điện thoại</label>
-                        <input type="text" id="phoneInput" class="form-control" placeholder="Ví dụ: 0909123456" />
+<div class="commerce-flow">
+    <section class="commerce-page commerce-page-narrow">
+        <div class="commerce-card">
+            <h1 class="commerce-section-title mb-2">Tra cứu đơn hàng</h1>
+            <p class="text-secondary mb-4">
+                Dành cho khách <strong>không cần tài khoản</strong>: nhập số điện thoại đặt hàng, xác thực OTP 6 số, sau đó xem danh sách đơn và theo dõi trạng thái cập nhật liên tục.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(infoMessage))
+            {
+                <div class="lookup-alert mb-3">@infoMessage</div>
+            }
+
+            <div id="lookupAuthPanel" class="@(string.IsNullOrEmpty(verifiedPhone) ? null : "d-none")">
+                <div class="form-grid mb-3">
+                    <div>
+                        <label class="form-label-soft" for="phoneInput">Số điện thoại</label>
+                        <input type="tel" id="phoneInput" class="commerce-input" placeholder="Ví dụ: 0909123456" autocomplete="tel" />
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button id="sendOtpBtn" class="btn btn-dark w-100">Gửi mã OTP</button>
+                    <div class="d-flex align-items-end">
+                        <button type="button" id="sendOtpBtn" class="commerce-btn secondary w-100">Gửi mã OTP</button>
                     </div>
-                    <div class="col-md-8">
-                        <label class="form-label">Mã OTP</label>
-                        <input type="text" id="otpInput" class="form-control" maxlength="6" placeholder="Nhập 6 chữ số OTP" />
+                    <div>
+                        <label class="form-label-soft" for="otpInput">Mã OTP</label>
+                        <input type="text" id="otpInput" class="commerce-input" maxlength="6" inputmode="numeric" placeholder="6 chữ số" />
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button id="verifyOtpBtn" class="btn btn-outline-dark w-100">Xác thực</button>
+                    <div class="d-flex align-items-end">
+                        <button type="button" id="verifyOtpBtn" class="commerce-btn primary w-100">Xác thực</button>
                     </div>
                 </div>
+                <div id="lookupMessage" class="lookup-hint"></div>
+            </div>
 
-                <div id="lookupMessage" class="mt-3 small"></div>
-
-                <div class="mt-4">
-                    <h2 class="h5 fw-bold">Đơn hàng đã xác thực</h2>
-                    <div id="ordersContainer" class="mt-3"></div>
+            <div id="lookupOrdersPanel" class="@(string.IsNullOrEmpty(verifiedPhone) ? "d-none" : null)">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div>
+                        <div class="fw-semibold">Đơn hàng của bạn</div>
+                        <div class="small text-secondary" id="verifiedPhoneLabel">
+                            @(string.IsNullOrEmpty(verifiedPhone) ? "" : $"SĐT: {verifiedPhone}")
+                        </div>
+                    </div>
+                    <button type="button" id="changePhoneBtn" class="commerce-btn secondary">Đổi số điện thoại</button>
                 </div>
+                <div id="ordersContainer"></div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                <p class="small text-secondary mb-2">Đã có tài khoản?</p>
+                <a asp-controller="MyOrders" asp-action="Index" class="commerce-btn secondary">
+                    <i class="fa-solid fa-box-archive"></i> Đơn hàng của tôi
+                </a>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+</div>
 
 @section Scripts {
     <script>
-        const phoneInput = document.getElementById('phoneInput');
-        const otpInput = document.getElementById('otpInput');
-        const sendOtpBtn = document.getElementById('sendOtpBtn');
-        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
-        const lookupMessage = document.getElementById('lookupMessage');
-        const ordersContainer = document.getElementById('ordersContainer');
+        (() => {
+            const phoneInput = document.getElementById('phoneInput');
+            const otpInput = document.getElementById('otpInput');
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+            const lookupMessage = document.getElementById('lookupMessage');
+            const ordersContainer = document.getElementById('ordersContainer');
+            const authPanel = document.getElementById('lookupAuthPanel');
+            const ordersPanel = document.getElementById('lookupOrdersPanel');
+            const verifiedPhoneLabel = document.getElementById('verifiedPhoneLabel');
+            const changePhoneBtn = document.getElementById('changePhoneBtn');
 
-        function setMessage(text, isError) {
-            lookupMessage.className = isError ? 'mt-3 small text-danger' : 'mt-3 small text-success';
-            lookupMessage.textContent = text;
-        }
+            const initialVerified = '@(verifiedPhone ?? "")';
 
-        async function postJson(url, data) {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+            function setMessage(text, isError) {
+                if (!lookupMessage) return;
+                lookupMessage.className = isError ? 'lookup-hint text-danger' : 'lookup-hint text-success';
+                lookupMessage.textContent = text;
+            }
+
+            async function postJson(url, data) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                return response.json();
+            }
+
+            function showOrdersPanel(phone) {
+                authPanel?.classList.add('d-none');
+                ordersPanel?.classList.remove('d-none');
+                if (verifiedPhoneLabel) verifiedPhoneLabel.textContent = 'SĐT: ' + phone;
+            }
+
+            function showAuthPanel() {
+                ordersPanel?.classList.add('d-none');
+                authPanel?.classList.remove('d-none');
+            }
+
+            function statusBadgeClass(status) {
+                if (status === 4) return 'status-done';
+                if (status === -1) return 'status-cancel';
+                if (status >= 2) return 'status-shipping';
+                return 'status-pending';
+            }
+
+            async function loadOrders() {
+                const response = await fetch('@Url.Action("OrdersJson", "OrderLookup")');
+                const data = await response.json();
+
+                if (data.error) {
+                    showAuthPanel();
+                    ordersContainer.innerHTML = '';
+                    return;
+                }
+
+                if (!data.length) {
+                    ordersContainer.innerHTML = '<div class="lookup-empty">Không tìm thấy đơn hàng nào cho số điện thoại này.</div>';
+                    return;
+                }
+
+                ordersContainer.innerHTML = data.map(order => `
+                    <article class="order-list-card">
+                        <div class="order-list-card-head">
+                            <div>
+                                <div class="order-list-code">${order.orderCode}</div>
+                                <div class="order-list-meta">${new Date(order.orderDate).toLocaleString('vi-VN')} · ${order.itemCount} sản phẩm</div>
+                            </div>
+                            <span class="order-status-pill ${statusBadgeClass(order.status)}">${order.statusText}</span>
+                        </div>
+                        <div class="order-list-card-foot">
+                            <strong class="order-list-amount">${Number(order.total).toLocaleString('vi-VN')}đ</strong>
+                            <a href="${order.trackUrl}" class="commerce-btn primary">Theo dõi đơn</a>
+                        </div>
+                    </article>
+                `).join('');
+            }
+
+            sendOtpBtn?.addEventListener('click', async () => {
+                const phone = phoneInput.value.trim();
+                const result = await postJson('@Url.Action("SendOtp", "OrderLookup")', { phone });
+                setMessage(result.message, !result.success);
             });
-            return response.json();
-        }
 
-        async function loadOrders() {
-            const response = await fetch('@Url.Action("OrdersJson", "OrderLookup")');
-            const data = await response.json();
+            verifyOtpBtn?.addEventListener('click', async () => {
+                const phone = phoneInput.value.trim();
+                const code = otpInput.value.trim();
+                const result = await postJson('@Url.Action("Verify", "OrderLookup")', { phone, code });
+                setMessage(result.message ?? (result.success ? 'Xác thực thành công.' : 'Xác thực thất bại.'), !result.success);
+                if (result.success) {
+                    showOrdersPanel(phone);
+                    await loadOrders();
+                }
+            });
 
-            if (data.error) {
-                ordersContainer.innerHTML = '<div class="text-secondary">Chưa có dữ liệu đơn hàng sau xác thực.</div>';
-                return;
+            changePhoneBtn?.addEventListener('click', async () => {
+                await fetch('@Url.Action("ClearVerification", "OrderLookup")', { method: 'POST' });
+                showAuthPanel();
+                ordersContainer.innerHTML = '';
+                setMessage('Nhập số điện thoại mới và xác thực OTP.', false);
+            });
+
+            if (initialVerified) {
+                showOrdersPanel(initialVerified);
+                loadOrders();
             }
-
-            if (!data.length) {
-                ordersContainer.innerHTML = '<div class="text-secondary">Không tìm thấy đơn hàng nào cho số điện thoại này.</div>';
-                return;
-            }
-
-            ordersContainer.innerHTML = data.map(order => `
-                <div class="p-3 rounded-4 mb-3" style="background:#fbf7f2; border:1px solid #ead8c9;">
-                    <div class="d-flex justify-content-between flex-wrap gap-2">
-                        <div>
-                            <div class="fw-bold">Đơn #${order.orderId}</div>
-                            <div class="small text-secondary">Ngày đặt: ${new Date(order.orderDate).toLocaleString('vi-VN')}</div>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-semibold text-danger">${Number(order.total).toLocaleString('vi-VN')}đ</div>
-                            <div class="small text-secondary">Trạng thái: ${order.status}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        sendOtpBtn.addEventListener('click', async () => {
-            const phone = phoneInput.value.trim();
-            const result = await postJson('@Url.Action("SendOtp", "OrderLookup")', { phone });
-            setMessage(result.message, !result.success);
-        });
-
-        verifyOtpBtn.addEventListener('click', async () => {
-            const phone = phoneInput.value.trim();
-            const code = otpInput.value.trim();
-            const result = await postJson('@Url.Action("Verify", "OrderLookup")', { phone, code });
-            setMessage(result.message ?? (result.success ? 'Xác thực thành công.' : 'Xác thực thất bại.'), !result.success);
-            if (result.success) {
-                await loadOrders();
-            }
-        });
+        })();
     </script>
 }

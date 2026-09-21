@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.Controllers
 {
-    [Authorize(Roles = "Staff,Admin")]
+    [Authorize(Roles = $"{CustomerRoles.Staff},{CustomerRoles.Admin}")]
     [Route("api/operational-alerts")]
     public class OperationalAlertsController : Controller
     {

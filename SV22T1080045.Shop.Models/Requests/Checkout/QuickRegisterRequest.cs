@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using SV22T1080045.Shop.Abstractions;
 
 namespace SV22T1080045.Shop.Models.Requests.Checkout
 {
     public class QuickRegisterRequest
     {
         [Required]
-        [RegularExpression(@"^(0|\+84)[3-9]\d{8}$", ErrorMessage = "Số điện thoại không hợp lệ.")]
+        [RegularExpression(PhoneNumberHelper.VietnameseMobilePattern, ErrorMessage = "Số điện thoại không hợp lệ.")]
         public string Phone { get; set; } = "";
 
         [Required]
