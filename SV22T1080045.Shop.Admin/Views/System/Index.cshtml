@@ -1,0 +1,316 @@
+@model SV22T1080045.Shop.Models.ViewModels.System.SystemDashboardViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.DomainModels
+
+@{
+    ViewData["Title"] = "Hệ thống";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+    string FormatDate(DateTime value) => value.ToString("dd/MM/yyyy HH:mm", vi);
+    string RoleClass(string role) => role switch
+    {
+        CustomerRoles.Admin => "role-admin",
+        CustomerRoles.Staff => "role-staff",
+        _ => "role-user"
+    };
+    string RoleLabel(string role) => role switch
+    {
+        CustomerRoles.Admin => "Quản trị viên",
+        CustomerRoles.Staff => "Nhân viên",
+        _ => "Khách hàng"
+    };
+    var isEditing = Model.AccountForm.Id > 0;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/management.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/system.css" asp-append-version="true" />
+}
+
+<div class="management-shell system-shell">
+    <div class="management-wrap">
+        <aside class="management-sidebar">
+            <div class="management-brand">
+                <div class="management-kicker">Module hệ thống</div>
+                <div class="management-title">Quản trị tài khoản</div>
+            </div>
+
+            <nav class="management-nav" aria-label="Điều hướng hệ thống">
+                <a href="#accounts" class="active"><i class="fa-solid fa-users"></i> Tài khoản</a>
+                <a href="#permissions"><i class="fa-solid fa-shield-halved"></i> Phân quyền</a>
+                <a asp-controller="Management" asp-action="Index"><i class="fa-solid fa-chart-line"></i> Quản lý cửa hàng</a>
+            </nav>
+        </aside>
+
+        <main class="management-main">
+            <section class="management-hero">
+                <div>
+                    <div class="management-kicker">Hệ thống</div>
+                    <h1>Quản lý tài khoản &amp; phân quyền</h1>
+                    <p>Tạo tài khoản Admin/Staff, đặt lại mật khẩu và gán vai trò cho người dùng. Chỉ tài khoản Admin mới truy cập module này.</p>
+                </div>
+                <div class="management-actions">
+                    <a class="admin-btn" asp-controller="Management" asp-action="Index"><i class="fa-solid fa-arrow-left"></i> Về quản lý</a>
+                    <a class="admin-btn primary" asp-action="Index" asp-fragment="accounts"><i class="fa-solid fa-user-plus"></i> Tài khoản mới</a>
+                </div>
+            </section>
+
+            @if (TempData["SystemMessage"] is string message)
+            {
+                <div class="system-toast">@message</div>
+            }
+
+            <section class="admin-section" id="accounts">
+                <div class="admin-section-head">
+                    <div class="admin-section-heading-block">
+                        <h2>Tài khoản quản trị</h2>
+                        <p class="admin-section-desc">Danh sách tài khoản Admin và Staff có thể đăng nhập khu vực quản trị (7127).</p>
+                    </div>
+                </div>
+
+                <form class="system-filter-row" method="get" asp-action="Index">
+                    <input type="hidden" name="roleSearchValue" value="@Model.RoleSearchValue" />
+                    <input type="hidden" name="roleFilter" value="@Model.RoleFilter" />
+                    <input class="admin-input" type="search" name="accountSearchValue" value="@Model.AccountSearchValue" placeholder="Tìm theo tên, SĐT, email..." />
+                    <select class="admin-select" name="accountRoleFilter">
+                        <option value="">Tất cả vai trò</option>
+                        @* <option value="@CustomerRoles.Admin" @(Model.AccountRoleFilter == CustomerRoles.Admin ? "selected" : null)>Admin</option> *@
+                        @* <option value="@CustomerRoles.Staff" @(Model.AccountRoleFilter == CustomerRoles.Staff ? "selected" : null)>Staff</option> *@
+                    </select>
+                    <button class="admin-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Lọc</button>
+                    <a class="admin-btn" asp-action="Index" asp-fragment="accounts">Xóa lọc</a>
+                </form>
+
+                <div class="system-grid">
+                    <div class="system-panel">
+                        <div class="system-panel-head">
+                            <strong>@(isEditing ? "Chỉnh sửa tài khoản" : "Thêm tài khoản mới")</strong>
+                            @if (isEditing)
+                            {
+                                <a class="admin-btn" asp-action="Index" asp-fragment="accounts">Tạo mới</a>
+                            }
+                        </div>
+
+                        <form method="post" asp-action="SaveAccount" class="system-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="AccountForm.Id" />
+
+                            <label class="system-field">
+                                <span>Họ tên</span>
+                                <input class="admin-input" asp-for="AccountForm.CustomerName" required maxlength="120" />
+                            </label>
+
+                            <label class="system-field">
+                                <span>Số điện thoại (đăng nhập)</span>
+                                <input class="admin-input" asp-for="AccountForm.Phone" required maxlength="20" />
+                            </label>
+
+                            <label class="system-field">
+                                <span>Email</span>
+                                <input class="admin-input" asp-for="AccountForm.Email" type="email" maxlength="120" />
+                            </label>
+
+                            <label class="system-field">
+                                <span>Địa chỉ</span>
+                                <input class="admin-input" asp-for="AccountForm.Address" maxlength="200" />
+                            </label>
+
+                            <label class="system-field">
+                                <span>Vai trò</span>
+                                <select class="admin-select" asp-for="AccountForm.Role">
+                                    <option value="@CustomerRoles.Staff">Staff</option>
+                                    <option value="@CustomerRoles.Admin">Admin</option>
+                                </select>
+                            </label>
+
+                            @if (!isEditing)
+                            {
+                                <label class="system-field">
+                                    <span>Mật khẩu</span>
+                                    <input class="admin-input" asp-for="AccountForm.Password" type="password" required minlength="3" />
+                                </label>
+                            }
+
+                            <button class="admin-btn success" type="submit">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                @(isEditing ? "Lưu thay đổi" : "Tạo tài khoản")
+                            </button>
+                        </form>
+
+                        @if (isEditing)
+                        {
+                            <form method="post" asp-action="ResetPassword" class="system-reset-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="accountId" value="@Model.AccountForm.Id" />
+                                <label class="system-field">
+                                    <span>Đặt lại mật khẩu</span>
+                                    <input class="admin-input" type="password" name="newPassword" required minlength="3" placeholder="Mật khẩu mới" />
+                                </label>
+                                <button class="admin-btn" type="submit"><i class="fa-solid fa-key"></i> Đặt lại</button>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="system-panel system-panel-wide">
+                        <div class="table-wrap">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Họ tên</th>
+                                        <th>SĐT</th>
+                                        <th>Vai trò</th>
+                                        <th>Ngày tạo</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.BackofficeAccounts.Any())
+                                    {
+                                        foreach (var account in Model.BackofficeAccounts)
+                                        {
+                                            <tr class="@(Model.EditAccountId == account.Id ? "product-row-highlight" : null)">
+                                                <td>
+                                                    <strong>@account.CustomerName</strong>
+                                                    @if (account.IsCurrentUser)
+                                                    {
+                                                        <span class="status-badge status-ready">Bạn</span>
+                                                    }
+                                                    @if (!string.IsNullOrWhiteSpace(account.Email))
+                                                    {
+                                                        <div class="item-meta">@account.Email</div>
+                                                    }
+                                                </td>
+                                                <td>@account.Phone</td>
+                                                <td><span class="role-badge @RoleClass(account.Role)">@RoleLabel(account.Role)</span></td>
+                                                <td>@FormatDate(account.CreatedTime)</td>
+                                                <td>
+                                                    <a class="admin-btn" asp-action="Index" asp-route-editAccountId="@account.Id" asp-fragment="accounts">Sửa</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="5">Chưa có tài khoản quản trị nào phù hợp bộ lọc.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" id="permissions">
+                <div class="admin-section-head">
+                    <div class="admin-section-heading-block">
+                        <h2>Phân quyền</h2>
+                        <p class="admin-section-desc">Ma trận quyền theo vai trò và gán vai trò cho từng tài khoản trong hệ thống.</p>
+                    </div>
+                </div>
+
+                <div class="system-role-grid">
+                    @foreach (var role in Model.RoleDefinitions)
+                    {
+                        <article class="system-role-card">
+                            <div class="system-role-card-head">
+                                <span class="role-badge @RoleClass(role.Role)">@role.DisplayName</span>
+                                <strong>@role.AccountCount tài khoản</strong>
+                            </div>
+                            <p>@role.Description</p>
+                            <ul>
+                                @foreach (var permission in role.Permissions)
+                                {
+                                    <li>@permission</li>
+                                }
+                            </ul>
+                        </article>
+                    }
+                </div>
+
+                <form class="system-filter-row" method="get" asp-action="Index">
+                    <input type="hidden" name="accountSearchValue" value="@Model.AccountSearchValue" />
+                    <input type="hidden" name="accountRoleFilter" value="@Model.AccountRoleFilter" />
+                    <input type="hidden" name="editAccountId" value="@Model.EditAccountId" />
+                    <input class="admin-input" type="search" name="roleSearchValue" value="@Model.RoleSearchValue" placeholder="Tìm tài khoản để gán quyền..." />
+                    <select class="admin-select" name="roleFilter">
+                        <option value="">Tất cả vai trò</option>
+                        @foreach (var role in CustomerRoles.AllRoles)
+                        {
+                            @* <option value="@role" @(Model.RoleFilter == role ? "selected" : null)>@RoleLabel(role)</option> *@
+                        }
+                    </select>
+                    <button class="admin-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Lọc</button>
+                </form>
+
+                <div class="table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>SĐT</th>
+                                <th>Vai trò hiện tại</th>
+                                <th>Gán vai trò</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RoleAccounts.Any())
+                            {
+                                foreach (var account in Model.RoleAccounts)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@account.CustomerName</strong>
+                                            @if (account.IsCurrentUser)
+                                            {
+                                                <span class="status-badge status-ready">Bạn</span>
+                                            }
+                                        </td>
+                                        <td>@account.Phone</td>
+                                        <td><span class="role-badge @RoleClass(account.Role)">@RoleLabel(account.Role)</span></td>
+                                        <td>
+                                            <form method="post" asp-action="UpdateRole" class="system-role-form">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="accountId" value="@account.Id" />
+                                                <select class="admin-select" name="role">
+                                                    @foreach (var role in CustomerRoles.AllRoles)
+                                                    {
+                                                        @* <option value="@role" @(account.Role == role ? "selected" : null)>@RoleLabel(role)</option> *@
+                                                    }
+                                                </select>
+                                                <button class="admin-btn success" type="submit">Cập nhật</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4">Không tìm thấy tài khoản phù hợp.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var hash = window.location.hash || '#accounts';
+            document.querySelectorAll('.management-nav a[href^="#"]').forEach(function (link) {
+                link.classList.toggle('active', link.getAttribute('href') === hash);
+                link.addEventListener('click', function () {
+                    document.querySelectorAll('.management-nav a[href^="#"]').forEach(function (item) {
+                        item.classList.remove('active');
+                    });
+                    link.classList.add('active');
+                });
+            });
+        })();
+    </script>
+}

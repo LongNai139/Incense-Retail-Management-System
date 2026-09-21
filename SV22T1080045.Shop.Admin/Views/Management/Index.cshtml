@@ -1,0 +1,236 @@
+@{
+    Layout = "_ManagementLayout";
+}
+
+@model SV22T1080045.Shop.Models.ViewModels.Management.ManagementDashboardViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Models.ViewModels.Management
+
+@{
+    ViewData["Title"] = "Tổng quan";
+
+    var allProducts = Model.AllProducts ?? new List<ManagementProductRowViewModel>();
+    var bestSellers = allProducts.OrderByDescending(p => p.SoldCount ?? 0).Take(5).ToList();
+    var lowStockProducts = allProducts.Where(p => (p.Quantity ?? 0) > 0 && (p.Quantity ?? 0) <= 5).OrderBy(p => p.Quantity ?? 0).Take(5).ToList();
+    var outOfStockCount = allProducts.Count(p => (p.Quantity ?? 0) <= 0);
+    var revenueSummary = Model.RevenueSummary;
+    var bestRevenuePoint = Model.RevenuePoints.OrderByDescending(p => p.Revenue).FirstOrDefault();
+    var reportDateValue = Model.RevenueDate.ToString("yyyy-MM-dd");
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+    string FormatRange(DateTime start, DateTime end) => start.Date == end.AddDays(-1).Date
+        ? start.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"))
+        : $"{start.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"))} - {end.AddDays(-1).ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"))}";
+    string FormatPercent(decimal value) => (value >= 0 ? "+" : "") + value.ToString("N1", CultureInfo.GetCultureInfo("vi-VN")) + "%";
+    string MaskPhone(string? phone) => string.IsNullOrWhiteSpace(phone) || phone.Length < 4 ? "***" : "***" + phone[^4..];
+    string StatusText(int status) => status switch { 1 => "Chờ xử lý", 2 => "Đang chuẩn bị", 3 => "Đang giao", 4 => "Hoàn thành", -1 => "Đã hủy", _ => "Khác" };
+    string StatusClass(int status) => status switch { 1 => "status-pending", 2 => "status-ready", 3 => "status-shipped", 4 => "status-done", -1 => "status-cancel", _ => "status-ready" };
+}
+
+<section class="management-hero">
+    <div>
+        <div class="management-kicker">Trầm Hương Shop</div>
+        <h1>Trung tâm vận hành</h1>
+        <p>Theo dõi doanh thu, xử lý đơn, chăm tồn kho và khách hàng trên cùng một khu vực quản trị. Các khối đơn hàng, khách hàng, mã giảm giá và báo cáo đang đọc từ database hiện tại.</p>
+    </div>
+    <div class="management-actions">
+        <button class="admin-btn" type="button" data-sound-toggle>
+            <i class="fa-solid fa-volume-high"></i> Âm báo
+        </button>
+        <select class="admin-select" data-sound-style style="min-width: 170px;">
+            <option value="classic">Âm: Classic</option>
+            <option value="soft">Âm: Soft</option>
+            <option value="sharp">Âm: Sharp</option>
+        </select>
+        <input class="admin-input" data-sound-volume type="range" min="0" max="100" step="1" value="35" style="width: 160px;" />
+        <a class="admin-btn primary" asp-controller="Management" asp-action="Products"><i class="fa-solid fa-plus"></i> Thêm sản phẩm</a>
+        <button class="admin-btn"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+        <a class="admin-btn success" asp-controller="Management" asp-action="ExportRevenueReport" asp-route-reportPeriod="@Model.RevenuePeriod" asp-route-reportDate="@reportDateValue"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</a>
+    </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-section-head">
+        <div class="admin-section-heading-block">
+            <h2>Trang tổng quan</h2>
+            <p class="admin-section-desc">Doanh thu theo ngày, tuần, tháng hoặc một ngày cụ thể. Khoảng đang xem: @FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd).</p>
+            <form class="time-filter-row" asp-controller="Management" asp-action="Index" method="get">
+                <select class="admin-select" name="revenuePeriod">
+                    <option value="day" selected="@(Model.RevenuePeriod == "day" ? "selected" : null)">Theo ngày</option>
+                    <option value="week" selected="@(Model.RevenuePeriod == "week" ? "selected" : null)">Theo tuần</option>
+                    <option value="month" selected="@(Model.RevenuePeriod == "month" ? "selected" : null)">Theo tháng</option>
+                </select>
+                <input class="admin-input" type="date" name="revenueDate" value="@Model.RevenueDate.ToString("yyyy-MM-dd")" />
+                <button class="admin-btn" type="submit"><i class="fa-solid fa-filter"></i> Xem doanh thu</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon revenue"><i class="fa-solid fa-dong-sign"></i></div>
+            <div class="kpi-label">Doanh thu</div>
+            <div class="kpi-value">@FormatMoney(revenueSummary.Revenue)</div>
+            <div class="kpi-note">@FormatPercent(revenueSummary.RevenueChangePercent) so với kỳ trước</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon orders"><i class="fa-solid fa-bag-shopping"></i></div>
+            <div class="kpi-label">Đơn hàng</div>
+            <div class="kpi-value">@revenueSummary.OrderCount</div>
+            <div class="kpi-note">@revenueSummary.CompletedOrderCount đơn hoàn thành</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon stock"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="kpi-label">Sản phẩm hết hàng</div>
+            <div class="kpi-value">@outOfStockCount</div>
+            <div class="kpi-note">@lowStockProducts.Count sản phẩm sắp hết hàng</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon customers"><i class="fa-solid fa-user-plus"></i></div>
+            <div class="kpi-label">Khách mới</div>
+            <div class="kpi-value">@revenueSummary.NewCustomerCount</div>
+            <div class="kpi-note">@revenueSummary.GuestOrderCount đơn khách vãng lai</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="admin-panel">
+            <div class="panel-title">
+                <span>Biểu đồ doanh thu</span>
+                <span class="status-badge status-ready">@FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd)</span>
+            </div>
+            <div class="chart-guide">
+                <strong>Kết luận nhanh:</strong>
+                @if (bestRevenuePoint != null && bestRevenuePoint.Revenue > 0)
+                {
+                    <span>@bestRevenuePoint.Label bán tốt nhất với @FormatMoney(bestRevenuePoint.Revenue) từ @bestRevenuePoint.OrderCount đơn.</span>
+                }
+                else
+                {
+                    <span>Khoảng này chưa có doanh thu.</span>
+                }
+            </div>
+            <div class="revenue-list" aria-label="Bảng thanh doanh thu">
+                @foreach (var point in Model.RevenuePoints.OrderByDescending(p => p.Revenue))
+                {
+                    <div class="revenue-row">
+                        <div class="revenue-row-label">@point.Label</div>
+                        <div class="revenue-row-track">
+                            <div class="revenue-row-fill" style="width:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
+                        </div>
+                        <div class="revenue-row-money">@FormatMoney(point.Revenue)</div>
+                        <div class="revenue-row-orders">@point.OrderCount đơn</div>
+                    </div>
+                }
+            </div>
+            <div class="chart-caption">Đọc từ trên xuống: mốc nào tạo nhiều tiền nhất nằm ở đầu danh sách. Tổng @FormatMoney(revenueSummary.Revenue) từ @revenueSummary.OrderCount đơn.</div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-title">Sản phẩm bán chạy top 5</div>
+            <div class="selling-list">
+                @if (bestSellers.Any())
+                {
+                    var rank = 1;
+                    foreach (var item in bestSellers)
+                    {
+                        var revenue = (item.SoldCount ?? 0) * item.PriceAfterDiscount;
+                        <div class="selling-item">
+                            <div>
+                                <div class="item-name">@item.ProductName</div>
+                                <div class="item-meta">@((item.SoldCount ?? 0).ToString("N0")) đã bán | @FormatMoney(revenue)</div>
+                            </div>
+                            <strong>@rank</strong>
+                        </div>
+                        rank++;
+                    }
+                }
+                else
+                {
+                    <div class="item-meta">Chưa có dữ liệu sản phẩm.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="admin-panel">
+            <div class="panel-title">10 đơn hàng mới nhất</div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách</th>
+                            <th>Tổng</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentOrders.Any())
+                        {
+                            foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td>@order.OrderCode</td>
+                                    <td>@(order.IsGuest ? $"Guest {MaskPhone(order.CustomerPhone)}" : order.CustomerName)</td>
+                                    <td>@FormatMoney(order.TotalAmount)</td>
+                                    <td><span class="status-badge @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
+                                    <td>@order.OrderDate.ToString("dd/MM HH:mm")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5">Chưa có đơn hàng trong database.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-title">Cảnh báo sắp hết hàng (&lt;5 sp)</div>
+            <div class="warning-list">
+                @if (lowStockProducts.Any())
+                {
+                    foreach (var item in lowStockProducts)
+                    {
+                        <div class="warning-item">
+                            <div>
+                                <div class="item-name">@item.ProductName</div>
+                                <div class="item-meta">@item.Origin</div>
+                            </div>
+                            <div class="warning-count">@(item.Quantity ?? 0)</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="item-meta">Không có sản phẩm nào dưới 5 tồn kho.</div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.management-nav a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                document.querySelectorAll('.management-nav a').forEach(function (item) {
+                    item.classList.remove('active');
+                });
+                link.classList.add('active');
+            });
+        });
+    </script>
+    <script>
+        window.operationalAlertsConfig = {
+            feedUrl: '@Url.Action("Feed", "OperationalAlerts")',
+            storageKey: 'managementOperationalAlerts',
+            pollIntervalMs: 30000
+        };
+    </script>
+    <script src="~/js/operational-alerts.js" asp-append-version="true"></script>
+}

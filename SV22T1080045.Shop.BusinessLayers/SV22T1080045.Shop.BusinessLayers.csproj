@@ -4,15 +4,20 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\SV22T1080045.Shop.DataLayers\SV22T1080045.Shop.DataLayers.csproj" />
+		<ProjectReference Include="..\SV22T1080045.Shop.Abstractions\SV22T1080045.Shop.Abstractions.csproj" />
 		<ProjectReference Include="..\SV22T1080045.Shop.DomainModels\SV22T1080045.Shop.DomainModels.csproj" />
-		<ProjectReference Include="..\SV22T1080045.Shop.Models\SV22T1080045.Shop.Models.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="bin\**\*.cs;obj\**\*.cs;bin_codex\**\*.cs;obj_codex\**\*.cs" />
 	</ItemGroup>
 
 </Project>

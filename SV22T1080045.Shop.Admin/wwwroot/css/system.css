@@ -1,0 +1,129 @@
+.system-shell .system-toast {
+    background: #eef4f7;
+    border: 1px solid rgba(42, 92, 114, .18);
+    color: #2a5c72;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+}
+
+.system-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.system-filter-row .admin-input,
+.system-filter-row .admin-select {
+    min-width: 180px;
+    flex: 1;
+}
+
+.system-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    gap: 18px;
+}
+
+.system-panel {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    background: #fffaf1;
+}
+
+.system-panel-wide {
+    background: #fff;
+}
+
+.system-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.system-form,
+.system-reset-form {
+    display: grid;
+    gap: 12px;
+}
+
+.system-reset-form {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+}
+
+.system-field {
+    display: grid;
+    gap: 6px;
+}
+
+.system-field span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-3);
+}
+
+.system-role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.system-role-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    background: #fffaf1;
+}
+
+.system-role-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.system-role-card p {
+    margin: 0 0 10px;
+    color: var(--ink-4);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.system-role-card ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--ink-3);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.system-role-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.system-role-form .admin-select {
+    min-width: 160px;
+}
+
+.role-badge.role-staff {
+    background: #eef4f7;
+    color: #2a5c72;
+}
+
+@media (max-width: 1100px) {
+    .system-grid,
+    .system-role-grid {
+        grid-template-columns: 1fr;
+    }
+}

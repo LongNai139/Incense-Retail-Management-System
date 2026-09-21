@@ -4,6 +4,8 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -11,7 +13,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\SV22T1080045.Shop.Abstractions\SV22T1080045.Shop.Abstractions.csproj" />
+		<ProjectReference Include="..\SV22T1080045.Shop.BusinessLayers\SV22T1080045.Shop.BusinessLayers.csproj" />
 		<ProjectReference Include="..\SV22T1080045.Shop.DomainModels\SV22T1080045.Shop.DomainModels.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="bin\**\*.cs;obj\**\*.cs;bin_codex\**\*.cs;obj_codex\**\*.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Requests\Home\" />
 	</ItemGroup>
 
 </Project>

@@ -1,0 +1,166 @@
+@{
+    Layout = "_ManagementLayout";
+}
+
+@model SV22T1080045.Shop.Models.ViewModels.Management.DiscountManagementViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Models.ViewModels.Management
+
+@{
+    ViewData["Title"] = "Quản lý mã giảm giá";
+
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+}
+
+<section class="management-hero">
+    <div>
+        <div class="management-kicker">Quản lý mã giảm giá</div>
+        <h1>Mã giảm giá</h1>
+        <p>Tạo code thủ công hoặc sinh tự động, chọn kiểu giảm, điều kiện đơn tối thiểu và sản phẩm áp dụng.</p>
+    </div>
+    <div class="management-actions">
+        <button class="admin-btn primary" type="button" id="generateCouponCode"><i class="fa-solid fa-wand-magic-sparkles"></i> Sinh mã tự động</button>
+    </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-section-head">
+        <div>
+            <h2>Quản lý mã giảm giá</h2>
+            <p class="admin-section-desc">Tạo code thủ công hoặc sinh tự động, chọn kiểu giảm, điều kiện đơn tối thiểu và sản phẩm áp dụng.</p>
+        </div>
+    </div>
+
+    <div class="coupon-grid dashboard-grid">
+        <div class="admin-panel">
+            <div class="panel-title">Tạo mã</div>
+            @if (!string.IsNullOrWhiteSpace(Model.VoucherMessage))
+            {
+                <div class="status-badge status-ready" style="margin-bottom:12px;">@Model.VoucherMessage</div>
+            }
+            <form asp-controller="Management" asp-action="SaveVoucher" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-grid">
+                    <div class="field"><label>Code</label><input class="admin-input coupon-code" id="couponCodeInput" name="Code" value="@Model.VoucherForm.Code" required /></div>
+                    <div class="field">
+                        <label>Loại giảm</label>
+                        <select class="admin-select" name="DiscountType">
+                            <option value="1" selected="@(Model.VoucherForm.DiscountType == ManagementVoucherDiscountType.Percent ? "selected" : null)">Phần trăm</option>
+                            <option value="2" selected="@(Model.VoucherForm.DiscountType == ManagementVoucherDiscountType.FixedAmount ? "selected" : null)">Số tiền cố định</option>
+                        </select>
+                    </div>
+                    <div class="field"><label>Giá trị</label><input class="admin-input" type="number" name="DiscountValue" min="1" step="1" value="@Model.VoucherForm.DiscountValue.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                    <div class="field"><label>Giảm tối đa</label><input class="admin-input" type="number" name="MaxDiscount" min="0" step="1000" value="@(Model.VoucherForm.MaxDiscount.HasValue ? Model.VoucherForm.MaxDiscount.Value.ToString("0.##", CultureInfo.InvariantCulture) : "")" /></div>
+                    <div class="field"><label>Đơn tối thiểu</label><input class="admin-input" type="number" name="MinOrderAmount" min="0" step="1000" value="@Model.VoucherForm.MinOrderAmount.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                    <div class="field"><label>Số lượt dùng</label><input class="admin-input" type="number" name="MaxUsage" min="1" value="@Model.VoucherForm.MaxUsage" /></div>
+                    <div class="field"><label>Hạn dùng</label><input class="admin-input" type="date" name="ExpiresAt" value="@(Model.VoucherForm.ExpiresAt.HasValue ? Model.VoucherForm.ExpiresAt.Value.ToString("yyyy-MM-dd") : "")" /></div>
+                    <div class="field"><label>Mô tả</label><input class="admin-input" name="Description" value="@Model.VoucherForm.Description" placeholder="Ví dụ: giảm cho đơn đầu tiên" /></div>
+                </div>
+                <div class="management-actions" style="margin-top:14px;">
+                    <button class="admin-btn primary" type="submit"><i class="fa-solid fa-check"></i> Xác nhận tạo mã</button>
+                </div>
+            </form>
+        </div>
+        <div class="admin-panel">
+            <div class="panel-title">Thống kê sử dụng</div>
+            <div class="coupon-list">
+                @if (Model.Vouchers.Any())
+                {
+                    foreach (var voucher in Model.Vouchers)
+                    {
+                        var percent = voucher.MaxUsage.HasValue && voucher.MaxUsage.Value > 0 ? Math.Min(100, voucher.UsedCount * 100 / voucher.MaxUsage.Value) : 0;
+                        <div class="coupon-item" data-voucher-row="@voucher.Id">
+                            <div>
+                                <div class="coupon-code">@voucher.Code</div>
+                                <div class="item-meta">@voucher.UsedCount lượt dùng | tối thiểu @FormatMoney(voucher.MinOrderAmount)</div>
+                                <div class="progress-track"><div class="progress-fill" style="width:@percent%"></div></div>
+                            </div>
+                            <form asp-controller="Management" asp-action="ToggleVoucher" method="post" data-voucher-toggle-form>
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@voucher.Id" />
+                                <button class="admin-btn @(voucher.IsActive ? "primary" : null)" type="submit" data-voucher-toggle-button>
+                                    <i class="fa-solid @(voucher.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                                    <span>@(voucher.IsActive ? "Bật" : "Tắt")</span>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="item-meta">Chưa có mã giảm giá.</div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('submit', function (event) {
+            var form = event.target.closest('[data-voucher-toggle-form]');
+            if (!form) {
+                return;
+            }
+
+            event.preventDefault();
+            var button = form.querySelector('[data-voucher-toggle-button]');
+            if (button) {
+                button.disabled = true;
+            }
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Không cập nhật được mã giảm giá.');
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (!button) {
+                        return;
+                    }
+                    var icon = button.querySelector('i');
+                    var label = button.querySelector('span');
+                    button.classList.toggle('primary', data.isActive);
+                    if (icon) {
+                        icon.classList.toggle('fa-toggle-on', data.isActive);
+                        icon.classList.toggle('fa-toggle-off', !data.isActive);
+                    }
+                    if (label) {
+                        label.textContent = data.isActive ? 'Bật' : 'Tắt';
+                    }
+                    button.title = data.message || '';
+                })
+                .catch(function () {
+                    alert('Không cập nhật được mã giảm giá. Vui lòng thử lại.');
+                })
+                .finally(function () {
+                    if (button) {
+                        button.disabled = false;
+                    }
+                });
+        });
+
+        var couponButton = document.getElementById('generateCouponCode');
+        var couponInput = document.getElementById('couponCodeInput');
+        if (couponButton && couponInput) {
+            couponButton.addEventListener('click', function () {
+                var now = new Date();
+                var datePart = String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+                var randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+                couponInput.value = 'TRAM' + datePart + randomPart;
+                couponInput.classList.add('generated-coupon');
+                couponInput.focus();
+                couponInput.select();
+                window.setTimeout(function () {
+                    couponInput.classList.remove('generated-coupon');
+                }, 1200);
+            });
+        }
+    </script>
+}

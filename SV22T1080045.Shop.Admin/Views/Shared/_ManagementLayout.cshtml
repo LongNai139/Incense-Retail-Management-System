@@ -1,0 +1,61 @@
+@{
+    var currentPage = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản lý Trầm Hương Shop</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/management.css" />
+    <link rel="stylesheet" href="/css/operational-alerts.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="management-shell">
+        <div class="management-wrap">
+            <aside class="management-sidebar">
+                <div class="management-brand">
+                    <div class="management-kicker">Admin workspace</div>
+                    <div class="management-title">Quản lý cửa hàng</div>
+                </div>
+
+                <nav class="management-nav" aria-label="Điều hướng quản lý">
+                    <a class="@(currentPage == "Index" ? "active" : "")" asp-controller="Management" asp-action="Index">
+                        <i class="fa-solid fa-gauge-high"></i> Tổng quan
+                    </a>
+                    <a class="@(currentPage == "Products" ? "active" : "")" asp-controller="Management" asp-action="Products">
+                        <i class="fa-solid fa-boxes-stacked"></i> Sản phẩm
+                    </a>
+                    <a class="@(currentPage == "Orders" ? "active" : "")" asp-controller="Management" asp-action="Orders">
+                        <i class="fa-solid fa-receipt"></i> Đơn hàng
+                    </a>
+                    <a class="@(currentPage == "Customers" ? "active" : "")" asp-controller="Management" asp-action="Customers">
+                        <i class="fa-solid fa-users"></i> Khách hàng
+                    </a>
+                    <a class="@(currentPage == "Discounts" ? "active" : "")" asp-controller="Management" asp-action="Discounts">
+                        <i class="fa-solid fa-ticket"></i> Mã giảm giá
+                    </a>
+                    <a class="@(currentPage == "Reports" ? "active" : "")" asp-controller="Management" asp-action="Reports">
+                        <i class="fa-solid fa-chart-column"></i> Báo cáo
+                    </a>
+                    <a asp-controller="System" asp-action="Index">
+                        <i class="fa-solid fa-gear"></i> Hệ thống
+                    </a>
+                </nav>
+            </aside>
+
+            <main class="management-main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

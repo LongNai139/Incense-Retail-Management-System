@@ -1,0 +1,11 @@
+@model int
+@{
+    var storefrontUrl = (ViewBag.StorefrontUrl as string ?? "https://localhost:7126").TrimEnd('/');
+}
+<a class="cart-btn" href="@($"{storefrontUrl}/Cart")" target="_blank" rel="noopener" title="Giỏ hàng (cửa hàng)">
+    <i class="fa-solid fa-bag-shopping"></i>
+    @if (Model > 0)
+    {
+        <span class="cart-count">@Model</span>
+    }
+</a>

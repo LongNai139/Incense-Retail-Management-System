@@ -1,0 +1,19 @@
+@{
+    Layout = null;
+    var backofficeLogoutUrl = ViewBag.BackofficeLogoutUrl as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Đang đăng xuất...</title>
+</head>
+<body>
+    <p>Đang đăng xuất khu vực quản trị...</p>
+    <form id="logoutBridge" method="post" action="@backofficeLogoutUrl"></form>
+    <script>
+        document.getElementById('logoutBridge').submit();
+        setTimeout(function () { window.location.href = '@Url.Action("Login", "Account")'; }, 800);
+    </script>
+</body>
+</html>

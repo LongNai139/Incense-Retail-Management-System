@@ -1,0 +1,196 @@
+@model SV22T1080045.Shop.Models.ViewModels.Orders.OrderTrackViewModel
+@{
+    ViewData["Title"] = $"Theo dõi {Model.OrderCode}";
+    var hasCustomerId = ViewBag.HasCustomerId is bool cid && cid;
+    var progressSteps = Model.Timeline;
+    var progressCount = progressSteps.Count == 0 ? 1 : progressSteps.Count;
+    var reachedSteps = progressSteps.Count(s => s.State == "done" || s.State == "active");
+    var progressPercent = Model.IsCancelled ? 100 : Math.Clamp((int)Math.Round((double)reachedSteps / progressCount * 100), 0, 100);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/commerce-flow.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order-tracking.css" asp-append-version="true" />
+}
+
+<div class="commerce-flow">
+    <section class="commerce-page commerce-page-narrow">
+        <div class="commerce-card">
+            <div class="track-header">
+                <div>
+                    <div class="track-kicker">Theo dõi đơn hàng</div>
+                    <h1 class="track-code" id="trackOrderCode">@Model.OrderCode</h1>
+                    <div class="track-meta">Đặt lúc @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+                <div class="text-end">
+                    <span class="order-status-pill @(Model.IsCancelled ? "status-cancel" : Model.Status >= 4 ? "status-done" : Model.Status >= 2 ? "status-shipping" : "status-pending")" id="trackStatusPill">
+                        @Model.StatusText
+                    </span>
+                    <div class="track-poll-hint" id="pollHint">
+                        @(Model.CanPoll ? "Tự động cập nhật mỗi 20 giây" : "Đơn đã kết thúc")
+                    </div>
+                </div>
+            </div>
+
+            <div class="track-progress-card">
+                <div class="track-progress-main">
+                    <div class="track-progress-label">Trạng thái hiện tại</div>
+                    <strong id="trackProgressStatus">@Model.StatusText</strong>
+                </div>
+                <div class="track-progress-rail" aria-hidden="true">
+                    <span id="trackProgressFill" style="width:@progressPercent%"></span>
+                </div>
+                <div class="track-progress-caption">
+                    <span>@(Model.IsCancelled ? "Đơn đã hủy" : $"{reachedSteps}/{progressCount} bước")</span>
+                    <span>@Model.PaymentStatusText</span>
+                </div>
+            </div>
+
+            @if (Model.IsCancelled)
+            {
+                <div class="lookup-alert mb-3" id="cancelBanner">Đơn hàng đã bị hủy. Liên hệ cửa hàng nếu cần hỗ trợ.</div>
+            }
+
+            <div class="track-timeline" id="trackTimeline" aria-live="polite">
+                @foreach (var step in Model.Timeline)
+                {
+                    <div class="track-step @step.State" data-state="@step.State">
+                        <div class="track-step-dot"></div>
+                        <div class="track-step-body">
+                            <div class="track-step-label">@step.Label</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="commerce-panel p-3 mb-4">
+                <h2 class="commerce-section-title mb-3">Thông tin giao hàng</h2>
+                <div class="success-info-grid">
+                    <div class="success-info">
+                        <div class="success-info-label">Người nhận</div>
+                        <div class="success-info-value">@Model.ShippingName</div>
+                    </div>
+                    <div class="success-info">
+                        <div class="success-info-label">Số điện thoại</div>
+                        <div class="success-info-value">@Model.ShippingPhone</div>
+                    </div>
+                    <div class="success-info wide">
+                        <div class="success-info-label">Địa chỉ</div>
+                        <div class="success-info-value">@Model.ShippingAddress</div>
+                    </div>
+                    <div class="success-info">
+                        <div class="success-info-label">Thanh toán</div>
+                        <div class="success-info-value">@Model.PaymentMethodText</div>
+                    </div>
+                    <div class="success-info">
+                        <div class="success-info-label">Trạng thái TT</div>
+                        <div class="success-info-value" id="paymentStatusText">@Model.PaymentStatusText</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="commerce-panel p-3 mb-4">
+                <h2 class="commerce-section-title mb-3">Sản phẩm</h2>
+                @foreach (var item in Model.Details)
+                {
+                    <div class="success-line py-2 border-bottom">
+                        <span class="lbl">@(item.ProductName ?? $"Sản phẩm #{item.ProductId}") × @item.Quantity</span>
+                        <span class="val">@((item.UnitPrice * item.Quantity).ToString("N0"))đ</span>
+                    </div>
+                }
+                <div class="summary-divider"></div>
+                <div class="summary-total mb-0">
+                    <span class="lbl">Tổng thanh toán</span>
+                    <span class="val">@Model.FinalAmount.ToString("N0")đ</span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                @if (hasCustomerId)
+                {
+                    <a asp-controller="MyOrders" asp-action="Index" class="commerce-btn secondary">
+                        <i class="fa-solid fa-arrow-left"></i> Đơn hàng của tôi
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="OrderLookup" asp-action="Index" class="commerce-btn secondary">
+                        <i class="fa-solid fa-arrow-left"></i> Danh sách đơn
+                    </a>
+                }
+                <a asp-controller="Product" asp-action="Index" class="commerce-btn primary">Tiếp tục mua sắm</a>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const orderId = @Model.OrderId;
+            const canPollInitial = @(Model.CanPoll ? "true" : "false");
+            const statusUrl = '@Url.Action("StatusJson", "OrderTracking", new { id = Model.OrderId })';
+            const timelineEl = document.getElementById('trackTimeline');
+            const statusPill = document.getElementById('trackStatusPill');
+            const pollHint = document.getElementById('pollHint');
+            const paymentStatusText = document.getElementById('paymentStatusText');
+            const cancelBanner = document.getElementById('cancelBanner');
+            const progressStatus = document.getElementById('trackProgressStatus');
+            const progressFill = document.getElementById('trackProgressFill');
+
+            function statusBadgeClass(status) {
+                if (status === 4) return 'status-done';
+                if (status === -1) return 'status-cancel';
+                if (status >= 2) return 'status-shipping';
+                return 'status-pending';
+            }
+
+            function renderTimeline(steps) {
+                if (!timelineEl || !steps) return;
+                timelineEl.innerHTML = steps.map(step => `
+                    <div class="track-step ${step.state}" data-state="${step.state}">
+                        <div class="track-step-dot"></div>
+                        <div class="track-step-body">
+                            <div class="track-step-label">${step.label}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async function refreshStatus() {
+                const response = await fetch(statusUrl, { cache: 'no-store' });
+                const data = await response.json();
+                if (data.error) return;
+
+                if (statusPill) {
+                    statusPill.textContent = data.statusText;
+                    statusPill.className = 'order-status-pill ' + statusBadgeClass(data.status);
+                }
+                if (paymentStatusText) paymentStatusText.textContent = data.paymentStatusText;
+                if (data.timeline) {
+                    renderTimeline(data.timeline.map(s => ({ label: s.label, state: s.state })));
+                    const reached = data.timeline.filter(s => s.state === 'done' || s.state === 'active').length;
+                    const total = Math.max(1, data.timeline.length);
+                    if (progressFill) progressFill.style.width = (data.isCancelled ? 100 : Math.round(reached / total * 100)) + '%';
+                }
+                if (progressStatus) progressStatus.textContent = data.statusText;
+                if (data.isCancelled && cancelBanner) cancelBanner.style.display = 'block';
+                if (pollHint) {
+                    pollHint.textContent = data.canPoll ? 'Tự động cập nhật mỗi 20 giây' : 'Đơn đã kết thúc';
+                }
+                return data.canPoll;
+            }
+
+            let pollTimer;
+            function startPolling() {
+                if (!canPollInitial) return;
+                pollTimer = setInterval(async () => {
+                    const canContinue = await refreshStatus();
+                    if (!canContinue) clearInterval(pollTimer);
+                }, 20000);
+            }
+
+            startPolling();
+        })();
+    </script>
+}

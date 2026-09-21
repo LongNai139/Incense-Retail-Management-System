@@ -1,0 +1,279 @@
+@{
+    Layout = "_ManagementLayout";
+}
+
+@model SV22T1080045.Shop.Models.ViewModels.Management.ProductManagementViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Models.ViewModels.Management
+@using SV22T1080045.Shop.Models.ViewModels.Product
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+
+    var products = Model.Products ?? new List<ManagementProductRowViewModel>();
+    var categories = Model.Categories ?? new List<ManagementCategoryOptionViewModel>();
+    var units = Model.Units ?? new List<ManagementUnitOptionViewModel>();
+    var productForm = Model.ProductForm ?? new ProductEditViewModel();
+    var categoryMap = categories.ToDictionary(c => c.Id, c => c.CategoryName);
+    var unitMap = units.ToDictionary(u => u.Id, u => u.UnitName);
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+    string CategoryName(int categoryId) => categoryMap.TryGetValue(categoryId, out var name) ? name : "Chưa phân loại";
+    string UnitName(int unitId) => unitMap.TryGetValue(unitId, out var name) ? name : $"ID {unitId}";
+}
+
+<section class="management-hero">
+    <div>
+        <div class="management-kicker">Quản lý sản phẩm</div>
+        <h1>Danh sách sản phẩm</h1>
+        <p>Quản lý thông tin sản phẩm, tồn kho, giá bán và hình ảnh.</p>
+    </div>
+    <div class="management-actions">
+        <a class="admin-btn primary" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Thêm mới</a>
+        <button class="admin-btn"><i class="fa-solid fa-file-excel"></i> Import Excel</button>
+    </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-section-head">
+        <div>
+            <h2>Quản lý sản phẩm</h2>
+            <p class="admin-section-desc">Danh sách có lọc, tìm kiếm, phân trang, thao tác tồn kho nhanh, form thêm/sửa với nhiều ảnh và thông tin đặc thù trầm hương.</p>
+        </div>
+    </div>
+
+    <form class="product-tools" asp-controller="Management" asp-action="Products" method="get">
+        <input class="admin-input" type="search" name="searchValue" value="@Model.SearchValue" placeholder="Tìm theo tên, danh mục, xuất xứ..." />
+        <select class="admin-select" name="categoryId">
+            <option value="">Tất cả danh mục</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.Id" selected="@(Model.CategoryId == category.Id ? "selected" : null)">@category.CategoryName</option>
+            }
+        </select>
+        <select class="admin-select" name="productStatus">
+            <option value="">Tất cả trạng thái</option>
+            <option value="selling" selected="@(Model.ProductStatus == "selling" ? "selected" : null)">Đang bán</option>
+            <option value="low-stock" selected="@(Model.ProductStatus == "low-stock" ? "selected" : null)">Sắp hết</option>
+            <option value="out-of-stock" selected="@(Model.ProductStatus == "out-of-stock" ? "selected" : null)">Hết hàng</option>
+        </select>
+        <button class="admin-btn" type="submit"><i class="fa-solid fa-filter"></i> Lọc</button>
+        <a class="admin-btn" asp-controller="Management" asp-action="Products"><i class="fa-solid fa-xmark"></i> Xóa lọc</a>
+    </form>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Danh mục</th>
+                    <th>Giá bán</th>
+                    <th>Tồn kho</th>
+                    <th>Đã bán</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (products.Any())
+                {
+                    foreach (var item in products)
+                    {
+                        var quantity = item.Quantity ?? 0;
+                        var statusClass = quantity <= 0 ? "status-cancel" : quantity <= item.LowStockThreshold ? "status-pending" : "status-ready";
+                        var statusText = quantity <= 0 ? "Hết hàng" : quantity <= item.LowStockThreshold ? "Sắp hết" : "Đang bán";
+                        var isLastSaved = Model.LastSavedProductId == item.Id;
+                        var savedText = Model.LastSavedAction == "created" ? "Vừa thêm" : "Vừa sửa";
+                        <tr class="@(isLastSaved ? "product-row-highlight" : null)">
+                            <td>
+                                <strong>@item.ProductName</strong>
+                                <div class="item-meta">@item.Origin | @UnitName(item.UnitId) | tinh dầu @(item.OilContent ?? "chưa cập nhật")</div>
+                                @if (isLastSaved)
+                                {
+                                    <span class="status-badge status-highlight">@savedText</span>
+                                }
+                            </td>
+                            <td>@CategoryName(item.CategoryId)</td>
+                            <td>
+                                <strong>@FormatMoney(item.PriceAfterDiscount)</strong>
+                                @if (item.DiscountPercent > 0)
+                                {
+                                    <div class="item-meta">@FormatMoney(item.SalePrice) | -@item.DiscountPercent.ToString("0.##", CultureInfo.InvariantCulture)%</div>
+                                }
+                            </td>
+                            <td><input class="stock-input" type="number" value="@quantity" /></td>
+                            <td>@(item.SoldCount ?? 0)</td>
+                            <td><span class="status-badge @statusClass">@statusText</span></td>
+                            <td><a asp-controller="Management" asp-action="Products" asp-route-editProductId="@item.Id">Sửa</a> | <a href="#">Xóa mềm</a></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7">Chưa có sản phẩm trong dữ liệu.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-compact pagination-with-summary">
+        <span class="item-meta">
+            Hiển thị @products.Count / @Model.ProductTotalCount sản phẩm, trang @Model.ProductPage / @Model.ProductTotalPages.
+        </span>
+        <div class="page-list">
+            @if (Model.ProductPage > 1)
+            {
+                <a class="page-dot" asp-controller="Management" asp-action="Products" asp-route-searchValue="@Model.SearchValue" asp-route-categoryId="@Model.CategoryId" asp-route-productStatus="@Model.ProductStatus" asp-route-productPage="@(Model.ProductPage - 1)"><i class="fa-solid fa-chevron-left"></i></a>
+            }
+
+            @{
+                var firstPage = Math.Max(1, Model.ProductPage - 2);
+                var lastPage = Math.Min(Model.ProductTotalPages, Model.ProductPage + 2);
+            }
+            @for (var pageNumber = firstPage; pageNumber <= lastPage; pageNumber++)
+            {
+                <a class="page-dot @(pageNumber == Model.ProductPage ? "active" : null)" asp-controller="Management" asp-action="Products" asp-route-searchValue="@Model.SearchValue" asp-route-categoryId="@Model.CategoryId" asp-route-productStatus="@Model.ProductStatus" asp-route-productPage="@pageNumber">@pageNumber</a>
+            }
+
+            @if (Model.ProductPage < Model.ProductTotalPages)
+            {
+                <a class="page-dot" asp-controller="Management" asp-action="Products" asp-route-searchValue="@Model.SearchValue" asp-route-categoryId="@Model.CategoryId" asp-route-productStatus="@Model.ProductStatus" asp-route-productPage="@(Model.ProductPage + 1)"><i class="fa-solid fa-chevron-right"></i></a>
+            }
+        </div>
+    </div>
+
+    <form asp-controller="Management" asp-action="SaveProduct" method="post" enctype="multipart/form-data" id="managementProductForm" class="dashboard-grid">
+        @Html.AntiForgeryToken()
+        <div class="admin-panel" id="product-form">
+            <div class="panel-title">
+                <span>@(productForm.Id > 0 ? "Sửa sản phẩm" : "Thêm sản phẩm")</span>
+                @if (productForm.Id > 0)
+                {
+                    <span class="status-badge status-ready">#@productForm.Id</span>
+                }
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                @Html.ValidationSummary(false, "", new { @class = "validation-summary" })
+            }
+
+            <input type="hidden" name="Id" value="@productForm.Id" />
+            <input type="hidden" name="ImageUrl" value="@productForm.ImageUrl" />
+            <input type="hidden" name="ImageUrl2" value="@productForm.ImageUrl2" />
+            <input type="hidden" name="ImageUrl3" value="@productForm.ImageUrl3" />
+            <input type="hidden" name="ImageUrl4" value="@productForm.ImageUrl4" />
+
+            <div class="form-grid">
+                <div class="field"><label>Tên sản phẩm</label><input class="admin-input" name="ProductName" value="@productForm.ProductName" required /></div>
+                <div class="field">
+                    <label>Danh mục</label>
+                    <select class="admin-select" name="CategoryId" required>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id" selected="@(productForm.CategoryId == category.Id ? "selected" : null)">@category.CategoryName</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Đơn vị tính</label>
+                    <select class="admin-select" name="UnitId" required>
+                        @foreach (var unit in units)
+                        {
+                            <option value="@unit.Id" selected="@(productForm.UnitId == unit.Id ? "selected" : null)">@unit.UnitName</option>
+                        }
+                    </select>
+                </div>
+                <div class="field"><label>Giá nhập</label><input class="admin-input js-price-field" type="number" name="ImportPrice" min="0" step="1000" value="@productForm.ImportPrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                <div class="field"><label>Giá bán</label><input class="admin-input js-price-field" type="number" name="SalePrice" min="0" step="1000" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                <div class="field"><label>Giảm giá (%)</label><input class="admin-input js-price-field" type="number" name="DiscountPercent" min="0" max="100" step="0.01" value="@productForm.DiscountPercent.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                <div class="field"><label>Giá sau giảm</label><input class="admin-input" type="number" name="PriceAfterDiscount" min="0" step="1000" value="@productForm.PriceAfterDiscount.ToString("0.##", CultureInfo.InvariantCulture)" readonly /></div>
+                <input type="hidden" name="OriginalPrice" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" />
+                <div class="field"><label>Tồn kho</label><input class="admin-input" type="number" name="Quantity" min="0" value="@productForm.Quantity" /></div>
+                <div class="field"><label>Ngưỡng sắp hết</label><input class="admin-input" type="number" name="LowStockThreshold" min="1" value="@(productForm.LowStockThreshold ?? 5)" /></div>
+                <div class="field"><label>Đã bán</label><input class="admin-input" type="number" name="SoldCount" min="0" value="@productForm.SoldCount" /></div>
+                <div class="field"><label>Đánh giá</label><input class="admin-input" type="number" name="Rating" min="0" max="5" value="@productForm.Rating" /></div>
+                <div class="field"><label>Số đánh giá</label><input class="admin-input" type="number" name="ReviewCount" min="0" value="@productForm.ReviewCount" /></div>
+                <div class="field"><label>Xuất xứ</label><input class="admin-input" name="Origin" value="@productForm.Origin" /></div>
+                <div class="field"><label>Độ tuổi trầm</label><input class="admin-input" name="AgeYear" value="@productForm.AgeYear" /></div>
+                <div class="field"><label>Hàm lượng tinh dầu</label><input class="admin-input" name="OilContent" value="@productForm.OilContent" /></div>
+                <div class="field"><label>Thời gian cháy</label><input class="admin-input" name="BurningTime" value="@productForm.BurningTime" /></div>
+                <div class="field"><label>Kích thước</label><input class="admin-input" name="Length" value="@productForm.Length" /></div>
+                <div class="field"><label>Trọng lượng</label><input class="admin-input" name="Weight" value="@productForm.Weight" /></div>
+                <div class="field"><label>Thẻ sử dụng</label><input class="admin-input" name="UsageTags" value="@productForm.UsageTags" /></div>
+            </div>
+
+            <div class="field" style="margin-top:12px;">
+                <label>Thành phần</label>
+                <textarea class="admin-textarea" name="Ingredient" rows="2">@productForm.Ingredient</textarea>
+            </div>
+
+            <div class="field" style="margin-top:12px;">
+                <label>Mô tả sản phẩm</label>
+                <textarea class="admin-textarea" name="Description" rows="5">@productForm.Description</textarea>
+            </div>
+
+            <div class="management-actions" style="margin-top:14px;">
+                <button class="admin-btn primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Lưu sản phẩm</button>
+                <a class="admin-btn" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Form thêm mới</a>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-title">Ảnh sản phẩm</div>
+            <div class="image-preview-row">
+                @foreach (var imageUrl in new[] { productForm.ImageUrl, productForm.ImageUrl2, productForm.ImageUrl3, productForm.ImageUrl4 }.Where(url => !string.IsNullOrWhiteSpace(url)))
+                {
+                    <img class="image-preview image-preview-img" src="@imageUrl" alt="@productForm.ProductName" />
+                }
+            </div>
+            <div class="upload-fields">
+                <div class="field"><label>Ảnh chính</label><input class="admin-input" type="file" name="UploadPhoto" accept="image/*" /></div>
+                <div class="field"><label>Ảnh phụ 2</label><input class="admin-input" type="file" name="UploadPhoto2" accept="image/*" /></div>
+                <div class="field"><label>Ảnh phụ 3</label><input class="admin-input" type="file" name="UploadPhoto3" accept="image/*" /></div>
+                <div class="field"><label>Ảnh phụ 4</label><input class="admin-input" type="file" name="UploadPhoto4" accept="image/*" /></div>
+            </div>
+            <div class="panel-title" style="margin-top:18px;">Dữ liệu đang dùng</div>
+            <p class="admin-section-desc">Danh mục và đơn vị trong form được lấy từ database hiện tại. Khi bấm Sửa ở bảng trên, trang giữ nguyên khu vực quản lý và cuộn xuống form này.</p>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <script>
+        var productForm = document.getElementById('managementProductForm');
+        document.querySelectorAll('[data-product-action="create"]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!productForm) {
+                    return;
+                }
+
+                productForm.querySelectorAll('input[type="hidden"]').forEach(function (input) {
+                    input.value = input.name === 'Id' ? '0' : '';
+                });
+
+                productForm.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea').forEach(function (input) {
+                    input.value = '';
+                });
+
+                productForm.querySelectorAll('input[type="file"]').forEach(function (input) {
+                    input.value = '';
+                });
+
+                productForm.querySelectorAll('select').forEach(function (select) {
+                    select.selectedIndex = 0;
+                });
+
+                productForm.querySelectorAll('.image-preview-img').forEach(function (image) {
+                    image.remove();
+                });
+
+                var title = productForm.querySelector('#product-form .panel-title span:first-child');
+                if (title) {
+                    title.textContent = 'Thêm sản phẩm';
+                }
+            });
+        });
+    </script>
+}

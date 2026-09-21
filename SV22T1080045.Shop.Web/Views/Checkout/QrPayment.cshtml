@@ -1,0 +1,43 @@
+@model SV22T1080045.Shop.Models.ViewModels.Checkout.QrPaymentViewModel
+@{
+    ViewData["Title"] = "Quét mã chuyển khoản";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/commerce-flow.css" asp-append-version="true" />
+    <style>
+        .qr-payment-card { max-width: 480px; margin: 0 auto; text-align: center; padding: 32px 28px; }
+        .qr-payment-card img { border: 1px solid var(--border); border-radius: 12px; max-width: 280px; width: 100%; margin: 16px auto; display: block; }
+        .qr-bank-info { background: var(--warm-50); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 16px 0; text-align: left; font-size: 14px; }
+        .qr-bank-info div { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+        .qr-bank-info div:last-child { margin-bottom: 0; }
+        .qr-bank-info span:first-child { color: var(--ink-4); }
+        .qr-note { color: var(--ink-3); font-size: 13px; line-height: 1.6; margin-top: 12px; }
+    </style>
+}
+
+<div class="commerce-flow">
+    <section class="commerce-page commerce-page-narrow">
+        <div class="commerce-card qr-payment-card">
+            <h1 class="commerce-title" style="font-size:28px;margin-bottom:8px;">Quét mã để thanh toán</h1>
+            <p class="qr-note">Mã QR đã gắn sẵn số tiền và nội dung chuyển khoản. Sau khi chuyển, shop sẽ xác nhận đơn <strong>@Model.OrderCode</strong>.</p>
+
+            <img src="@Model.QrImageUrl" alt="Mã QR chuyển khoản @Model.OrderCode" />
+
+            <div class="qr-bank-info">
+                <div><span>Ngân hàng (BIN)</span><strong>@Model.BankId</strong></div>
+                <div><span>Số tài khoản</span><strong>@Model.AccountNumber</strong></div>
+                <div><span>Chủ tài khoản</span><strong>@Model.AccountName</strong></div>
+                <div><span>Số tiền</span><strong class="money-amount">@Model.Amount.ToString("N0")đ</strong></div>
+                <div><span>Nội dung CK</span><strong>@Model.TransferContent</strong></div>
+            </div>
+
+            <a asp-action="Success" asp-route-orderId="@Model.OrderId" asp-route-isGuest="@Model.IsGuest" class="commerce-btn primary block">
+                Tôi đã chuyển khoản
+            </a>
+            <a asp-controller="OrderLookup" asp-action="Index" class="commerce-btn secondary block mt-2">
+                Tra cứu đơn hàng
+            </a>
+        </div>
+    </section>
+</div>

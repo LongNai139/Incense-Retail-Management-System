@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trầm Hương Shop — Hương Trầm Thiên Nhiên Việt Nam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════ */
+:root {
+  --ink:        #1C1209;
+  --ink-2:      #3D2B1A;
+  --ink-3:      #6B4F35;
+  --ink-4:      #9C7A58;
+  --warm-50:    #FBF7F0;
+  --warm-100:   #F5ECD8;
+  --warm-200:   #E8D5B0;
+  --warm-300:   #D4B07A;
+  --gold:       #B8860B;
+  --gold-lt:    #D4A827;
+  --bg:         #FAF6EF;
+  --bg-alt:     #F3EBD8;
+  --cream:      #FFFDF7;
+  --white:      #FFFFFF;
+  --border:     rgba(60,35,10,.12);
+  --border-2:   rgba(60,35,10,.22);
+  --shadow:     0 2px 24px rgba(60,35,10,.08);
+  --shadow-lg:  0 8px 48px rgba(60,35,10,.14);
+  --serif:      'Cormorant Garamond', Georgia, serif;
+  --sans:       'Be Vietnam Pro', sans-serif;
+  --radius:     12px;
+  --radius-lg:  20px;
+  --transition: .25s cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: var(--sans); border: none; background: none; }
+ul { list-style: none; }
+
+/* ═══════════════════════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════════════════════ */
+.display { font-family: var(--serif); font-weight: 300; letter-spacing: .01em; line-height: 1.1; }
+.serif { font-family: var(--serif); }
+.label { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-4); }
+
+/* ═══════════════════════════════════════════════════════
+   HEADER / NAV
+═══════════════════════════════════════════════════════ */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,246,239,.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1280px; margin: 0 auto;
+  padding: 0 32px;
+  height: 68px;
+  display: flex; align-items: center; gap: 32px;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--ink);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 18px; color: var(--warm-100);
+}
+.logo-text {
+  font-family: var(--serif); font-size: 20px; font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.logo-text span { display: block; font-size: 11px; font-weight: 300; letter-spacing: .1em; color: var(--ink-3); }
+
+.nav-search {
+  flex: 1; max-width: 360px; margin: 0 auto;
+  position: relative;
+}
+.nav-search input {
+  width: 100%; height: 38px; padding: 0 14px 0 36px;
+  background: var(--warm-100); border: 1px solid var(--border);
+  border-radius: 99px; font-family: var(--sans); font-size: 13px; color: var(--ink);
+  outline: none; transition: var(--transition);
+}
+.nav-search input:focus { border-color: var(--ink-4); background: var(--cream); }
+.nav-search input::placeholder { color: var(--ink-4); }
+.nav-search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; opacity: .5;
+}
+
+.nav-links {
+  display: flex; gap: 28px;
+}
+.nav-links a {
+  font-size: 14px; font-weight: 400; color: var(--ink-2);
+  padding: 4px 0;
+  border-bottom: 1.5px solid transparent;
+  transition: var(--transition);
+}
+.nav-links a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+.nav-actions {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.nav-btn {
+  height: 36px; padding: 0 16px; border-radius: 99px;
+  font-size: 13px; font-weight: 500;
+  transition: var(--transition);
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-btn-ghost { border: 1px solid var(--border-2); color: var(--ink-2); }
+.nav-btn-ghost:hover { background: var(--warm-100); }
+.nav-btn-solid { background: var(--ink); color: var(--warm-100); }
+.nav-btn-solid:hover { background: var(--ink-2); }
+
+.cart-btn {
+  position: relative; width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--warm-100); border: 1px solid var(--border);
+  transition: var(--transition);
+}
+.cart-btn:hover { background: var(--warm-200); }
+.cart-count {
+  position: absolute; top: -2px; right: -2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ink); color: var(--warm-50); font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════════════ */
+.hero {
+  min-height: calc(100vh - 68px);
+  display: grid; grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+.hero-content {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 80px 64px 80px 80px;
+  position: relative;
+}
+.hero-content::before {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0; left: -100vw;
+  background: var(--warm-50);
+  z-index: -1;
+}
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px;
+}
+.hero-eyebrow-line { width: 40px; height: 1px; background: var(--ink-4); }
+.hero-title {
+  font-family: var(--serif); font-weight: 300; font-size: clamp(52px, 6vw, 80px);
+  line-height: 1.05; color: var(--ink);
+  margin-bottom: 24px;
+}
+.hero-title em { font-style: italic; color: var(--ink-3); }
+.hero-desc {
+  font-size: 16px; color: var(--ink-3); line-height: 1.8;
+  max-width: 420px; margin-bottom: 40px;
+}
+.hero-ctas { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.btn-primary {
+  height: 48px; padding: 0 28px; border-radius: 99px;
+  background: var(--ink); color: var(--warm-100);
+  font-size: 14px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: var(--transition);
+}
+.btn-primary:hover { background: var(--ink-2); transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-secondary {
+  height: 48px; padding: 0 28px; border-radius: 99px;
+  border: 1px solid var(--border-2); color: var(--ink-2);
+  font-size: 14px; font-weight: 400;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--warm-100); }
+.hero-stats {
+  display: flex; gap: 32px; margin-top: 56px;
+  padding-top: 32px; border-top: 1px solid var(--border);
+}
+.hero-stat-num {
+  font-family: var(--serif); font-size: 32px; font-weight: 600; color: var(--ink);
+  line-height: 1;
+}
+.hero-stat-lbl { font-size: 12px; color: var(--ink-4); margin-top: 4px; }
+
+.hero-visual {
+  position: relative; overflow: hidden;
+  background: var(--bg-alt);
+}
+.hero-visual-main {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #3D2B1A 0%, #1C1209 50%, #4A3520 100%);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+/* Decorative illustration */
+.incense-art {
+  position: relative; width: 320px; height: 480px;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.smoke-line {
+  position: absolute; bottom: 80px;
+  width: 2px; border-radius: 99px;
+  background: linear-gradient(to top, var(--warm-300), transparent);
+  animation: smoke 3s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.smoke-line:nth-child(1) { left: 50%; transform: translateX(-1px); height: 240px; animation-delay: 0s; }
+.smoke-line:nth-child(2) { left: calc(50% - 18px); height: 180px; animation-delay: .6s; opacity: .6; }
+.smoke-line:nth-child(3) { left: calc(50% + 18px); height: 200px; animation-delay: 1.2s; opacity: .5; }
+@keyframes smoke {
+  0%,100% { transform: translateX(-1px) scaleX(1); }
+  50% { transform: translateX(-1px) scaleX(1.4) skewX(8deg); }
+}
+.incense-stick {
+  position: absolute; bottom: 0;
+  width: 3px; height: 200px; border-radius: 99px;
+  background: linear-gradient(to top, #6B4F35 0%, #3D2B1A 80%, var(--gold) 100%);
+}
+.incense-glow {
+  position: absolute; bottom: 196px; left: 50%; transform: translateX(-50%);
+  width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle, #FFD700 0%, var(--gold) 40%, transparent 70%);
+  animation: glow 2s ease-in-out infinite;
+}
+@keyframes glow {
+  0%,100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50% { opacity: .7; transform: translateX(-50%) scale(1.3); }
+}
+.incense-base {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 60px; height: 20px;
+  background: var(--ink-3); border-radius: 4px 4px 2px 2px;
+}
+.hero-badge {
+  position: absolute; top: 32px; right: 32px;
+  width: 96px; height: 96px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  animation: spin-slow 20s linear infinite;
+}
+.hero-badge-inner {
+  font-family: var(--serif); color: var(--warm-200); font-size: 11px; line-height: 1.3;
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.hero-float-card {
+  position: absolute; bottom: 40px; left: 40px;
+  background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius);
+  padding: 14px 18px;
+  color: var(--warm-100);
+}
+.hero-float-card-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.hero-float-card-sub { font-size: 11px; opacity: .6; }
+
+/* ═══════════════════════════════════════════════════════
+   MARQUEE
+═══════════════════════════════════════════════════════ */
+.marquee-wrap {
+  background: var(--ink); overflow: hidden;
+  padding: 14px 0; border-top: 1px solid rgba(255,255,255,.06);
+}
+.marquee-track {
+  display: flex; gap: 48px; width: max-content;
+  animation: marquee 24s linear infinite;
+}
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee-item {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--serif); font-size: 15px; color: var(--warm-200);
+  white-space: nowrap; flex-shrink: 0;
+}
+.marquee-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════
+   SECTIONS COMMON
+═══════════════════════════════════════════════════════ */
+.section { padding: 96px 0; }
+.section-alt { background: var(--bg-alt); }
+.container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+.section-head { margin-bottom: 56px; }
+.section-head.center { text-align: center; }
+.section-title { font-family: var(--serif); font-size: clamp(32px, 4vw, 48px); font-weight: 300; color: var(--ink); line-height: 1.15; margin-bottom: 12px; }
+.section-title em { font-style: italic; color: var(--ink-3); }
+.section-sub { font-size: 15px; color: var(--ink-4); max-width: 480px; }
+.section-head.center .section-sub { margin: 0 auto; }
+
+/* ═══════════════════════════════════════════════════════
+   CATEGORIES
+═══════════════════════════════════════════════════════ */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+.cat-card {
+  border-radius: var(--radius);
+  overflow: hidden; cursor: pointer;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  text-align: center;
+  padding: 24px 12px 20px;
+  position: relative;
+}
+.cat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--border-2); }
+.cat-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--warm-100); margin: 0 auto 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; transition: var(--transition);
+}
+.cat-card:hover .cat-icon { background: var(--warm-200); }
+.cat-name { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.cat-count { font-size: 11px; color: var(--ink-4); }
+
+/* ═══════════════════════════════════════════════════════
+   PRODUCT CARDS
+═══════════════════════════════════════════════════════ */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.product-card {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: var(--transition);
+  position: relative;
+}
+.product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.product-img {
+  aspect-ratio: 4/3; overflow: hidden;
+  position: relative;
+  background: var(--warm-100);
+}
+.product-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px;
+  background: linear-gradient(135deg, var(--warm-100) 0%, var(--warm-200) 100%);
+}
+.product-badge {
+  position: absolute; top: 12px; left: 12px;
+  padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+}
+.badge-new { background: var(--ink); color: var(--warm-100); }
+.badge-sale { background: #C0392B; color: white; }
+.badge-hot { background: var(--gold); color: var(--ink); }
+.product-wish {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,.85); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer; transition: var(--transition);
+  border: 1px solid var(--border);
+}
+.product-wish:hover { background: white; transform: scale(1.1); }
+.product-info { padding: 16px; }
+.product-origin { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.origin-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.product-name { font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 6px; line-height: 1.4; }
+.product-name a:hover { color: var(--ink-3); }
+.product-stars { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+.stars { color: var(--gold); font-size: 12px; }
+.review-count { font-size: 12px; color: var(--ink-4); }
+.product-price { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.price-current { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--ink); }
+.price-original { font-size: 13px; color: var(--ink-4); text-decoration: line-through; }
+.price-discount { font-size: 12px; font-weight: 600; color: #C0392B; }
+.product-actions { display: flex; gap: 8px; }
+.btn-cart {
+  flex: 1; height: 38px; border-radius: 99px;
+  background: var(--ink); color: var(--warm-100);
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: var(--transition);
+}
+.btn-cart:hover { background: var(--ink-2); }
+.btn-detail {
+  height: 38px; padding: 0 14px; border-radius: 99px;
+  border: 1px solid var(--border-2); color: var(--ink-3); font-size: 13px;
+  transition: var(--transition);
+}
+.btn-detail:hover { background: var(--warm-100); }
+.section-more { text-align: center; margin-top: 48px; }
+
+/* ═══════════════════════════════════════════════════════
+   FLASH SALE
+═══════════════════════════════════════════════════════ */
+.flash-section {
+  background: var(--ink);
+  padding: 72px 0;
+}
+.flash-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+.flash-title-wrap { display: flex; align-items: center; gap: 20px; }
+.flash-icon { font-size: 28px; }
+.flash-title { font-family: var(--serif); font-size: 36px; font-weight: 300; color: var(--warm-100); }
+.flash-timer {
+  display: flex; align-items: center; gap: 8px;
+}
+.timer-label { font-size: 13px; color: var(--warm-200); margin-right: 4px; }
+.timer-block {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,255,255,.1); border-radius: 8px;
+  padding: 6px 10px; min-width: 48px; text-align: center;
+}
+.timer-num { font-family: var(--serif); font-size: 22px; color: var(--gold-lt); font-weight: 600; line-height: 1; }
+.timer-unit { font-size: 10px; color: var(--warm-200); margin-top: 2px; letter-spacing: .05em; }
+.timer-sep { color: var(--gold); font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+.flash-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+.flash-card {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--radius); overflow: hidden;
+  transition: var(--transition);
+}
+.flash-card:hover { background: rgba(255,255,255,.1); transform: translateY(-2px); }
+.flash-img {
+  aspect-ratio: 4/3; background: rgba(255,255,255,.04);
+  display: flex; align-items: center; justify-content: center; font-size: 48px;
+}
+.flash-info { padding: 14px; }
+.flash-name { font-size: 14px; font-weight: 500; color: var(--warm-100); margin-bottom: 8px; line-height: 1.4; }
+.flash-price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.flash-price { font-family: var(--serif); font-size: 20px; color: var(--gold-lt); font-weight: 600; }
+.flash-orig { font-size: 12px; color: rgba(255,255,255,.4); text-decoration: line-through; }
+.flash-pct { font-size: 12px; font-weight: 700; color: #E74C3C; }
+.flash-stock { margin-bottom: 10px; }
+.flash-stock-bar { height: 4px; background: rgba(255,255,255,.1); border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+.flash-stock-fill { height: 100%; background: var(--gold); border-radius: 99px; }
+.flash-stock-txt { font-size: 11px; color: rgba(255,255,255,.5); }
+.btn-flash {
+  width: 100%; height: 36px; border-radius: 99px;
+  background: var(--gold); color: var(--ink);
+  font-size: 13px; font-weight: 600; transition: var(--transition);
+}
+.btn-flash:hover { background: var(--gold-lt); }
+
+/* ═══════════════════════════════════════════════════════
+   TRUST STRIP
+═══════════════════════════════════════════════════════ */
+.trust-strip {
+  background: var(--cream); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 40px 0;
+}
+.trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.trust-item { display: flex; align-items: center; gap: 14px; }
+.trust-icon { font-size: 28px; flex-shrink: 0; }
+.trust-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.trust-desc { font-size: 12px; color: var(--ink-4); }
+
+/* ═══════════════════════════════════════════════════════
+   ABOUT BANNER
+═══════════════════════════════════════════════════════ */
+.about-section {
+  display: grid; grid-template-columns: 1fr 1fr; min-height: 480px;
+}
+.about-visual {
+  background: linear-gradient(135deg, #2C1810 0%, #1C1209 60%, #3D2B1A 100%);
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px;
+}
+.about-number-art {
+  font-family: var(--serif); font-size: 180px; font-weight: 600;
+  color: rgba(255,255,255,.04); line-height: 1; user-select: none;
+  position: absolute;
+}
+.about-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; position: relative; z-index: 1; }
+.about-stat {
+  text-align: center; padding: 24px;
+  border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius);
+  background: rgba(255,255,255,.04);
+}
+.about-stat-num { font-family: var(--serif); font-size: 36px; font-weight: 600; color: var(--gold-lt); }
+.about-stat-txt { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 4px; }
+.about-content { padding: 64px; display: flex; flex-direction: column; justify-content: center; background: var(--bg-alt); }
+.about-content .section-title { margin-bottom: 20px; }
+.about-content p { color: var(--ink-3); font-size: 15px; line-height: 1.8; margin-bottom: 16px; }
+.about-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.about-tag {
+  padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 500;
+  background: var(--warm-100); color: var(--ink-2); border: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════════════
+   REVIEWS
+═══════════════════════════════════════════════════════ */
+.reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.review-card {
+  background: var(--cream); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 28px;
+  transition: var(--transition);
+}
+.review-card:hover { box-shadow: var(--shadow); border-color: var(--border-2); }
+.review-stars { color: var(--gold); font-size: 14px; margin-bottom: 14px; letter-spacing: 1px; }
+.review-text { font-size: 15px; color: var(--ink-2); line-height: 1.7; margin-bottom: 20px; font-style: italic; font-family: var(--serif); font-weight: 300; }
+.review-author { display: flex; align-items: center; gap: 12px; }
+.review-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--warm-200); display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 16px; color: var(--ink-3); font-weight: 600;
+}
+.review-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+.review-loc { font-size: 12px; color: var(--ink-4); }
+.review-product { margin-top: 4px; font-size: 11px; color: var(--ink-4); font-style: italic; }
+
+/* ═══════════════════════════════════════════════════════
+   BLOG / TIPS
+═══════════════════════════════════════════════════════ */
+.blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.blog-card {
+  background: var(--cream); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; transition: var(--transition);
+}
+.blog-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.blog-img {
+  aspect-ratio: 16/9; background: var(--warm-100);
+  display: flex; align-items: center; justify-content: center; font-size: 48px;
+}
+.blog-info { padding: 20px; }
+.blog-tag { display: inline-block; padding: 3px 10px; border-radius: 99px; background: var(--warm-100); font-size: 11px; font-weight: 600; color: var(--ink-3); border: 1px solid var(--border); margin-bottom: 10px; }
+.blog-title { font-family: var(--serif); font-size: 18px; font-weight: 400; color: var(--ink); line-height: 1.4; margin-bottom: 8px; }
+.blog-date { font-size: 12px; color: var(--ink-4); }
+
+/* ═══════════════════════════════════════════════════════
+   NEWSLETTER
+═══════════════════════════════════════════════════════ */
+.newsletter-section {
+  background: linear-gradient(135deg, #2C1810 0%, #1C1209 100%);
+  padding: 80px 0; text-align: center;
+}
+.newsletter-title { font-family: var(--serif); font-size: 40px; font-weight: 300; color: var(--warm-100); margin-bottom: 12px; }
+.newsletter-sub { color: var(--warm-200); font-size: 15px; margin-bottom: 36px; opacity: .8; }
+.newsletter-form { display: flex; gap: 0; max-width: 440px; margin: 0 auto; }
+.newsletter-input {
+  flex: 1; height: 48px; padding: 0 20px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  border-right: none; border-radius: 99px 0 0 99px;
+  color: var(--warm-100); font-family: var(--sans); font-size: 14px; outline: none;
+}
+.newsletter-input::placeholder { color: rgba(255,255,255,.4); }
+.newsletter-input:focus { background: rgba(255,255,255,.15); }
+.newsletter-btn {
+  height: 48px; padding: 0 24px; border-radius: 0 99px 99px 0;
+  background: var(--gold); color: var(--ink); font-size: 14px; font-weight: 600;
+  transition: var(--transition);
+}
+.newsletter-btn:hover { background: var(--gold-lt); }
+.newsletter-note { margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.4); }
+
+/* ═══════════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════════ */
+.site-footer {
+  background: var(--ink); color: var(--warm-200);
+  padding: 64px 0 32px;
+}
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.footer-brand .logo-text { color: var(--warm-100); }
+.footer-brand .logo-text span { color: var(--warm-200); opacity: .7; }
+.footer-desc { font-size: 14px; color: var(--warm-200); opacity: .7; line-height: 1.7; margin: 16px 0 20px; max-width: 260px; }
+.footer-socials { display: flex; gap: 10px; }
+.social-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: var(--transition);
+}
+.social-btn:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); }
+.footer-col-title { font-size: 13px; font-weight: 600; color: var(--warm-100); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 16px; }
+.footer-links li { margin-bottom: 10px; }
+.footer-links a { font-size: 14px; color: var(--warm-200); opacity: .7; transition: var(--transition); }
+.footer-links a:hover { opacity: 1; color: var(--warm-100); }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.08); padding-top: 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 13px; color: rgba(255,255,255,.4);
+}
+.footer-cert { display: flex; align-items: center; gap: 8px; }
+.cert-badge {
+  padding: 3px 10px; border-radius: 99px;
+  border: 1px solid rgba(255,255,255,.15); font-size: 11px; color: rgba(255,255,255,.5);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .cat-grid { grid-template-columns: repeat(3, 1fr); }
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+  .flash-grid { grid-template-columns: repeat(2, 1fr); }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+}
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-visual { height: 360px; }
+  .hero-content { padding: 56px 24px; }
+  .about-section { grid-template-columns: 1fr; }
+  .about-visual { min-height: 280px; }
+  .about-content { padding: 40px 24px; }
+  .reviews-grid { grid-template-columns: 1fr; }
+  .blog-grid { grid-template-columns: 1fr 1fr; }
+  .trust-grid { grid-template-columns: 1fr 1fr; }
+  .nav-links { display: none; }
+  .nav-search { display: none; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+}
+@media (max-width: 480px) {
+  .cat-grid { grid-template-columns: repeat(2, 1fr); }
+  .flash-grid { grid-template-columns: 1fr 1fr; }
+  .blog-grid { grid-template-columns: 1fr; }
+  .trust-grid { grid-template-columns: 1fr; }
+  .hero-stats { flex-wrap: wrap; gap: 20px; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════════ */
+.fade-up {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════ -->
+<header class="site-header">
+  <nav class="nav-inner">
+    <a href="/" class="nav-logo">
+      <div class="logo-icon">🌿</div>
+      <div class="logo-text">
+        Trầm Hương Shop
+        <span>Hương Trầm Việt Nam</span>
+      </div>
+    </a>
+
+    <div class="nav-search">
+      <svg class="nav-search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" placeholder="Tìm sản phẩm, danh mục...">
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="#">Trang chủ</a></li>
+      <li><a href="san-pham.html">Sản phẩm</a></li>
+      <li><a href="#">Về chúng tôi</a></li>
+      <li><a href="#">Blog</a></li>
+      <li><a href="#">Liên hệ</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <a href="tra-cuu.html" class="nav-btn nav-btn-ghost">Tra cứu đơn</a>
+      <a href="dang-nhap.html" class="nav-btn nav-btn-ghost">Đăng nhập</a>
+      <button class="cart-btn" onclick="location.href='gio-hang.html'">
+        🛒
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-content fade-up visible">
+    <div class="hero-eyebrow">
+      <span class="hero-eyebrow-line"></span>
+      <span class="label">Hương Trầm Thiên Nhiên</span>
+    </div>
+    <h1 class="hero-title">
+      Thiên nhiên<br>trong <em>từng hơi thở</em>
+    </h1>
+    <p class="hero-desc">
+      Trầm hương Việt Nam chính gốc — từ rừng núi Bình Định, Hội An, Khánh Hòa.
+      Được chọn lọc thủ công, mang đến trải nghiệm thư giãn thuần khiết.
+    </p>
+    <div class="hero-ctas">
+      <a href="san-pham.html" class="btn-primary">
+        Khám phá sản phẩm
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#" class="btn-secondary">Tìm hiểu thêm</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">300+</div>
+        <div class="hero-stat-lbl">Sản phẩm</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">12K+</div>
+        <div class="hero-stat-lbl">Khách hài lòng</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">30+</div>
+        <div class="hero-stat-lbl">Năm kinh nghiệm</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-visual-main">
+      <div class="incense-art">
+        <div class="smoke-line"></div>
+        <div class="smoke-line"></div>
+        <div class="smoke-line"></div>
+        <div class="incense-glow"></div>
+        <div class="incense-stick"></div>
+        <div class="incense-base"></div>
+      </div>
+      <div class="hero-badge">
+        <div class="hero-badge-inner">Chính<br>gốc<br>Việt<br>Nam</div>
+      </div>
+      <div class="hero-float-card">
+        <div class="hero-float-card-title">🌟 Đánh giá 4.9/5</div>
+        <div class="hero-float-card-sub">Từ 12.000+ khách hàng</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     MARQUEE
+═══════════════════════════════════════════════════════ -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item"><span class="marquee-dot"></span>Nhang Trầm Kỳ Nam</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Tinh Dầu Trầm Nguyên Chất</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Vòng Tay Phong Thủy</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Giao Hàng Toàn Quốc</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Chứng Nhận Nguồn Gốc</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Trầm Hương Hội An</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Đế Xông Tinh Dầu</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Quà Tặng Cao Cấp</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item"><span class="marquee-dot"></span>Nhang Trầm Kỳ Nam</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Tinh Dầu Trầm Nguyên Chất</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Vòng Tay Phong Thủy</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Giao Hàng Toàn Quốc</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Chứng Nhận Nguồn Gốc</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Trầm Hương Hội An</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Đế Xông Tinh Dầu</span>
+    <span class="marquee-item"><span class="marquee-dot"></span>Quà Tặng Cao Cấp</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     CATEGORIES
+═══════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-head fade-up">
+      <span class="label">Danh mục sản phẩm</span>
+      <h2 class="section-title">Khám phá <em>từng dòng</em> hương trầm</h2>
+    </div>
+    <div class="cat-grid">
+      <a href="san-pham.html?cat=nhang-tram" class="cat-card fade-up">
+        <div class="cat-icon">🪔</div>
+        <div class="cat-name">Nhang Trầm</div>
+        <div class="cat-count">42 sản phẩm</div>
+      </a>
+      <a href="san-pham.html?cat=tinh-dau" class="cat-card fade-up">
+        <div class="cat-icon">🫙</div>
+        <div class="cat-name">Tinh Dầu Trầm</div>
+        <div class="cat-count">28 sản phẩm</div>
+      </a>
+      <a href="san-pham.html?cat=vong-tay" class="cat-card fade-up">
+        <div class="cat-icon">📿</div>
+        <div class="cat-name">Vòng Tay Trầm</div>
+        <div class="cat-count">35 sản phẩm</div>
+      </a>
+      <a href="san-pham.html?cat=tram-khuc" class="cat-card fade-up">
+        <div class="cat-icon">🪵</div>
+        <div class="cat-name">Trầm Khúc</div>
+        <div class="cat-count">19 sản phẩm</div>
+      </a>
+      <a href="san-pham.html?cat=de-xong" class="cat-card fade-up">
+        <div class="cat-icon">🏺</div>
+        <div class="cat-name">Đế Xông Trầm</div>
+        <div class="cat-count">24 sản phẩm</div>
+      </a>
+      <a href="san-pham.html?cat=qua-tang" class="cat-card fade-up">
+        <div class="cat-icon">🎁</div>
+        <div class="cat-name">Quà Tặng Combo</div>
+        <div class="cat-count">16 sản phẩm</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FEATURED PRODUCTS
+═══════════════════════════════════════════════════════ -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head fade-up" style="display:flex;align-items:flex-end;justify-content:space-between;">
+      <div>
+        <span class="label">Nổi bật</span>
+        <h2 class="section-title">Sản phẩm <em>được yêu thích</em></h2>
+      </div>
+      <a href="san-pham.html" class="btn-secondary" style="margin-bottom:12px;">Xem tất cả →</a>
+    </div>
+    <div class="product-grid" id="featuredProducts">
+      <!-- Sản phẩm 1 -->
+      <div class="product-card fade-up">
+        <div class="product-img">
+          <div class="product-img-placeholder">🪔</div>
+          <span class="product-badge badge-hot">🔥 Bán chạy</span>
+          <button class="product-wish" title="Yêu thích" onclick="toggleWish(this)">🤍</button>
+        </div>
+        <div class="product-info">
+          <div class="product-origin">
+            <span class="origin-dot"></span>
+            <span class="label" style="font-size:10px;">Bình Định</span>
+          </div>
+          <div class="product-name"><a href="chi-tiet.html">Nhang Trầm Kỳ Nam Hộp 50 Que</a></div>
+          <div class="product-stars">
+            <span class="stars">★★★★★</span>
+            <span class="review-count">(248)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">285.000đ</span>
+            <span class="price-original">320.000đ</span>
+            <span class="price-discount">-11%</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn-cart" onclick="addToCart('sp1', 'Nhang Trầm Kỳ Nam', 285000)">🛒 Thêm giỏ</button>
+            <a href="chi-tiet.html" class="btn-detail">Chi tiết</a>
+          </div>
+        </div>
+      </div>
+      <!-- Sản phẩm 2 -->
+      <div class="product-card fade-up">
+        <div class="product-img">
+          <div class="product-img-placeholder">🫙</div>
+          <span class="product-badge badge-new">✨ Mới</span>
+          <button class="product-wish" onclick="toggleWish(this)">🤍</button>
+        </div>
+        <div class="product-info">
+          <div class="product-origin">
+            <span class="origin-dot"></span>
+            <span class="label" style="font-size:10px;">Hội An</span>
+          </div>
+          <div class="product-name"><a href="chi-tiet.html">Tinh Dầu Trầm Hương Nguyên Chất 10ml</a></div>
+          <div class="product-stars">
+            <span class="stars">★★★★★</span>
+            <span class="review-count">(132)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">450.000đ</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn-cart" onclick="addToCart('sp2', 'Tinh Dầu Trầm 10ml', 450000)">🛒 Thêm giỏ</button>
+            <a href="chi-tiet.html" class="btn-detail">Chi tiết</a>
+          </div>
+        </div>
+      </div>
+      <!-- Sản phẩm 3 -->
+      <div class="product-card fade-up">
+        <div class="product-img">
+          <div class="product-img-placeholder">📿</div>
+          <button class="product-wish" onclick="toggleWish(this)">🤍</button>
+        </div>
+        <div class="product-info">
+          <div class="product-origin">
+            <span class="origin-dot"></span>
+            <span class="label" style="font-size:10px;">Khánh Hòa</span>
+          </div>
+          <div class="product-name"><a href="chi-tiet.html">Vòng Tay Trầm Hương Phong Thủy 8ly</a></div>
+          <div class="product-stars">
+            <span class="stars">★★★★☆</span>
+            <span class="review-count">(89)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">1.200.000đ</span>
+            <span class="price-original">1.500.000đ</span>
+            <span class="price-discount">-20%</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn-cart" onclick="addToCart('sp3', 'Vòng Tay Trầm 8ly', 1200000)">🛒 Thêm giỏ</button>
+            <a href="chi-tiet.html" class="btn-detail">Chi tiết</a>
+          </div>
+        </div>
+      </div>
+      <!-- Sản phẩm 4 -->
+      <div class="product-card fade-up">
+        <div class="product-img">
+          <div class="product-img-placeholder">🎁</div>
+          <span class="product-badge badge-sale">Sale -25%</span>
+          <button class="product-wish" onclick="toggleWish(this)">🤍</button>
+        </div>
+        <div class="product-info">
+          <div class="product-origin">
+            <span class="origin-dot"></span>
+            <span class="label" style="font-size:10px;">Quảng Nam</span>
+          </div>
+          <div class="product-name"><a href="chi-tiet.html">Bộ Quà Tặng Trầm Hương Cao Cấp</a></div>
+          <div class="product-stars">
+            <span class="stars">★★★★★</span>
+            <span class="review-count">(67)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">750.000đ</span>
+            <span class="price-original">1.000.000đ</span>
+            <span class="price-discount">-25%</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn-cart" onclick="addToCart('sp4', 'Bộ Quà Tặng Cao Cấp', 750000)">🛒 Thêm giỏ</button>
+            <a href="chi-tiet.html" class="btn-detail">Chi tiết</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section-more">
+      <a href="san-pham.html" class="btn-primary">Xem tất cả sản phẩm →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     TRUST STRIP
+═══════════════════════════════════════════════════════ -->
+<div class="trust-strip">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-item">
+        <span class="trust-icon">🌿</span>
+        <div>
+          <div class="trust-name">100% Thiên Nhiên</div>
+          <div class="trust-desc">Không hóa chất, không phụ gia</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">🚚</span>
+        <div>
+          <div class="trust-name">Giao Hàng Toàn Quốc</div>
+          <div class="trust-desc">2-4 ngày, đóng gói cẩn thận</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">🔄</span>
+        <div>
+          <div class="trust-name">Đổi Trả 7 Ngày</div>
+          <div class="trust-desc">Không hài lòng hoàn tiền 100%</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">📜</span>
+        <div>
+          <div class="trust-name">Chứng Nhận Nguồn Gốc</div>
+          <div class="trust-desc">Giấy tờ kiểm định rõ ràng</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FLASH SALE
+═══════════════════════════════════════════════════════ -->
+<section class="flash-section">
+  <div class="container">
+    <div class="flash-head">
+      <div class="flash-title-wrap">
+        <span class="flash-icon">⚡</span>
+        <h2 class="flash-title">Flash Sale Hôm Nay</h2>
+      </div>
+      <div class="flash-timer">
+        <span class="timer-label">Kết thúc sau:</span>
+        <div class="timer-block"><span class="timer-num" id="h">07</span><span class="timer-unit">Giờ</span></div>
+        <span class="timer-sep">:</span>
+        <div class="timer-block"><span class="timer-num" id="m">34</span><span class="timer-unit">Phút</span></div>
+        <span class="timer-sep">:</span>
+        <div class="timer-block"><span class="timer-num" id="s">21</span><span class="timer-unit">Giây</span></div>
+      </div>
+    </div>
+    <div class="flash-grid">
+      <div class="flash-card">
+        <div class="flash-img">🪔</div>
+        <div class="flash-info">
+          <div class="flash-name">Nhang Trầm Nụ Hội An Hộp 100g</div>
+          <div class="flash-price-row">
+            <span class="flash-price">180.000đ</span>
+            <span class="flash-orig">280.000đ</span>
+            <span class="flash-pct">-36%</span>
+          </div>
+          <div class="flash-stock">
+            <div class="flash-stock-bar"><div class="flash-stock-fill" style="width:72%"></div></div>
+            <div class="flash-stock-txt">Đã bán 72/100</div>
+          </div>
+          <button class="btn-flash" onclick="addToCart('flash1','Nhang Trầm Nụ',180000)">Mua ngay</button>
+        </div>
+      </div>
+      <div class="flash-card">
+        <div class="flash-img">🫙</div>
+        <div class="flash-info">
+          <div class="flash-name">Tinh Dầu Trầm Xịt Phòng 50ml</div>
+          <div class="flash-price-row">
+            <span class="flash-price">220.000đ</span>
+            <span class="flash-orig">350.000đ</span>
+            <span class="flash-pct">-37%</span>
+          </div>
+          <div class="flash-stock">
+            <div class="flash-stock-bar"><div class="flash-stock-fill" style="width:55%"></div></div>
+            <div class="flash-stock-txt">Đã bán 55/100</div>
+          </div>
+          <button class="btn-flash" onclick="addToCart('flash2','Tinh Dầu Xịt Phòng',220000)">Mua ngay</button>
+        </div>
+      </div>
+      <div class="flash-card">
+        <div class="flash-img">🪵</div>
+        <div class="flash-info">
+          <div class="flash-name">Trầm Khúc Bình Định 100g Tự Nhiên</div>
+          <div class="flash-price-row">
+            <span class="flash-price">520.000đ</span>
+            <span class="flash-orig">750.000đ</span>
+            <span class="flash-pct">-31%</span>
+          </div>
+          <div class="flash-stock">
+            <div class="flash-stock-bar"><div class="flash-stock-fill" style="width:88%"></div></div>
+            <div class="flash-stock-txt">Đã bán 44/50 — Sắp hết!</div>
+          </div>
+          <button class="btn-flash" onclick="addToCart('flash3','Trầm Khúc Bình Định',520000)">Mua ngay</button>
+        </div>
+      </div>
+      <div class="flash-card">
+        <div class="flash-img">🏺</div>
+        <div class="flash-info">
+          <div class="flash-name">Đế Xông Trầm Gốm Thủ Công Huế</div>
+          <div class="flash-price-row">
+            <span class="flash-price">145.000đ</span>
+            <span class="flash-orig">220.000đ</span>
+            <span class="flash-pct">-34%</span>
+          </div>
+          <div class="flash-stock">
+            <div class="flash-stock-bar"><div class="flash-stock-fill" style="width:40%"></div></div>
+            <div class="flash-stock-txt">Đã bán 40/100</div>
+          </div>
+          <button class="btn-flash" onclick="addToCart('flash4','Đế Xông Gốm Huế',145000)">Mua ngay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     ABOUT
+═══════════════════════════════════════════════════════ -->
+<section class="about-section">
+  <div class="about-visual">
+    <span class="about-number-art">30</span>
+    <div class="about-stat-grid">
+      <div class="about-stat">
+        <div class="about-stat-num">30+</div>
+        <div class="about-stat-txt">Năm kinh nghiệm</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-num">12K+</div>
+        <div class="about-stat-txt">Khách hài lòng</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-num">300+</div>
+        <div class="about-stat-txt">Sản phẩm</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-num">4.9★</div>
+        <div class="about-stat-txt">Điểm đánh giá</div>
+      </div>
+    </div>
+  </div>
+  <div class="about-content">
+    <span class="label" style="display:block;margin-bottom:12px;">Câu chuyện của chúng tôi</span>
+    <h2 class="section-title">Hơn 30 năm <em>gìn giữ</em> hương trầm Việt</h2>
+    <p>
+      Trầm Hương Shop ra đời từ tình yêu với hương trầm thiên nhiên Việt Nam.
+      Chúng tôi kết nối trực tiếp với các làng nghề truyền thống tại Bình Định,
+      Hội An và Khánh Hòa — nơi nghề chế tác trầm hương đã được truyền qua nhiều thế hệ.
+    </p>
+    <p>
+      Mỗi sản phẩm đều có giấy chứng nhận nguồn gốc rõ ràng, được kiểm định
+      hàm lượng tinh dầu và đảm bảo không pha trộn hóa chất.
+    </p>
+    <div class="about-tags">
+      <span class="about-tag">🌿 100% Thiên nhiên</span>
+      <span class="about-tag">📜 Có chứng nhận</span>
+      <span class="about-tag">🏔️ Từ rừng núi Việt Nam</span>
+      <span class="about-tag">👐 Chế tác thủ công</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     REVIEWS
+═══════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="container">
+    <div class="section-head center fade-up">
+      <span class="label">Khách hàng nói gì</span>
+      <h2 class="section-title">Cảm nhận <em>thật lòng</em></h2>
+      <p class="section-sub">Hơn 12.000 đánh giá từ khách hàng trên toàn quốc</p>
+    </div>
+    <div class="reviews-grid">
+      <div class="review-card fade-up">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Mùi hương rất thuần, không nồng, thư giãn tuyệt vời. Lần đầu dùng trầm mà cảm nhận được sự khác biệt rõ ràng so với nhang thông thường."</p>
+        <div class="review-author">
+          <div class="review-avatar">A</div>
+          <div>
+            <div class="review-name">Anh Minh</div>
+            <div class="review-loc">TP. Hồ Chí Minh</div>
+            <div class="review-product">Nhang Trầm Kỳ Nam Hộp 50 Que</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card fade-up">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Mua làm quà tặng sếp, được khen rất nhiều. Hộp đựng sang trọng, mùi hương quý phái. Chắc chắn sẽ quay lại mua thêm."</p>
+        <div class="review-author">
+          <div class="review-avatar">L</div>
+          <div>
+            <div class="review-name">Chị Lan</div>
+            <div class="review-loc">Hà Nội</div>
+            <div class="review-product">Bộ Quà Tặng Cao Cấp</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card fade-up">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Vòng tay trầm đeo rất nhẹ, mùi thơm tự nhiên kéo dài cả ngày. Shop tư vấn nhiệt tình, giao hàng nhanh, đóng gói cẩn thận."</p>
+        <div class="review-author">
+          <div class="review-avatar">T</div>
+          <div>
+            <div class="review-name">Chị Thu</div>
+            <div class="review-loc">Đà Nẵng</div>
+            <div class="review-product">Vòng Tay Trầm Hương 8ly</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     BLOG
+═══════════════════════════════════════════════════════ -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head fade-up" style="display:flex;align-items:flex-end;justify-content:space-between;">
+      <div>
+        <span class="label">Kiến thức hương trầm</span>
+        <h2 class="section-title">Bài viết <em>hữu ích</em></h2>
+      </div>
+      <a href="#" class="btn-secondary" style="margin-bottom:12px;">Xem tất cả →</a>
+    </div>
+    <div class="blog-grid">
+      <div class="blog-card fade-up">
+        <div class="blog-img">🌿</div>
+        <div class="blog-info">
+          <span class="blog-tag">Kiến thức</span>
+          <div class="blog-title">Phân biệt trầm hương thật và giả — Những dấu hiệu cần biết</div>
+          <div class="blog-date">12 tháng 3, 2025</div>
+        </div>
+      </div>
+      <div class="blog-card fade-up">
+        <div class="blog-img">🧘</div>
+        <div class="blog-info">
+          <span class="blog-tag">Thiền định</span>
+          <div class="blog-title">Cách dùng hương trầm trong thiền định để đạt hiệu quả tốt nhất</div>
+          <div class="blog-date">5 tháng 3, 2025</div>
+        </div>
+      </div>
+      <div class="blog-card fade-up">
+        <div class="blog-img">🎁</div>
+        <div class="blog-info">
+          <span class="blog-tag">Phong thủy</span>
+          <div class="blog-title">Tại sao trầm hương là món quà phong thủy ý nghĩa nhất?</div>
+          <div class="blog-date">28 tháng 2, 2025</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     NEWSLETTER
+═══════════════════════════════════════════════════════ -->
+<section class="newsletter-section">
+  <div class="container">
+    <h2 class="newsletter-title">Nhận ưu đãi độc quyền</h2>
+    <p class="newsletter-sub">Đăng ký để nhận thông báo Flash Sale, sản phẩm mới và kiến thức hương trầm</p>
+    <div class="newsletter-form">
+      <input class="newsletter-input" type="email" placeholder="Nhập email của bạn...">
+      <button class="newsletter-btn">Đăng ký</button>
+    </div>
+    <p class="newsletter-note">Không spam. Hủy đăng ký bất cứ lúc nào.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="logo-icon" style="background:rgba(255,255,255,.1)">🌿</div>
+          <div class="logo-text">
+            Trầm Hương Shop
+            <span>Hương Trầm Việt Nam</span>
+          </div>
+        </div>
+        <p class="footer-desc">
+          Chuyên cung cấp hương trầm thiên nhiên chính gốc Việt Nam.
+          Cam kết chất lượng — Có giấy chứng nhận nguồn gốc.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn" title="Zalo">💬</a>
+          <a href="#" class="social-btn" title="Facebook">📘</a>
+          <a href="#" class="social-btn" title="YouTube">▶️</a>
+          <a href="#" class="social-btn" title="TikTok">🎵</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Sản phẩm</div>
+        <ul class="footer-links">
+          <li><a href="#">Nhang Trầm</a></li>
+          <li><a href="#">Tinh Dầu Trầm</a></li>
+          <li><a href="#">Vòng Tay Trầm</a></li>
+          <li><a href="#">Trầm Khúc</a></li>
+          <li><a href="#">Đế Xông Trầm</a></li>
+          <li><a href="#">Quà Tặng Combo</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Hỗ trợ</div>
+        <ul class="footer-links">
+          <li><a href="tra-cuu.html">Tra cứu đơn hàng</a></li>
+          <li><a href="#">Chính sách vận chuyển</a></li>
+          <li><a href="#">Chính sách đổi trả</a></li>
+          <li><a href="#">Bảo mật thông tin</a></li>
+          <li><a href="#">Câu hỏi thường gặp</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Liên hệ</div>
+        <ul class="footer-links">
+          <li><a href="#">📞 0905 123 456</a></li>
+          <li><a href="#">💬 Zalo: 0905 123 456</a></li>
+          <li><a href="#">✉️ <span class="__cf_email__" data-cfemail="4028252c2c2f003432212d28352f2e2733282f306e362e">[email&#160;protected]</span></a></li>
+          <li><a href="#">📍 123 Đường Lê Lợi, Huế</a></li>
+          <li><a href="#" style="margin-top:8px;display:inline-block;">⏰ T2-T7: 8:00 – 18:00</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Trầm Hương Shop. Bảo lưu mọi quyền.</span>
+      <div class="footer-cert">
+        <span class="cert-badge">ĐKKD: 12345678</span>
+        <span class="cert-badge">✓ Đã xác thực</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── Giỏ hàng (localStorage) ──────────────────────────────
+let cart = JSON.parse(localStorage.getItem('th_cart') || '[]');
+
+function saveCart() { localStorage.setItem('th_cart', JSON.stringify(cart)); }
+
+function updateCartCount() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = total;
+}
+
+function addToCart(id, name, price) {
+  const existing = cart.find(i => i.id === id);
+  if (existing) { existing.qty++; }
+  else { cart.push({ id, name, price, qty: 1 }); }
+  saveCart();
+  updateCartCount();
+  showToast(`✓ Đã thêm "${name}" vào giỏ hàng`);
+}
+
+// ── Toast notification ───────────────────────────────────
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = `
+      position:fixed;bottom:24px;right:24px;z-index:9999;
+      background:#1C1209;color:#F5ECD8;padding:12px 20px;
+      border-radius:99px;font-size:13px;font-weight:500;
+      box-shadow:0 4px 24px rgba(0,0,0,.2);
+      transition:opacity .3s,transform .3s;
+      font-family:'Be Vietnam Pro',sans-serif;
+    `;
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateY(0)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(8px)';
+  }, 2800);
+}
+
+// ── Wishlist ─────────────────────────────────────────────
+function toggleWish(btn) {
+  const isWished = btn.textContent === '❤️';
+  btn.textContent = isWished ? '🤍' : '❤️';
+  showToast(isWished ? 'Đã bỏ khỏi danh sách yêu thích' : '❤️ Đã thêm vào yêu thích');
+}
+
+// ── Flash sale countdown ─────────────────────────────────
+(function() {
+  let total = 7 * 3600 + 34 * 60 + 21;
+  function tick() {
+    if (total <= 0) return;
+    total--;
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('h').textContent = pad(h);
+    document.getElementById('m').textContent = pad(m);
+    document.getElementById('s').textContent = pad(s);
+  }
+  setInterval(tick, 1000);
+})();
+
+// ── Scroll fade-up ───────────────────────────────────────
+const fadeEls = document.querySelectorAll('.fade-up');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.12 });
+fadeEls.forEach(el => observer.observe(el));
+
+// �

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chi Tiết Sản Phẩm — Trầm Hương Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1C1209;--ink-2:#3D2B1A;--ink-3:#6B4F35;--ink-4:#9C7A58;--warm-50:#FBF7F0;--warm-100:#F5ECD8;--warm-200:#E8D5B0;--gold:#B8860B;--gold-lt:#D4A827;--bg:#FAF6EF;--bg-alt:#F3EBD8;--cream:#FFFDF7;--border:rgba(60,35,10,.12);--border-2:rgba(60,35,10,.22);--shadow:0 2px 24px rgba(60,35,10,.08);--shadow-lg:0 8px 48px rgba(60,35,10,.14);--serif:'Cormorant Garamond',Georgia,serif;--sans:'Be Vietnam Pro',sans-serif;--radius:12px;--radius-lg:20px;--tr:.22s cubic-bezier(.4,0,.2,1);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.7;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}button{cursor:pointer;font-family:var(--sans);border:none;background:none;}ul{list-style:none;}
+.label{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);}
+
+/* HEADER */
+.site-header{position:sticky;top:0;z-index:100;background:rgba(250,246,239,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 32px;height:68px;display:flex;align-items:center;gap:24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-icon{width:36px;height:36px;background:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);line-height:1.2;}
+.logo-text span{display:block;font-size:11px;font-weight:300;letter-spacing:.1em;color:var(--ink-3);}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{font-size:14px;color:var(--ink-2);padding:4px 0;border-bottom:1.5px solid transparent;transition:var(--tr);}
+.nav-links a:hover{color:var(--ink);border-bottom-color:var(--ink);}
+.nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.nav-btn{height:36px;padding:0 16px;border-radius:99px;font-size:13px;font-weight:500;transition:var(--tr);display:flex;align-items:center;gap:6px;}
+.nav-btn-ghost{border:1px solid var(--border-2);color:var(--ink-2);}
+.nav-btn-ghost:hover{background:var(--warm-100);}
+.cart-btn{position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--warm-100);border:1px solid var(--border);transition:var(--tr);}
+.cart-btn:hover{background:var(--warm-200);}
+.cart-count{position:absolute;top:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--warm-50);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+
+/* BREADCRUMB */
+.breadcrumb{background:var(--warm-50);border-bottom:1px solid var(--border);padding:12px 0;}
+.breadcrumb-inner{max-width:1280px;margin:0 auto;padding:0 32px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-4);}
+.breadcrumb a{color:var(--ink-3);transition:var(--tr);}
+.breadcrumb a:hover{color:var(--ink);}
+
+/* MAIN LAYOUT */
+.page-wrap{max-width:1280px;margin:0 auto;padding:40px 32px 80px;}
+.product-layout{display:grid;grid-template-columns:1fr 1fr;gap:56px;margin-bottom:80px;}
+
+/* GALLERY */
+.gallery{}
+.gallery-main{aspect-ratio:1;background:var(--warm-100);border-radius:var(--radius-lg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:120px;margin-bottom:12px;border:1px solid var(--border);position:relative;transition:var(--tr);}
+.gallery-main:hover{box-shadow:var(--shadow-lg);}
+.gallery-zoom{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.85);backdrop-filter:blur(4px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:var(--tr);}
+.gallery-zoom:hover{background:white;}
+.gallery-thumbs{display:flex;gap:8px;}
+.gallery-thumb{width:72px;height:72px;border-radius:10px;background:var(--warm-100);border:2px solid transparent;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;transition:var(--tr);}
+.gallery-thumb:hover,.gallery-thumb.active{border-color:var(--ink);}
+.gallery-cert{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 14px;background:var(--warm-50);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--ink-3);}
+.gallery-cert a{color:var(--ink-2);font-weight:500;text-decoration:underline;text-underline-offset:2px;}
+
+/* PRODUCT INFO */
+.pinfo{}
+.pinfo-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.pinfo-badge{padding:3px 12px;border-radius:99px;font-size:11px;font-weight:600;}
+.badge-cat{background:var(--warm-100);border:1px solid var(--border);color:var(--ink-3);}
+.badge-origin{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-lt) 100%);color:var(--ink);}
+.badge-sale{background:#C0392B;color:white;}
+.pinfo-name{font-family:var(--serif);font-size:clamp(26px,3vw,36px);font-weight:400;color:var(--ink);line-height:1.2;margin-bottom:10px;}
+.pinfo-code{font-size:12px;color:var(--ink-4);margin-bottom:12px;}
+.pinfo-stars{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.stars-big{color:var(--gold);font-size:16px;letter-spacing:1px;}
+.rating-num{font-size:15px;font-weight:600;color:var(--ink);}
+.review-link{font-size:13px;color:var(--ink-4);text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
+.sold-num{font-size:13px;color:var(--ink-4);padding-left:10px;border-left:1px solid var(--border);}
+
+/* Specs table */
+.specs-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.spec-item{background:var(--warm-50);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.spec-lbl{font-size:11px;color:var(--ink-4);margin-bottom:2px;}
+.spec-val{font-size:13px;font-weight:500;color:var(--ink);}
+
+/* Usage tags */
+.usage-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.usage-tag{padding:4px 12px;border-radius:99px;font-size:12px;background:var(--warm-100);border:1px solid var(--border);color:var(--ink-2);}
+
+/* Price */
+.price-block{margin-bottom:20px;}
+.price-row{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;}
+.price-main{font-family:var(--serif);font-size:38px;font-weight:600;color:var(--ink);}
+.price-orig{font-size:18px;color:var(--ink-4);text-decoration:line-through;}
+.price-pct{font-size:13px;font-weight:700;color:#C0392B;background:#fde8e8;padding:2px 8px;border-radius:99px;}
+.price-note{font-size:12px;color:var(--ink-4);}
+.stock-status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;margin-top:4px;}
+.stock-dot{width:8px;height:8px;border-radius:50%;}
+.stock-ok .stock-dot{background:#27ae60;}
+.stock-ok{color:#27ae60;}
+.stock-low .stock-dot{background:#e67e22;}
+.stock-low{color:#e67e22;}
+
+/* Variants */
+.variant-group{margin-bottom:20px;}
+.variant-label{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:8px;}
+.variant-opts{display:flex;gap:8px;flex-wrap:wrap;}
+.variant-btn{padding:6px 16px;border-radius:8px;border:1.5px solid var(--border-2);font-size:13px;color:var(--ink-2);transition:var(--tr);background:var(--cream);}
+.variant-btn:hover,.variant-btn.active{border-color:var(--ink);background:var(--ink);color:var(--warm-100);}
+.variant-btn.disabled{opacity:.4;pointer-events:none;text-decoration:line-through;}
+
+/* Qty & actions */
+.qty-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.qty-lbl{font-size:13px;color:var(--ink-3);}
+.qty-ctrl{display:flex;align-items:center;border:1.5px solid var(--border-2);border-radius:10px;overflow:hidden;}
+.qty-btn{width:38px;height:38px;font-size:18px;color:var(--ink-3);transition:var(--tr);display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{background:var(--warm-100);color:var(--ink);}
+.qty-num{width:44px;text-align:center;font-size:15px;font-weight:500;color:var(--ink);border:none;background:none;font-family:var(--sans);}
+.stock-left{font-size:12px;color:var(--ink-4);}
+
+.action-row{display:flex;gap:10px;margin-bottom:14px;}
+.btn-buy{flex:1;height:50px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);}
+.btn-buy:hover{background:var(--ink-2);transform:translateY(-1px);box-shadow:var(--shadow);}
+.btn-addcart{flex:1;height:50px;border-radius:99px;border:1.5px solid var(--border-2);color:var(--ink-2);font-size:15px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);}
+.btn-addcart:hover{background:var(--warm-100);}
+.btn-wish-big{width:50px;height:50px;border-radius:50%;border:1.5px solid var(--border-2);font-size:20px;display:flex;align-items:center;justify-content:center;transition:var(--tr);}
+.btn-wish-big:hover{background:var(--warm-100);}
+
+.share-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-4);}
+.share-btn{padding:5px 12px;border-radius:99px;border:1px solid var(--border);font-size:12px;color:var(--ink-3);transition:var(--tr);}
+.share-btn:hover{background:var(--warm-100);}
+
+/* Guarantees */
+.guarantees{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);}
+.guarantee-item{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-3);}
+.guarantee-icon{font-size:18px;flex-shrink:0;}
+
+/* TABS */
+.tabs-wrap{margin-bottom:60px;}
+.tab-nav{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:32px;}
+.tab-btn{padding:10px 20px;font-size:14px;color:var(--ink-4);border-bottom:2px solid transparent;margin-bottom:-1px;transition:var(--tr);}
+.tab-btn:hover{color:var(--ink-2);}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:500;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* Description */
+.desc-content{font-size:15px;line-height:1.85;color:var(--ink-2);}
+.desc-content h3{font-family:var(--serif);font-size:22px;margin:24px 0 10px;color:var(--ink);}
+.desc-content ul{padding-left:20px;margin-bottom:16px;}
+.desc-content ul li{margin-bottom:6px;list-style:disc;}
+.desc-content p{margin-bottom:14px;}
+.desc-content strong{font-weight:600;color:var(--ink);}
+
+/* Reviews */
+.reviews-summary{display:flex;gap:32px;align-items:center;padding:24px;background:var(--warm-50);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:24px;}
+.rating-big{text-align:center;flex-shrink:0;}
+.rating-big-num{font-family:var(--serif);font-size:56px;font-weight:600;color:var(--ink);line-height:1;}
+.rating-big-stars{color:var(--gold);font-size:18px;letter-spacing:2px;}
+.rating-big-count{font-size:13px;color:var(--ink-4);margin-top:4px;}
+.rating-bars{flex:1;}
+.rating-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.rating-bar-lbl{font-size:12px;color:var(--ink-3);width:32px;text-align:right;}
+.rating-bar-track{flex:1;height:6px;background:var(--warm-200);border-radius:99px;overflow:hidden;}
+.rating-bar-fill{height:100%;background:var(--gold);border-radius:99px;}
+.rating-bar-num{font-size:12px;color:var(--ink-4);width:28px;}
+
+.review-list{display:flex;flex-direction:column;gap:16px;}
+.review-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;}
+.review-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.review-avatar{width:38px;height:38px;border-radius:50%;background:var(--warm-200);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:16px;color:var(--ink-3);font-weight:600;flex-shrink:0;}
+.review-meta{flex:1;}
+.review-name{font-size:14px;font-weight:500;color:var(--ink);}
+.review-date{font-size:12px;color:var(--ink-4);}
+.review-stars{color:var(--gold);font-size:13px;letter-spacing:1px;}
+.review-text{font-size:14px;color:var(--ink-2);line-height:1.7;}
+.review-product-tag{display:inline-block;margin-top:8px;padding:2px 10px;background:var(--warm-100);border-radius:99px;font-size:11px;color:var(--ink-4);}
+
+.review-form{background:var(--warm-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-top:24px;}
+.review-form h3{font-family:var(--serif);font-size:20px;margin-bottom:16px;color:var(--ink);}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:6px;display:block;}
+.form-input{width:100%;height:40px;padding:0 14px;border:1px solid var(--border-2);border-radius:8px;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--cream);outline:none;transition:var(--tr);}
+.form-input:focus{border-color:var(--ink-3);}
+.form-textarea{width:100%;padding:12px 14px;border:1px solid var(--border-2);border-radius:8px;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--cream);outline:none;resize:vertical;min-height:90px;transition:var(--tr);}
+.form-textarea:focus{border-color:var(--ink-3);}
+.star-picker{display:flex;gap:6px;font-size:28px;cursor:pointer;color:var(--warm-200);}
+.star-picker span{transition:var(--tr);}
+.star-picker span:hover,.star-picker span.on{color:var(--gold);}
+.btn-submit{height:42px;padding:0 28px;border-radius:99px;background:var(--ink);color:var(--warm-100);font-size:14px;font-weight:500;transition:var(--tr);}
+.btn-submit:hover{background:var(--ink-2);}
+
+/* Related */
+.related-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.related-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:var(--tr);}
+.related-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.related-img{aspect-ratio:1;background:var(--warm-100);display:flex;align-items:center;justify-content:center;font-size:44px;}
+.related-info{padding:12px;}
+.related-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px;line-height:1.4;}
+.related-price{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--ink);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:var(--warm-100);padding:12px 20px;border-radius:99px;font-size:13px;font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;}
+
+/* STICKY BUY BAR (mobile) */
+.sticky-buy{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(250,246,239,.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:12px 16px;gap:12px;}
+@media(max-width:768px){
+  .sticky-buy{display:flex;}
+  .product-layout{grid-template-columns:1fr;gap:32px;}
+  .related-grid{grid-template-columns:repeat(2,1fr);}
+  .nav-links{display:none;}
+  .action-row .btn-addcart{display:none;}
+  .page-wrap{padding:24px 16px 80px;}
+  .guarantees{grid-template-columns:1fr;}
+  .specs-mini{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <nav class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-icon">🌿</div>
+      <div class="logo-text">Trầm Hương Shop<span>Hương Trầm Việt Nam</span></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Trang chủ</a></li>
+      <li><a href="san-pham.html">Sản phẩm</a></li>
+      <li><a href="#">Về chúng tôi</a></li>
+      <li><a href="#">Blog</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="tra-cuu.html" class="nav-btn nav-btn-ghost">Tra cứu đơn</a>
+      <button class="cart-btn" onclick="location.href='gio-hang.html'">🛒<span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </nav>
+</header>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <div class="breadcrumb-inner">
+    <a href="index.html">Trang chủ</a>
+    <span>›</span>
+    <a href="san-pham.html">Sản phẩm</a>
+    <span>›</span>
+    <a href="san-pham.html?cat=nhang">Nhang Trầm</a>
+    <span>›</span>
+    <span style="color:var(--ink-3);">Nhang Trầm Kỳ Nam Hộp 50 Que</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <!-- PRODUCT LAYOUT -->
+  <div class="product-layout">
+
+    <!-- GALLERY -->
+    <div class="gallery">
+      <div class="gallery-main" id="mainImg">
+        <span id="mainEmoji">🪔</span>
+        <button class="gallery-zoom" title="Phóng to">🔍</button>
+      </div>
+      <div class="gallery-thumbs">
+        <div class="gallery-thumb active" onclick="setThumb(this,'🪔')">🪔</div>
+        <div class="gallery-thumb" onclick="setThumb(this,'📦')">📦</div>
+        <div class="gallery-thumb" onclick="setThumb(this,'🌿')">🌿</div>
+        <div class="gallery-thumb" onclick="setThumb(this,'✨')">✨</div>
+        <div class="gallery-thumb" onclick="setThumb(this,'🏔️')">🏔️</div>
+      </div>
+      <div class="gallery-cert">
+        📜 Sản phẩm có chứng nhận nguồn gốc &nbsp;—&nbsp;
+        <a href="#">Tải PDF chứng nhận</a>
+      </div>
+    </div>
+
+    <!-- PRODUCT INFO -->
+    <div class="pinfo">
+      <div class="pinfo-badges">
+        <span class="pinfo-badge badge-cat">🪔 Nhang Trầm</span>
+        <span class="pinfo-badge badge-origin">📍 Bình Định</span>
+        <span class="pinfo-badge badge-sale">Sale -11%</span>
+      </div>
+
+      <h1 class="pinfo-name">Nhang Trầm Kỳ Nam Hộp 50 Que</h1>
+      <div class="pinfo-code">Mã SP: THS-NH-001 &nbsp;|&nbsp; Đã bán: <strong>1.240</strong></div>
+
+      <div class="pinfo-stars">
+        <span class="stars-big">★★★★★</span>
+        <span class="rating-num">4.9</span>
+        <span class="review-link" onclick="switchTab('reviews')">(248 đánh giá)</span>
+        <span class="sold-num">1.240 đã mua</span>
+      </div>
+
+      <!-- Specs -->
+      <div class="specs-mini">
+        <div class="spec-item"><div class="spec-lbl">Xuất xứ</div><div class="spec-val">Bình Định, Việt Nam</div></div>
+        <div class="spec-item"><div class="spec-lbl">Độ tuổi trầm</div><div class="spec-val">8 – 12 năm</div></div>
+        <div class="spec-item"><div class="spec-lbl">Hàm lượng tinh dầu</div><div class="spec-val">≥ 4,5%</div></div>
+        <div class="spec-item"><div class="spec-lbl">Quy cách</div><div class="spec-val">50 que / hộp</div></div>
+        <div class="spec-item"><div class="spec-lbl">Chiều dài que</div><div class="spec-val">22 cm</div></div>
+        <div class="spec-item"><div class="spec-lbl">Trọng lượng</div><div class="spec-val">80g / hộp</div></div>
+      </div>
+
+      <!-- Usage tags -->
+      <div class="usage-tags">
+        <span class="usage-tag">🙏 Thờ cúng</span>
+        <span class="usage-tag">🧘 Thiền định</span>
+        <span class="usage-tag">🍃 Thư giãn</span>
+      </div>
+
+      <!-- Price -->
+      <div class="price-block">
+        <div class="price-row">
+          <span class="price-main">285.000đ</span>
+          <span class="price-orig">320.000đ</span>
+          <span class="price-pct">-11%</span>
+        </div>
+        <div class="price-note">Giá chưa bao gồm phí vận chuyển</div>
+        <div class="stock-status stock-ok"><span class="stock-dot"></span> Còn hàng (47 sản phẩm)</div>
+      </div>
+
+      <!-- Variants -->
+      <div class="variant-group">
+        <div class="variant-label">Quy cách đóng gói:</div>
+        <div class="variant-opts">
+          <button class="variant-btn active" onclick="selectVariant(this, 285000)">Hộp 50 que — 285.000đ</button>
+          <button class="variant-btn" onclick="selectVariant(this, 520000)">Hộp 100 que — 520.000đ</button>
+          <button class="variant-btn" onclick="selectVariant(this, 980000)">Hộp 200 que — 980.000đ</button>
+        </div>
+      </div>
+
+      <!-- Qty -->
+      <div class="qty-row">
+        <span class="qty-lbl">Số lượng:</span>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <input class="qty-num" type="number" id="qtyInput" value="1" min="1" max="47">
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+        <span class="stock-left">Còn 47 sản phẩm</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-row">
+        <button class="btn-buy" onclick="buyNow()">⚡ Mua ngay</button>
+        <button class="btn-addcart" onclick="doAddToCart()">🛒 Thêm vào giỏ</button>
+        <button class="btn-wish-big" id="wishBtn" onclick="toggleWish()">🤍</button>
+      </div>
+
+      <!-- Share -->
+      <div class="share-row">
+        <span>Chia sẻ:</span>
+        <button class="share-btn">📘 Facebook</button>
+        <button class="share-btn">💬 Zalo</button>
+        <button class="share-btn">🔗 Copy link</button>
+      </div>
+
+      <!-- Guarantees -->
+      <div class="guarantees">
+        <div class="guarantee-item"><span class="guarantee-icon">🌿</span><span>100% thiên nhiên, không hóa chất</span></div>
+        <div class="guarantee-item"><span class="guarantee-icon">📜</span><span>Chứng nhận nguồn gốc rõ ràng</span></div>
+        <div class="guarantee-item"><span class="guarantee-icon">🔄</span><span>Đổi trả trong 7 ngày</span></div>
+        <div class="guarantee-item"><span class="guarantee-icon">🚚</span><span>Giao hàng 2–4 ngày toàn quốc</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs-wrap">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('desc')">Mô tả sản phẩm</button>
+      <button class="tab-btn" onclick="switchTab('usage')">Cách sử dụng</button>
+      <button class="tab-btn" onclick="switchTab('reviews')">Đánh giá (248)</button>
+    </div>
+
+    <!-- Mô tả -->
+    <div class="tab-content active" id="tab-desc">
+      <div class="desc-content">
+        <p><strong>Nhang Trầm Kỳ Nam Bình Định</strong> là dòng sản phẩm cao cấp nhất trong bộ sưu tập nhang trầm của Trầm Hương Shop. Được làm từ trầm hương kỳ nam thu hoạch tại vùng núi Bình Định, nơi có khí hậu và thổ nhưỡng đặc biệt tạo ra hương thơm tinh tế, sâu lắng và lâu phai.</p>
+        <h3>Đặc điểm nổi bật</h3>
+        <ul>
+          <li>Nguyên liệu từ trầm hương kỳ nam độ tuổi 8–12 năm, hàm lượng tinh dầu ≥ 4,5%</li>
+          <li>Không pha trộn hóa chất, hương liệu nhân tạo hay chất tạo mùi</li>
+          <li>Mùi hương ấm áp, ngọt nhẹ, không gây ngột ngạt — thích hợp dùng trong nhà</li>
+          <li>Khói nhang trắng mỏng, không cay mắt</li>
+          <li>Mỗi que cháy đều khoảng 45–60 phút, toả hương đều và bền</li>
+        </ul>
+        <h3>Thành phần</h3>
+        <p>100% bột trầm hương kỳ nam Bình Định + nước cất + chất kết dính tự nhiên (bột mì nếp). <strong>Không có</strong> hương liệu tổng hợp, không DOP, không hóa chất.</p>
+        <h3>Bảo quản</h3>
+        <ul>
+          <li>Để nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp</li>
+          <li>Không để gần nguồn ẩm hoặc nơi có mùi mạnh</li>
+          <li>Hạn sử dụng: 24 tháng kể từ ngày sản xuất</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Cách dùng -->
+    <div class="tab-content" id="tab-usage">
+      <div class="desc-content">
+        <h3>Hướng dẫn sử dụng</h3>
+        <p>Để có trải nghiệm hương trầm tốt nhất, hãy làm theo các bước dưới đây:</p>
+        <ul>
+          <li><strong>Bước 1:</strong> Chuẩn bị đế nhang hoặc lư hương sạch, chắc chắn, đặt trên bề mặt không cháy.</li>
+          <li><strong>Bước 2:</strong> Cắm nhang vào đế theo chiều thẳng đứng hoặc nghiêng nhẹ.</li>
+          <li><strong>Bước 3:</strong> Dùng diêm hoặc bật lửa châm đầu nhang — giữ lửa khoảng 3–5 giây.</li>
+          <li><strong>Bước 4:</strong> Thổi nhẹ để tắt lửa, nhang sẽ tự cháy âm ỉ và toả hương.</li>
+          <li><strong>Bước 5:</strong> Không để nhang gần vật dễ cháy. Không để trẻ em tiếp cận khi đang đốt.</li>
+        </ul>
+        <h3>Không gian phù hợp</h3>
+        <ul>
+          <li>🙏 <strong>Thờ cúng:</strong> Phòng thờ, bàn thờ gia tiên — thắp 1–2 que mỗi lần.</li>
+          <li>🧘 <strong>Thiền định:</strong> Phòng thiền — thắp 1 que, ngồi cách nhang ít nhất 1m.</li>
+          <li>🍃 <strong>Thư giãn:</strong> Phòng khách, phòng làm việc — giúp giảm stress, tập trung.</li>
+        </ul>
+        <p style="margin-top:16px;padding:12px 16px;background:var(--warm-50);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;font-size:14px;color:var(--ink-3);">
+          💡 <strong>Mẹo:</strong> Để hương trầm toả đều và bền hơn, hãy đốt nhang trong phòng đóng cửa khoảng 15 phút đầu rồi mở cửa nhẹ cho không khí lưu thông.
+        </p>
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="tab-content" id="tab-reviews">
+      <div class="reviews-summary">
+        <div class="rating-big">
+          <div class="rating-big-num">4.9</div>
+          <div class="rating-big-stars">★★★★★</div>
+          <div class="rating-big-count">248 đánh giá</div>
+        </div>
+        <div class="rating-bars">
+          <div class="rating-bar-row"><span class="rating-bar-lbl">5★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:82%"></div></div><span class="rating-bar-num">204</span></div>
+          <div class="rating-bar-row"><span class="rating-bar-lbl">4★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:13%"></div></div><span class="rating-bar-num">32</span></div>
+          <div class="rating-bar-row"><span class="rating-bar-lbl">3★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:3%"></div></div><span class="rating-bar-num">8</span></div>
+          <div class="rating-bar-row"><span class="rating-bar-lbl">2★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%"></div></div><span class="rating-bar-num">3</span></div>
+          <div class="rating-bar-row"><span class="rating-bar-lbl">1★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:0%"></div></div><span class="rating-bar-num">1</span></div>
+        </div>
+      </div>
+
+      <div class="review-list">
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-avatar">A</div>
+            <div class="review-meta">
+              <div class="review-name">Anh Minh — TP.HCM</div>
+              <div class="review-date">12 tháng 3, 2025</div>
+            </div>
+            <div class="review-stars">★★★★★</div>
+          </div>
+          <div class="review-text">Mùi hương rất thuần, không nồng, thư giãn tuyệt vời. Lần đầu dùng trầm mà cảm nhận được sự khác biệt rõ ràng so với nhang thông thường. Khói trắng mỏng, không cay mắt. Sẽ tiếp tục ủng hộ!</div>
+          <span class="review-product-tag">✓ Đã mua: Hộp 50 que</span>
+        </div>
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-avatar">T</div>
+            <div class="review-meta">
+              <div class="review-name">Chị Thanh — Đà Nẵng</div>
+              <div class="review-date">5 tháng 3, 2025</div>
+            </div>
+            <div class="review-stars">★★★★★</div>
+          </div>
+          <div class="review-text">Mua để thờ cúng, gia đình rất hài lòng. Mùi thơm nhẹ nhàng, trang nhã, không gây đau đầu. Đóng gói cẩn thận, giao hàng nhanh từ Bình Định ra Đà Nẵng chỉ 2 ngày.</div>
+          <span class="review-product-tag">✓ Đã mua: Hộp 100 que</span>
+        </div>
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-avatar">H</div>
+            <div class="review-meta">
+              <div class="review-name">Anh Hùng — Hà Nội</div>
+              <div class="review-date">20 tháng 2, 2025</div>
+            </div>
+            <div class="review-stars">★★★★☆</div>
+          </div>
+          <div class="review-text">Chất lượng tốt, hương thơm tự nhiên đúng như mô tả. Trừ 1 sao vì giao hàng hơi lâu (4 ngày). Nhưng sản phẩm thì ổn, sẽ mua lại.</div>
+          <span class="review-product-tag">✓ Đã mua: Hộp 50 que</span>
+        </div>
+      </div>
+
+      <!-- Form viết review -->
+      <div class="review-form">
+        <h3>Viết đánh giá của bạn</h3>
+        <div class="form-group">
+          <label class="form-label">Số điện thoại (để xác nhận đã mua hàng)</label>
+          <input class="form-input" type="tel" placeholder="09xx xxx xxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Họ tên hiển thị</label>
+          <input class="form-input" type="text" placeholder="VD: Anh Minh">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Đánh giá của bạn</label>
+          <div class="star-picker" id="starPicker">
+            <span onclick="setRating(1)" data-v="1">★</span>
+            <span onclick="setRating(2)" data-v="2">★</span>
+            <span onclick="setRating(3)" data-v="3">★</span>
+            <span onclick="setRating(4)" data-v="4">★</span>
+            <span onclick="setRating(5)" data-v="5">★</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nhận xét</label>
+          <textarea class="form-textarea" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+        </div>
+        <button class="btn-submit" onclick="submitReview()">Gửi đánh giá</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RELATED PRODUCTS -->
+  <div>
+    <div style="margin-bottom:24px;">
+      <span class="label">Có thể bạn thích</span>
+      <h2 style="font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-top:4px;">Sản phẩm <em style="font-style:italic;color:var(--ink-3);">liên quan</em></h2>
+    </div>
+    <div class="related-grid">
+      <a href="chi-tiet.html" class="related-card">
+        <div class="related-img">🪔</div>
+        <div class="related-info">
+          <div class="related-name">Nhang Trầm Nụ Hội An Hộp 100g</div>
+          <div class="related-price">180.000đ</div>
+        </div>
+      </a>
+      <a href="chi-tiet.html" class="related-card">
+        <div class="related-img">🪔</div>
+        <div class="related-info">
+          <div class="related-name">Nhang Trầm Vòng Đại 15cm Hội An</div>
+          <div class="related-price">95.000đ</div>
+        </div>
+      </a>
+      <a href="chi-tiet.html" class="related-card">
+        <div class="related-img">🏺</div>
+        <div class="related-info">
+          <div class="related-name">Đế Xông Gốm Thủ Công Huế</div>
+          <div class="related-price">145.000đ</div>
+        </div>
+      </a>
+      <a href="chi-tiet.html" class="related-card">
+        <div class="related-img">🎁</div>
+        <div class="related-info">
+          <div class="related-name">Bộ Quà Tặng Trầm Hương Cao Cấp</div>
+          <div class="related-price">750.000đ</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- STICKY BUY (mobile) -->
+<div class="sticky-buy">
+  <button class="btn-addcart" style="flex:1;height:46px;border-radius:99px;border:1.5px solid var(--border-2);font-size:14px;" onclick="doAddToCart()">🛒 Thêm giỏ hàng</button>
+  <button class="btn-buy" style="flex:1;height:46px;font-size:14px;" onclick="buyNow()">⚡ Mua ngay</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// Cart
+let cart = JSON.parse(localStorage.getItem('th_cart')||'[]');
+let currentPrice = 285000;
+let currentName = 'Nhang Trầm Kỳ Nam Hộp 50 Que';
+
+function saveCart(){ localStorage.setItem('th_cart', JSON.stringify(cart)); }
+function updateCartCount(){
+  document.getElementById('cartCount').textContent = cart.reduce((s,i)=>s+i.qty,0);
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1'; t.style.transform='translateY(0)';
+  clearTimeout(t._t); t._t=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(8px)';},2600);
+}
+
+function getQty(){ return Math.max(1, parseInt(document.getElementById('qtyInput').value)||1); }
+
+function doAddToCart(){
+  const qty = getQty();
+  const ex = cart.find(i=>i.id==='sp-detail');
+  if(ex) ex.qty+=qty; else cart.push({id:'sp-detail',name:currentName,price:currentPrice,qty});
+  saveCart(); updateCartCount();
+  showToast(`✓ Đã thêm ${qty} sản phẩm vào giỏ hàng`);
+}
+function buyNow(){ doAddToCart(); location.href='gio-hang.html'; }
+
+function changeQty(d){
+  const inp = document.getElementById('qtyInput');
+  inp.value = Math.max(1, Math.min(47, (parseInt(inp.value)||1)+d));
+}
+
+function selectVariant(btn, price){
+  document.querySelectorAll('.variant-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPrice = price;
+  document.querySelector('.price-main').textContent = price.toLocaleString('vi-VN')+'đ';
+}
+
+function setThumb(el, emoji){
+  document.querySelectorAll('.gallery-thumb').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mainEmoji').textContent = emoji;
+}
+
+function toggleWish(){
+  const btn = document.getElementById('wishBtn');
+  const w = btn.textContent==='❤️';
+  btn.textContent = w?'🤍':'❤️';
+  showToast(w?'Đã bỏ yêu thích':'❤️ Đã thêm vào yêu thích');
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    const tabs=['desc','usage','reviews'];
+    b.classList.toggle('active', tabs[i]===name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='reviews') document.getElementById('tab-reviews').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// Star picker
+let selectedRating = 0;
+function setRating(v){
+  selectedRating = v;
+  document.querySelectorAll('#starPicker span').forEach((s,i)=>{
+    s.classList.toggle('on', i<v);
+  });
+}
+
+function submitReview(){
+  if(!selectedRating){ showToast('Vui lòng chọn số sao đánh giá'); return; }
+  showToast('✓ Cảm ơn bạn đã đánh giá! Đánh giá đang chờ duyệt.');
+}
+
+updateCartCount();
+</script>
+</body>
+</html>

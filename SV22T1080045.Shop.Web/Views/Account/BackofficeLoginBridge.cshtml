@@ -1,0 +1,42 @@
+@model SV22T1080045.Shop.Models.ViewModels.Account.BackofficeLoginBridgeViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đang chuyển sang quản trị...</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #faf6ef;
+            color: #3d3222;
+        }
+        .box {
+            text-align: center;
+            padding: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <p>Đang thiết lập phiên quản trị (cổng 7127)...</p>
+        <p style="font-size:13px;opacity:.8;">Vui lòng đợi vài giây. Nếu không chuyển trang, bấm nút bên dưới.</p>
+        <form id="bridgeForm" method="post" action="@Model.BackofficeLoginUrl">
+            <input type="hidden" name="Phone" value="@Model.Phone" />
+            <input type="hidden" name="Password" value="@Model.Password" />
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+            <button type="submit">Tiếp tục vào quản trị</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('bridgeForm').submit();
+    </script>
+</body>
+</html>
