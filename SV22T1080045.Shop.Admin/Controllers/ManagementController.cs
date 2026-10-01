@@ -75,9 +75,14 @@ namespace SV22T1080045.Shop.Controllers
                 savedAction));
         }
 
-        public IActionResult Orders()
+        public IActionResult Orders(int orderPage = 1, int? selectedOrderId = null, int? status = null)
         {
-            return View("Orders", BuildOrderModel());
+            // Check if selectedOrderId is provided via query string
+            if (selectedOrderId == null && int.TryParse(Request.Query["selectedOrderId"], out var queryOrderId))
+            {
+                selectedOrderId = queryOrderId;
+        }
+            return View("Orders", BuildOrderModel(orderPage, selectedOrderId, status));
         }
 
         public IActionResult Customers(
@@ -315,13 +320,24 @@ namespace SV22T1080045.Shop.Controllers
             };
         }
 
-        private OrderManagementViewModel BuildOrderModel()
+        private OrderManagementViewModel BuildOrderModel(int orderPage = 1, int? selectedOrderId = null, int? status = null)
         {
-            var recentOrders = ToManagementOrders(_managementService.ListRecentOrders(10));
+            const int OrderPageSize = 10;
+            var currentPage = Math.Max(1, orderPage);
+            var (orders, totalCount) = _managementService.ListOrdersPaginated(currentPage, OrderPageSize, status);
+            var recentOrders = ToManagementOrders(orders);
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)OrderPageSize));
+
             return new OrderManagementViewModel
             {
                 RecentOrders = recentOrders,
-                OrderStatusGroups = BuildOrderStatusGroups(recentOrders)
+                OrderStatusGroups = BuildOrderStatusGroups(recentOrders),
+                OrderPage = currentPage,
+                OrderPageSize = OrderPageSize,
+                OrderTotalCount = totalCount,
+                OrderTotalPages = totalPages,
+                SelectedOrderId = selectedOrderId,
+                CurrentStatus = status
             };
         }
 
@@ -478,6 +494,7 @@ namespace SV22T1080045.Shop.Controllers
                 CustomerName = row.CustomerName,
                 CustomerPhone = row.CustomerPhone,
                 ItemCount = row.ItemCount,
+                ProductTypeCount = row.ProductTypeCount,
                 IsGuest = row.IsGuest
             }).ToList();
         }

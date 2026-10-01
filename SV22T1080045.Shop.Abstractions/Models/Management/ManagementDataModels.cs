@@ -11,6 +11,7 @@ namespace SV22T1080045.Shop.Abstractions.Models.Management
         public string CustomerName { get; set; } = "";
         public string CustomerPhone { get; set; } = "";
         public int ItemCount { get; set; }
+        public int ProductTypeCount { get; set; }
         public bool IsGuest { get; set; }
     }
 

@@ -71,6 +71,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                     COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), '') AS CustomerPhone,
                     CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit) AS IsGuest,
                     COALESCE(SUM(d.Quantity), 0) AS ItemCount
+                    COALESCE(COUNT(DISTINCT d.ProductId), 0) AS ProductTypeCount
                 FROM Orders o
                 LEFT JOIN Customers c ON o.CustomerId = c.Id
                 LEFT JOIN OrderDetails d ON o.Id = d.OrderId
@@ -82,6 +83,48 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 ORDER BY o.OrderDate DESC", new { Take = take }).ToList();
 
             return rows;
+        }
+
+        public (List<ManagementOrderData> Orders, int TotalCount) ListOrdersPaginated(int page, int pageSize, int? status = null)
+        {
+            using var conn = OpenConnection();
+            var offset = (page - 1) * pageSize;
+
+            // Build WHERE clause for status filter
+            var statusFilter = status.HasValue ? "AND o.Status = @Status" : "";
+
+            // Get total count with filter
+            var totalCount = conn.ExecuteScalar<int>($@"
+                SELECT COUNT(DISTINCT o.Id)
+                FROM Orders o
+                WHERE o.IsDeleted = 0 {statusFilter}",
+                new { Status = status });
+
+            // Get paginated orders with filter
+            var orders = conn.Query<ManagementOrderData>($@"
+                SELECT
+                    o.Id,
+                    o.OrderDate,
+                    o.TotalAmount,
+                    o.Status,
+                    COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest') AS CustomerName,
+                    COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), '') AS CustomerPhone,
+                    CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit) AS IsGuest,
+                    COALESCE(SUM(d.Quantity), 0) AS ItemCount,
+                    COALESCE(COUNT(DISTINCT d.ProductId), 0) AS ProductTypeCount
+                FROM Orders o
+                LEFT JOIN Customers c ON o.CustomerId = c.Id
+                LEFT JOIN OrderDetails d ON o.Id = d.OrderId
+                WHERE o.IsDeleted = 0 {statusFilter}
+                GROUP BY o.Id, o.OrderDate, o.TotalAmount, o.Status,
+                    COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest'),
+                    COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), ''),
+                    CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit)
+                ORDER BY o.OrderDate DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
+                new { Offset = offset, PageSize = pageSize, Status = status }).ToList();
+
+            return (orders, totalCount);
         }
 
         public List<CustomerManagementData> ListCustomers()

@@ -17,9 +17,9 @@
 
 <section class="management-hero">
     <div>
-        <div class="management-kicker">Quản lý đơn hàng</div>
-        <h1>Danh sách đơn hàng</h1>
-        <p>Đơn hàng mới nhất được lấy từ bảng Orders, ghép Customers và OrderDetails để hiển thị khách, số món, tổng tiền và trạng thái.</p>
+        <div class="management-kicker">Precious Wood</div>
+        <h1>Quản lý đơn hàng</h1>
+        <p>Xử lý và theo dõi trạng thái đơn hàng từ khi đặt đến khi giao.</p>
     </div>
     <div class="management-actions">
         <button class="admin-btn"><i class="fa-solid fa-print"></i> In hóa đơn</button>
@@ -31,59 +31,111 @@
     <div class="admin-section-head">
         <div>
             <h2>Quản lý đơn hàng</h2>
-            <p class="admin-section-desc">Đơn hàng mới nhất được lấy từ bảng Orders, ghép Customers và OrderDetails để hiển thị khách, số món, tổng tiền và trạng thái.</p>
+            <p class="admin-section-desc">Xử lý và theo dõi trạng thái đơn hàng từ khi đặt đến khi giao.</p>
+        </div>
+        <div class="order-filters">
+            <a class="admin-btn status-filter @(Model.CurrentStatus == null ? "active" : "")" asp-action="Orders" asp-route-status="">Tất cả</a>
+            <a class="admin-btn status-filter @(Model.CurrentStatus == 1 ? "active" : "")" asp-action="Orders" asp-route-status="1">Chờ xử lý</a>
+            <a class="admin-btn status-filter @(Model.CurrentStatus == 2 ? "active" : "")" asp-action="Orders" asp-route-status="2">Đang chuẩn bị</a>
+            <a class="admin-btn status-filter @(Model.CurrentStatus == 3 ? "active" : "")" asp-action="Orders" asp-route-status="3">Đang giao</a>
+            <a class="admin-btn status-filter @(Model.CurrentStatus == 4 ? "active" : "")" asp-action="Orders" asp-route-status="4">Hoàn thành</a>
+            <a class="admin-btn status-filter @(Model.CurrentStatus == -1 ? "active" : "")" asp-action="Orders" asp-route-status="-1">Đã hủy</a>
         </div>
     </div>
 
-    <div class="order-board">
-        @foreach (var group in Model.OrderStatusGroups)
-        {
-            <div class="order-column">
-                <div class="order-column-title">@group.StatusText (@group.Orders.Count)</div>
-                @if (group.Orders.Any())
-                {
-                    foreach (var order in group.Orders)
-                    {
-                        <button class="order-ticket" type="button" data-order-link data-order-id="@order.Id">
-                            <strong>@order.OrderCode</strong>
-                            <span>@(order.IsGuest ? $"Guest {MaskPhone(order.CustomerPhone)}" : order.CustomerName) | @FormatMoney(order.TotalAmount) | @order.ItemCount món</span>
-                        </button>
-                    }
-                }
-                else
-                {
-                    <div class="item-meta">Không có đơn.</div>
-                }
+    <div class="orders-layout">
+        <div class="orders-main">
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày đặt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.RecentOrders)
+                        {
+                            <tr data-order-row="@order.Id" data-order-click class="@(Model.SelectedOrderId == order.Id ? "selected-row" : "")" style="cursor: pointer;">
+                                <td>@order.OrderCode</td>
+                                <td>@(order.IsGuest ? "Khách vãng lai" : order.CustomerName)</td>
+                                <td>@order.ProductTypeCount món</td>
+                                <td>@order.ItemCount</td>
+                                <td>@FormatMoney(order.TotalAmount)</td>
+                                <td><span class="status-badge @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        }
-    </div>
+            
+            @if (Model.OrderTotalPages > 1)
+            {
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Trang @Model.OrderPage / @Model.OrderTotalPages (Tổng @Model.OrderTotalCount đơn hàng)
+                    </div>
+                    <div class="pagination-controls">
+                        @if (Model.OrderPage > 1)
+                        {
+                            <a class="admin-btn" asp-action="Orders" asp-route-orderPage="@(Model.OrderPage - 1)" asp-route-selectedOrderId="@Model.SelectedOrderId" asp-route-status="@Model.CurrentStatus">
+                                <i class="fa-solid fa-chevron-left"></i> Trang trước
+                            </a>
+                        }
 
-    <div class="admin-table-wrap" style="margin-top:16px;">
-        <table class="admin-table">
-            <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>SĐT</th><th>Số món</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th></tr></thead>
-            <tbody>
-                @foreach (var order in Model.RecentOrders)
-                {
-                    <tr data-order-row="@order.Id">
-                        <td>@order.OrderCode</td>
-                        <td>@(order.IsGuest ? "Khách vãng lai" : order.CustomerName)</td>
-                        <td>@MaskPhone(order.CustomerPhone)</td>
-                        <td>@order.ItemCount</td>
-                        <td>@FormatMoney(order.TotalAmount)</td>
-                        <td><span class="status-badge @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
-                        <td><button class="link-button" type="button" data-order-link data-order-id="@order.Id">@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</button></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-    <div class="admin-panel order-detail-panel" id="orderDetailPanel">
-        <div class="panel-title">
-            <span>Chi tiết đơn hàng</span>
-            <span class="status-badge status-ready" id="selectedOrderCode">Chọn một đơn</span>
+                        @for (int i = 1; i <= Model.OrderTotalPages; i++)
+                        {
+                            if (i == 1 || i == Model.OrderTotalPages || (i >= Model.OrderPage - 1 && i <= Model.OrderPage + 1))
+                            {
+                                <a class="admin-btn @(i == Model.OrderPage ? "active" : "")" asp-action="Orders" asp-route-orderPage="@i" asp-route-selectedOrderId="@Model.SelectedOrderId" asp-route-status="@Model.CurrentStatus">
+                                    @i
+                                </a>
+                            }
+                            else if (i == Model.OrderPage - 2 || i == Model.OrderPage + 2)
+                            {
+                                <span class="pagination-ellipsis">...</span>
+                            }
+                        }
+
+                        @if (Model.OrderPage < Model.OrderTotalPages)
+                        {
+                            <a class="admin-btn" asp-action="Orders" asp-route-orderPage="@(Model.OrderPage + 1)" asp-route-selectedOrderId="@Model.SelectedOrderId" asp-route-status="@Model.CurrentStatus">
+                                Trang sau <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="admin-workflow-note" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #c9a961; border-radius: 4px;">
+                <div style="font-weight: 600; color: #333; margin-bottom: 8px;"><i class="fa-solid fa-info-circle"></i> Phân chia trách nhiệm</div>
+                <div style="color: #666; font-size: 0.9em; line-height: 1.5;">
+                    <strong>Admin:</strong> Xem và kiểm tra thông tin đơn hàng.<br>
+                    <strong>Staff:</strong> Xử lý xác nhận/hủy đơn hàng trong trang <a href="/Staff" style="color: #c9a961; text-decoration: underline;">Staff Dashboard</a>.
+                </div>
+            </div>
         </div>
-        <div id="orderDetailContent" class="customer-history">
-            <div class="item-meta">Nhấp vào mã đơn trong bảng hoặc thẻ trạng thái để xem sản phẩm, số lượng, đơn giá và tổng tiền ngay tại đây.</div>
+
+        <div class="orders-sidebar">
+            <div class="admin-panel customer-detail-panel" id="customerDetailPanel">
+                <div class="panel-title">Chi tiết khách hàng</div>
+                <div id="customerDetailContent">
+                    <div class="item-meta">Chọn một đơn hàng để xem chi tiết khách hàng.</div>
+                </div>
+            </div>
+
+            <div class="admin-panel product-detail-panel" id="productDetailPanel">
+                <div class="panel-title">Danh sách sản phẩm</div>
+                <div id="productDetailContent">
+                    <div class="item-meta">Chọn một đơn hàng để xem danh sách sản phẩm.</div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -103,61 +155,81 @@
                 .replace(/'/g, '&#039;');
         }
 
+        // Auto-load order details if selectedOrderId is provided
+        document.addEventListener('DOMContentLoaded', function() {
+            var selectedOrderId = @Html.Raw(Model.SelectedOrderId?.ToString() ?? "null");
+            if (selectedOrderId) {
+                loadOrderDetails(selectedOrderId);
+            }
+        });
+
         function renderOrderDetails(data) {
-            var panel = document.getElementById('orderDetailPanel');
-            var code = document.getElementById('selectedOrderCode');
-            var content = document.getElementById('orderDetailContent');
-            if (!data || !data.order || !content) {
+            var customerPanel = document.getElementById('customerDetailPanel');
+            var productPanel = document.getElementById('productDetailPanel');
+            var customerContent = document.getElementById('customerDetailContent');
+            var productContent = document.getElementById('productDetailContent');
+
+            if (!data || !data.order) {
                 return;
             }
 
-            if (code) {
-                code.textContent = data.order.orderCode;
+            // Update customer detail
+            if (customerContent) {
+                customerContent.innerHTML =
+                    '<div class="customer-info">' +
+                    '<div class="customer-name">' + escapeHtml(data.order.customerName) + '</div>' +
+                    '<div class="customer-contact">' +
+                    '<div><i class="fa-solid fa-envelope"></i> ' + escapeHtml(data.order.customerEmail || 'Chưa có email') + '</div>' +
+                    '<div><i class="fa-solid fa-phone"></i> ' + escapeHtml(data.order.customerPhone) + '</div>' +
+                    '<div><i class="fa-solid fa-location-dot"></i> ' + escapeHtml(data.order.shippingAddress) + '</div>' +
+                    '</div>' +
+                    '</div>';
             }
 
-            document.querySelectorAll('[data-order-row], [data-order-link]').forEach(function (item) {
-                var selected = item.getAttribute('data-order-id') === String(data.order.id) ||
-                    item.getAttribute('data-order-row') === String(data.order.id);
-                item.classList.toggle('product-row-highlight', selected);
-                item.classList.toggle('is-selected', selected);
+            // Update product detail
+            if (productContent && data.details) {
+                var productRows = data.details.map(function (item) {
+                    return '<div class="order-product-item">' +
+                        '<div class="product-name">' + escapeHtml(item.productName) + '</div>' +
+                        '<div class="product-price">' + formatMoneyVnd(item.unitPrice) + '/sp</div>' +
+                        '</div>';   
+                }).join('');
+
+                productContent.innerHTML =
+                    '<div class="order-products">' + productRows + '</div>' +
+                    '<div class="order-summary">' +
+                    '<div class="summary-row"><span>Tạm tính:</span><span>' + formatMoneyVnd(data.order.totalAmount) + '</span></div>' +
+                    '<div class="summary-row"><span>Giao hàng:</span><span>Miễn phí</span></div>' +
+                    '<div class="summary-row"><span>Giảm giá (KH mới):</span><span>0đ</span></div>' +
+                    '<div class="summary-row total"><span>Tổng thanh toán:</span><span>' + formatMoneyVnd(data.order.totalAmount) + '</span></div>' +
+                    '</div>' +
+                    '<div class="order-actions">' +
+                    '<div class="admin-note" style="color: #666; font-size: 0.9em; font-style: italic; padding: 8px 0;">Các tác vụ xác nhận/hủy đơn được thực hiện bởi nhân viên (Staff)</div>' +
+                    '</div>';
+            }
+
+            // Highlight selected row
+            document.querySelectorAll('[data-order-row]').forEach(function (row) {
+                row.classList.toggle('selected-row', row.getAttribute('data-order-row') === String(data.order.id));
             });
 
-            var rows = (data.details || []).map(function (item) {
-                return '<tr>' +
-                    '<td>' + escapeHtml(item.productName) + '</td>' +
-                    '<td>' + escapeHtml(item.quantity) + '</td>' +
-                    '<td>' + formatMoneyVnd(item.unitPrice) + '</td>' +
-                    '<td>' + formatMoneyVnd(item.lineTotal) + '</td>' +
-                    '</tr>';
-            }).join('');
-
-            content.innerHTML =
-                '<div class="order-detail-summary">' +
-                '<div><strong>' + escapeHtml(data.order.customerName) + '</strong><span>' + escapeHtml(data.order.customerPhone) + '</span></div>' +
-                '<div><strong>' + formatMoneyVnd(data.order.totalAmount) + '</strong><span>' + escapeHtml(data.order.statusText) + ' | ' + escapeHtml(data.order.orderDate) + '</span></div>' +
-                '</div>' +
-                '<div class="item-meta">' + escapeHtml(data.order.shippingAddress) + '</div>' +
-                '<div class="admin-table-wrap order-detail-table">' +
-                '<table class="admin-table"><thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>' +
-                (rows || '<tr><td colspan="4">Đơn hàng chưa có chi tiết.</td></tr>') +
-                '</tbody></table></div>';
-
-            if (panel) {
-                panel.classList.remove('is-loading');
+            if (customerPanel) {
+                customerPanel.classList.remove('is-loading');
+            }
+            if (productPanel) {
+                productPanel.classList.remove('is-loading');
             }
         }
 
-        document.addEventListener('click', function (event) {
-            var trigger = event.target.closest('[data-order-link]');
-            if (!trigger) {
-                return;
-            }
+        function loadOrderDetails(orderId) {
+            var customerPanel = document.getElementById('customerDetailPanel');
+            var productPanel = document.getElementById('customerDetailPanel');
 
-            event.preventDefault();
-            var orderId = trigger.getAttribute('data-order-id');
-            var panel = document.getElementById('orderDetailPanel');
-            if (panel) {
-                panel.classList.add('is-loading');
+            if (customerPanel) {
+                customerPanel.classList.add('is-loading');
+            }
+            if (productPanel) {
+                productPanel.classList.add('is-loading');
             }
 
             fetch('/Management/OrderDetails?orderId=' + encodeURIComponent(orderId), {
@@ -171,14 +243,36 @@
                 })
                 .then(renderOrderDetails)
                 .catch(function () {
-                    var content = document.getElementById('orderDetailContent');
-                    if (content) {
-                        content.innerHTML = '<div class="item-meta">Không tải được chi tiết đơn hàng. Vui lòng thử lại.</div>';
+                    var customerContent = document.getElementById('customerDetailContent');
+                    var productContent = document.getElementById('productDetailContent');
+                    if (customerContent) {
+                        customerContent.innerHTML = '<div class="item-meta">Không tải được chi tiết đơn hàng. Vui lòng thử lại.</div>';
                     }
-                    if (panel) {
-                        panel.classList.remove('is-loading');
+                    if (productContent) {
+                        productContent.innerHTML = '<div class="item-meta">Không tải được chi tiết đơn hàng. Vui lòng thử lại.</div>';
+                    }
+                })
+                .finally(function () {
+                    if (customerPanel) {
+                        customerPanel.classList.remove('is-loading');
+                    }
+                    if (productPanel) {
+                        productPanel.classList.remove('is-loading');
                     }
                 });
+        }
+
+        document.addEventListener('click', function (event) {
+            // Handle order row click
+            var orderRow = event.target.closest('[data-order-click]');
+            if (orderRow) {
+                event.preventDefault();
+                var orderId = orderRow.getAttribute('data-order-row');
+                loadOrderDetails(orderId);
+                return;
+            }
+
+            // Status filtering now handled server-side - no need for client-side filter logic
         });
     </script>
 }

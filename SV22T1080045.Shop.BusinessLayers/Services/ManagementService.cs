@@ -65,6 +65,9 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
 
         public List<ManagementOrderData> ListRecentOrders(int take = 10) => _managementDAL.ListRecentOrders(take);
 
+        public (List<ManagementOrderData> Orders, int TotalCount) ListOrdersPaginated(int page, int pageSize, int? status = null) =>
+            _managementDAL.ListOrdersPaginated(page, pageSize, status);
+
         public List<CustomerManagementData> ListCustomers() => _managementDAL.ListCustomers();
 
         public List<CustomerPurchaseHistoryData> ListCustomerHistory(int customerId, int take) =>
