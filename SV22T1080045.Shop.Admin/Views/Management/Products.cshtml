@@ -23,12 +23,12 @@
 
 <section class="management-hero">
     <div>
-        <div class="management-kicker">Quản lý sản phẩm</div>
-        <h1>Danh sách sản phẩm</h1>
+        <div class="management-kicker">Precious Wood</div>
+        <h1>Quản lý sản phẩm</h1>
         <p>Quản lý thông tin sản phẩm, tồn kho, giá bán và hình ảnh.</p>
     </div>
     <div class="management-actions">
-        <a class="admin-btn primary" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Thêm mới</a>
+        <button class="admin-btn primary" type="button" id="openProductModalBtn"><i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
         <button class="admin-btn"><i class="fa-solid fa-file-excel"></i> Import Excel</button>
     </div>
 </section>
@@ -64,11 +64,11 @@
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Sản phẩm</th>
+                    <th>Hình ảnh</th>
+                    <th>Mã SP</th>
+                    <th>Tên sản phẩm</th>
                     <th>Danh mục</th>
-                    <th>Giá bán</th>
                     <th>Tồn kho</th>
-                    <th>Đã bán</th>
                     <th>Trạng thái</th>
                     <th>Thao tác</th>
                 </tr>
@@ -80,30 +80,37 @@
                     {
                         var quantity = item.Quantity ?? 0;
                         var statusClass = quantity <= 0 ? "status-cancel" : quantity <= item.LowStockThreshold ? "status-pending" : "status-ready";
-                        var statusText = quantity <= 0 ? "Hết hàng" : quantity <= item.LowStockThreshold ? "Sắp hết" : "Đang bán";
+                        var statusText = quantity <= 0 ? "Hết hàng" : quantity <= item.LowStockThreshold ? "Sắp hết hàng" : "Đang bán";
                         var isLastSaved = Model.LastSavedProductId == item.Id;
                         var savedText = Model.LastSavedAction == "created" ? "Vừa thêm" : "Vừa sửa";
                         <tr class="@(isLastSaved ? "product-row-highlight" : null)">
                             <td>
+                                @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" alt="@item.ProductName" class="product-thumb" />
+                                }
+                                else
+                                {
+                                    <div class="product-thumb-placeholder"><i class="fa-solid fa-image"></i></div>
+                                }
+                            </td>
+                            <td>@item.Id</td>
+                            <td>
                                 <strong>@item.ProductName</strong>
-                                <div class="item-meta">@item.Origin | @UnitName(item.UnitId) | tinh dầu @(item.OilContent ?? "chưa cập nhật")</div>
+                                <div class="item-meta">@item.Origin | @UnitName(item.UnitId)</div>
                                 @if (isLastSaved)
                                 {
                                     <span class="status-badge status-highlight">@savedText</span>
                                 }
                             </td>
                             <td>@CategoryName(item.CategoryId)</td>
-                            <td>
-                                <strong>@FormatMoney(item.PriceAfterDiscount)</strong>
-                                @if (item.DiscountPercent > 0)
-                                {
-                                    <div class="item-meta">@FormatMoney(item.SalePrice) | -@item.DiscountPercent.ToString("0.##", CultureInfo.InvariantCulture)%</div>
-                                }
-                            </td>
-                            <td><input class="stock-input" type="number" value="@quantity" /></td>
-                            <td>@(item.SoldCount ?? 0)</td>
+                            <td>@quantity @UnitName(item.UnitId)</td>
                             <td><span class="status-badge @statusClass">@statusText</span></td>
-                            <td><a asp-controller="Management" asp-action="Products" asp-route-editProductId="@item.Id">Sửa</a> | <a href="#">Xóa mềm</a></td>
+                            <td>
+                                <button class="action-btn" type="button" data-action="edit" data-product-id="@item.Id"><i class="fa-solid fa-pen"></i></button>
+                                <button class="action-btn delete-btn" type="button" data-action="delete" data-product-id="@item.Id"><i class="fa-solid fa-trash"></i></button>
+                                <button class="action-btn" type="button" data-action="view" data-product-id="@item.Id"><i class="fa-solid fa-eye"></i></button>
+                            </td>
                         </tr>
                     }
                 }
@@ -142,136 +149,319 @@
             }
         </div>
     </div>
+</section>
 
-    <form asp-controller="Management" asp-action="SaveProduct" method="post" enctype="multipart/form-data" id="managementProductForm" class="dashboard-grid">
-        @Html.AntiForgeryToken()
-        <div class="admin-panel" id="product-form">
-            <div class="panel-title">
-                <span>@(productForm.Id > 0 ? "Sửa sản phẩm" : "Thêm sản phẩm")</span>
-                @if (productForm.Id > 0)
-                {
-                    <span class="status-badge status-ready">#@productForm.Id</span>
-                }
-            </div>
-
+<!-- Modal tạo/sửa sản phẩm -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3 id="productModalTitle">Thêm sản phẩm mới</h3>
+            <button class="modal-close" type="button" id="closeProductModalBtn">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="modal-body">
             @if (!ViewData.ModelState.IsValid)
             {
                 @Html.ValidationSummary(false, "", new { @class = "validation-summary" })
             }
 
-            <input type="hidden" name="Id" value="@productForm.Id" />
-            <input type="hidden" name="ImageUrl" value="@productForm.ImageUrl" />
-            <input type="hidden" name="ImageUrl2" value="@productForm.ImageUrl2" />
-            <input type="hidden" name="ImageUrl3" value="@productForm.ImageUrl3" />
-            <input type="hidden" name="ImageUrl4" value="@productForm.ImageUrl4" />
+            <form asp-controller="Management" asp-action="SaveProduct" method="post" enctype="multipart/form-data" id="productModalForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@productForm.Id" />
+                <input type="hidden" name="ImageUrl" value="@productForm.ImageUrl" />
+                <input type="hidden" name="ImageUrl2" value="@productForm.ImageUrl2" />
+                <input type="hidden" name="ImageUrl3" value="@productForm.ImageUrl3" />
+                <input type="hidden" name="ImageUrl4" value="@productForm.ImageUrl4" />
 
-            <div class="form-grid">
-                <div class="field"><label>Tên sản phẩm</label><input class="admin-input" name="ProductName" value="@productForm.ProductName" required /></div>
-                <div class="field">
-                    <label>Danh mục</label>
-                    <select class="admin-select" name="CategoryId" required>
-                        @foreach (var category in categories)
-                        {
-                            <option value="@category.Id" selected="@(productForm.CategoryId == category.Id ? "selected" : null)">@category.CategoryName</option>
-                        }
-                    </select>
+                <div class="form-grid">
+                    <div class="field"><label>Tên sản phẩm</label><input class="admin-input" name="ProductName" value="@productForm.ProductName" required /></div>
+                    <div class="field">
+                        <label>Danh mục</label>
+                        <select class="admin-select" name="CategoryId" required>
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category.Id" selected="@(productForm.CategoryId == category.Id ? "selected" : null)">@category.CategoryName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Đơn vị tính</label>
+                        <select class="admin-select" name="UnitId" required>
+                            @foreach (var unit in units)
+                            {
+                                <option value="@unit.Id" selected="@(productForm.UnitId == unit.Id ? "selected" : null)">@unit.UnitName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field"><label>Giá nhập</label><input class="admin-input js-price-field" type="number" name="ImportPrice" min="0" step="1000" value="@productForm.ImportPrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                    <div class="field"><label>Giá bán</label><input class="admin-input js-price-field" type="number" name="SalePrice" min="0" step="1000" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                    <div class="field"><label>Giảm giá (%)</label><input class="admin-input js-price-field" type="number" name="DiscountPercent" min="0" max="100" step="0.01" value="@productForm.DiscountPercent.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
+                    <div class="field"><label>Giá sau giảm</label><input class="admin-input" type="number" name="PriceAfterDiscount" min="0" step="1000" value="@productForm.PriceAfterDiscount.ToString("0.##", CultureInfo.InvariantCulture)" readonly /></div>
+                    <input type="hidden" name="OriginalPrice" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" />
+                    <div class="field"><label>Tồn kho</label><input class="admin-input" type="number" name="Quantity" min="0" value="@productForm.Quantity" /></div>
+                    <div class="field"><label>Ngưỡng sắp hết</label><input class="admin-input" type="number" name="LowStockThreshold" min="1" value="@(productForm.LowStockThreshold ?? 5)" /></div>
+                    <div class="field"><label>Đã bán</label><input class="admin-input" type="number" name="SoldCount" min="0" value="@productForm.SoldCount" /></div>
+                    <div class="field"><label>Đánh giá</label><input class="admin-input" type="number" name="Rating" min="0" max="5" value="@productForm.Rating" /></div>
+                    <div class="field"><label>Số đánh giá</label><input class="admin-input" type="number" name="ReviewCount" min="0" value="@productForm.ReviewCount" /></div>
+                    <div class="field"><label>Xuất xứ</label><input class="admin-input" name="Origin" value="@productForm.Origin" /></div>
+                    <div class="field"><label>Độ tuổi trầm</label><input class="admin-input" name="AgeYear" value="@productForm.AgeYear" /></div>
+                    <div class="field"><label>Hàm lượng tinh dầu</label><input class="admin-input" name="OilContent" value="@productForm.OilContent" /></div>
+                    <div class="field"><label>Thời gian cháy</label><input class="admin-input" name="BurningTime" value="@productForm.BurningTime" /></div>
+                    <div class="field"><label>Kích thước</label><input class="admin-input" name="Length" value="@productForm.Length" /></div>
+                    <div class="field"><label>Trọng lượng</label><input class="admin-input" name="Weight" value="@productForm.Weight" /></div>
+                    <div class="field"><label>Thẻ sử dụng</label><input class="admin-input" name="UsageTags" value="@productForm.UsageTags" /></div>
                 </div>
-                <div class="field">
-                    <label>Đơn vị tính</label>
-                    <select class="admin-select" name="UnitId" required>
-                        @foreach (var unit in units)
-                        {
-                            <option value="@unit.Id" selected="@(productForm.UnitId == unit.Id ? "selected" : null)">@unit.UnitName</option>
-                        }
-                    </select>
+
+                <div class="field" style="margin-top:12px;">
+                    <label>Thành phần</label>
+                    <textarea class="admin-textarea" name="Ingredient" rows="2">@productForm.Ingredient</textarea>
                 </div>
-                <div class="field"><label>Giá nhập</label><input class="admin-input js-price-field" type="number" name="ImportPrice" min="0" step="1000" value="@productForm.ImportPrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
-                <div class="field"><label>Giá bán</label><input class="admin-input js-price-field" type="number" name="SalePrice" min="0" step="1000" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
-                <div class="field"><label>Giảm giá (%)</label><input class="admin-input js-price-field" type="number" name="DiscountPercent" min="0" max="100" step="0.01" value="@productForm.DiscountPercent.ToString("0.##", CultureInfo.InvariantCulture)" /></div>
-                <div class="field"><label>Giá sau giảm</label><input class="admin-input" type="number" name="PriceAfterDiscount" min="0" step="1000" value="@productForm.PriceAfterDiscount.ToString("0.##", CultureInfo.InvariantCulture)" readonly /></div>
-                <input type="hidden" name="OriginalPrice" value="@productForm.SalePrice.ToString("0.##", CultureInfo.InvariantCulture)" />
-                <div class="field"><label>Tồn kho</label><input class="admin-input" type="number" name="Quantity" min="0" value="@productForm.Quantity" /></div>
-                <div class="field"><label>Ngưỡng sắp hết</label><input class="admin-input" type="number" name="LowStockThreshold" min="1" value="@(productForm.LowStockThreshold ?? 5)" /></div>
-                <div class="field"><label>Đã bán</label><input class="admin-input" type="number" name="SoldCount" min="0" value="@productForm.SoldCount" /></div>
-                <div class="field"><label>Đánh giá</label><input class="admin-input" type="number" name="Rating" min="0" max="5" value="@productForm.Rating" /></div>
-                <div class="field"><label>Số đánh giá</label><input class="admin-input" type="number" name="ReviewCount" min="0" value="@productForm.ReviewCount" /></div>
-                <div class="field"><label>Xuất xứ</label><input class="admin-input" name="Origin" value="@productForm.Origin" /></div>
-                <div class="field"><label>Độ tuổi trầm</label><input class="admin-input" name="AgeYear" value="@productForm.AgeYear" /></div>
-                <div class="field"><label>Hàm lượng tinh dầu</label><input class="admin-input" name="OilContent" value="@productForm.OilContent" /></div>
-                <div class="field"><label>Thời gian cháy</label><input class="admin-input" name="BurningTime" value="@productForm.BurningTime" /></div>
-                <div class="field"><label>Kích thước</label><input class="admin-input" name="Length" value="@productForm.Length" /></div>
-                <div class="field"><label>Trọng lượng</label><input class="admin-input" name="Weight" value="@productForm.Weight" /></div>
-                <div class="field"><label>Thẻ sử dụng</label><input class="admin-input" name="UsageTags" value="@productForm.UsageTags" /></div>
-            </div>
 
-            <div class="field" style="margin-top:12px;">
-                <label>Thành phần</label>
-                <textarea class="admin-textarea" name="Ingredient" rows="2">@productForm.Ingredient</textarea>
-            </div>
+                <div class="field" style="margin-top:12px;">
+                    <label>Mô tả sản phẩm</label>
+                    <textarea class="admin-textarea" name="Description" rows="5">@productForm.Description</textarea>
+                </div>
 
-            <div class="field" style="margin-top:12px;">
-                <label>Mô tả sản phẩm</label>
-                <textarea class="admin-textarea" name="Description" rows="5">@productForm.Description</textarea>
-            </div>
-
-            <div class="management-actions" style="margin-top:14px;">
-                <button class="admin-btn primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Lưu sản phẩm</button>
-                <a class="admin-btn" href="#product-form" data-product-action="create"><i class="fa-solid fa-plus"></i> Form thêm mới</a>
-            </div>
+                <div class="field" style="margin-top:12px;">
+                    <label>Ảnh sản phẩm</label>
+                    <div class="image-upload-grid">
+                        <div class="upload-field">
+                            <label>Ảnh chính</label>
+                            <input class="admin-input" type="file" name="UploadPhoto" accept="image/*" />
+                        </div>
+                        <div class="upload-field">
+                            <label>Ảnh phụ 2</label>
+                            <input class="admin-input" type="file" name="UploadPhoto2" accept="image/*" />
+                        </div>
+                        <div class="upload-field">
+                            <label>Ảnh phụ 3</label>
+                            <input class="admin-input" type="file" name="UploadPhoto3" accept="image/*" />
+                        </div>
+                        <div class="upload-field">
+                            <label>Ảnh phụ 4</label>
+                            <input class="admin-input" type="file" name="UploadPhoto4" accept="image/*" />
+                        </div>
+                    </div>
+                    <div class="image-preview-row">
+                        @foreach (var imageUrl in new[] { productForm.ImageUrl, productForm.ImageUrl2, productForm.ImageUrl3, productForm.ImageUrl4 }.Where(url => !string.IsNullOrWhiteSpace(url)))
+                        {
+                            <img class="image-preview image-preview-img" src="@imageUrl" alt="@productForm.ProductName" />
+                        }
+                    </div>
+                </div>
+            </form>
         </div>
-
-        <div class="admin-panel">
-            <div class="panel-title">Ảnh sản phẩm</div>
-            <div class="image-preview-row">
-                @foreach (var imageUrl in new[] { productForm.ImageUrl, productForm.ImageUrl2, productForm.ImageUrl3, productForm.ImageUrl4 }.Where(url => !string.IsNullOrWhiteSpace(url)))
-                {
-                    <img class="image-preview image-preview-img" src="@imageUrl" alt="@productForm.ProductName" />
-                }
-            </div>
-            <div class="upload-fields">
-                <div class="field"><label>Ảnh chính</label><input class="admin-input" type="file" name="UploadPhoto" accept="image/*" /></div>
-                <div class="field"><label>Ảnh phụ 2</label><input class="admin-input" type="file" name="UploadPhoto2" accept="image/*" /></div>
-                <div class="field"><label>Ảnh phụ 3</label><input class="admin-input" type="file" name="UploadPhoto3" accept="image/*" /></div>
-                <div class="field"><label>Ảnh phụ 4</label><input class="admin-input" type="file" name="UploadPhoto4" accept="image/*" /></div>
-            </div>
-            <div class="panel-title" style="margin-top:18px;">Dữ liệu đang dùng</div>
-            <p class="admin-section-desc">Danh mục và đơn vị trong form được lấy từ database hiện tại. Khi bấm Sửa ở bảng trên, trang giữ nguyên khu vực quản lý và cuộn xuống form này.</p>
+        <div class="modal-footer">
+            <button class="admin-btn" type="button" id="cancelProductModalBtn">Hủy</button>
+            <button class="admin-btn primary" type="submit" form="productModalForm"><i class="fa-solid fa-floppy-disk"></i> Lưu sản phẩm</button>
         </div>
-    </form>
-</section>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        var productForm = document.getElementById('managementProductForm');
-        document.querySelectorAll('[data-product-action="create"]').forEach(function (button) {
-            button.addEventListener('click', function () {
-                if (!productForm) {
-                    return;
+        // Product modal functionality
+        var productModal = document.getElementById('productModal');
+        var closeProductModalBtn = document.getElementById('closeProductModalBtn');
+        var cancelProductModalBtn = document.getElementById('cancelProductModalBtn');
+        var productModalForm = document.getElementById('productModalForm');
+        var productModalTitle = document.getElementById('productModalTitle');
+
+        function openProductModal(isEdit = false) {
+            if (productModal) {
+                productModal.classList.add('active');
+                if (productModalTitle) {
+                    productModalTitle.textContent = isEdit ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới';
                 }
+            }
+        }
 
-                productForm.querySelectorAll('input[type="hidden"]').forEach(function (input) {
-                    input.value = input.name === 'Id' ? '0' : '';
+        function closeProductModal() {
+            if (productModal) {
+                productModal.classList.remove('active');
+            }
+        }
+
+        if (closeProductModalBtn) {
+            closeProductModalBtn.addEventListener('click', closeProductModal);
+        }
+
+        if (cancelProductModalBtn) {
+            cancelProductModalBtn.addEventListener('click', closeProductModal);
+        }
+
+        if (productModal) {
+            productModal.addEventListener('click', function (event) {
+                if (event.target === productModal) {
+                    closeProductModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && productModal && productModal.classList.contains('active')) {
+                closeProductModal();
+            }
+        });
+
+        // Open modal when clicking create button in hero
+        var openProductModalBtn = document.getElementById('openProductModalBtn');
+        if (openProductModalBtn) {
+            openProductModalBtn.addEventListener('click', function () {
+                // Reset form
+                if (productModalForm) {
+                    productModalForm.querySelectorAll('input[type="hidden"]').forEach(function (input) {
+                        input.value = input.name === 'Id' ? '0' : '';
+                    });
+                    productModalForm.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea').forEach(function (input) {
+                        input.value = '';
+                    });
+                    productModalForm.querySelectorAll('input[type="file"]').forEach(function (input) {
+                        input.value = '';
+                    });
+                    productModalForm.querySelectorAll('select').forEach(function (select) {
+                        select.selectedIndex = 0;
+                    });
+                    productModalForm.querySelectorAll('.image-preview-img').forEach(function (image) {
+                        image.remove();
+                    });
+                }
+                openProductModal(false);
+            });
+        }
+
+        // Auto-open modal when editProductId is in URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var editProductId = urlParams.get('editProductId');
+        if (editProductId && editProductId !== '0') {
+            loadProductAndOpenModal(editProductId);
+        }
+
+        // Show success/error messages
+        var savedProductId = urlParams.get('savedProductId');
+        var savedAction = urlParams.get('savedAction');
+        if (savedProductId && savedAction) {
+            var message = savedAction === 'created' ? 'Đã thêm sản phẩm mới thành công!' : 'Đã cập nhật sản phẩm thành công!';
+            alert(message);
+            // Remove the parameters from URL
+            var newUrl = window.location.pathname + window.location.search.replace(/[?&]savedProductId=[^&]+/, '').replace(/[?&]savedAction=[^&]+/, '').replace(/^&/, '?');
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Product action buttons
+        document.addEventListener('click', function (event) {
+            var actionBtn = event.target.closest('[data-action]');
+            if (!actionBtn) {
+                return;
+            }
+
+            var action = actionBtn.getAttribute('data-action');
+            var productId = actionBtn.getAttribute('data-product-id');
+
+            if (action === 'edit') {
+                // Tải thông tin sản phẩm và mở modal
+                loadProductAndOpenModal(productId);
+            } else if (action === 'delete') {
+                if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+                    // Sử dụng AJAX để xóa sản phẩm
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/Management/DeleteProduct?productId=' + productId;
+                    
+                    var antiForgery = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (antiForgery) {
+                        var tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = antiForgery.value;
+                        form.appendChild(tokenInput);
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            } else if (action === 'view') {
+                // Chuyển hướng đến trang chi tiết sản phẩm
+                window.location.href = '/Management/ProductDetails/' + productId;
+            }
+        });
+
+        function loadProductAndOpenModal(productId) {
+            fetch('/Management/GetProduct?id=' + productId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fillProductForm(data.product);
+                        openProductModal(true);
+                    } else {
+                        alert('Không thể tải thông tin sản phẩm: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading product:', error);
+                    alert('Có lỗi xảy ra khi tải thông tin sản phẩm.');
                 });
+        }
 
-                productForm.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea').forEach(function (input) {
-                    input.value = '';
+        function fillProductForm(product) {
+            if (!productModalForm) return;
+            
+            // Điền các trường form
+            productModalForm.querySelector('input[name="Id"]').value = product.id || 0;
+            productModalForm.querySelector('input[name="ProductName"]').value = product.productName || '';
+            productModalForm.querySelector('select[name="CategoryId"]').value = product.categoryId || '';
+            productModalForm.querySelector('select[name="UnitId"]').value = product.unitId || '';
+            productModalForm.querySelector('input[name="ImportPrice"]').value = product.importPrice || 0;
+            productModalForm.querySelector('input[name="SalePrice"]').value = product.salePrice || 0;
+            productModalForm.querySelector('input[name="DiscountPercent"]').value = product.discountPercent || 0;
+            productModalForm.querySelector('input[name="PriceAfterDiscount"]').value = product.priceAfterDiscount || 0;
+            productModalForm.querySelector('input[name="Quantity"]').value = product.quantity || 0;
+            productModalForm.querySelector('input[name="LowStockThreshold"]').value = product.lowStockThreshold || 5;
+            productModalForm.querySelector('input[name="SoldCount"]').value = product.soldCount || 0;
+            productModalForm.querySelector('input[name="Rating"]').value = product.rating || 5;
+            productModalForm.querySelector('input[name="ReviewCount"]').value = product.reviewCount || 0;
+            productModalForm.querySelector('input[name="Origin"]').value = product.origin || '';
+            productModalForm.querySelector('input[name="AgeYear"]').value = product.ageYear || '';
+            productModalForm.querySelector('input[name="OilContent"]').value = product.oilContent || '';
+            productModalForm.querySelector('input[name="BurningTime"]').value = product.burningTime || '';
+            productModalForm.querySelector('input[name="Length"]').value = product.length || '';
+            productModalForm.querySelector('input[name="Weight"]').value = product.weight || '';
+            productModalForm.querySelector('input[name="UsageTags"]').value = product.usageTags || '';
+            productModalForm.querySelector('textarea[name="Ingredient"]').value = product.ingredient || '';
+            productModalForm.querySelector('textarea[name="Description"]').value = product.description || '';
+            
+            // Điền ảnh hiện có
+            productModalForm.querySelector('input[name="ImageUrl"]').value = product.imageUrl || '';
+            productModalForm.querySelector('input[name="ImageUrl2"]').value = product.imageUrl2 || '';
+            productModalForm.querySelector('input[name="ImageUrl3"]').value = product.imageUrl3 || '';
+            productModalForm.querySelector('input[name="ImageUrl4"]').value = product.imageUrl4 || '';
+            
+            // Hiển thị ảnh preview
+            var previewContainer = productModalForm.querySelector('.image-preview-row');
+            if (previewContainer) {
+                previewContainer.innerHTML = '';
+                [product.imageUrl, product.imageUrl2, product.imageUrl3, product.imageUrl4].forEach(function(url) {
+                    if (url && url.trim() !== '') {
+                        var img = document.createElement('img');
+                        img.className = 'image-preview image-preview-img';
+                        img.src = url;
+                        img.alt = product.productName || 'Product image';
+                        previewContainer.appendChild(img);
+                    }
                 });
+            }
+        }
 
-                productForm.querySelectorAll('input[type="file"]').forEach(function (input) {
-                    input.value = '';
-                });
-
-                productForm.querySelectorAll('select').forEach(function (select) {
-                    select.selectedIndex = 0;
-                });
-
-                productForm.querySelectorAll('.image-preview-img').forEach(function (image) {
-                    image.remove();
-                });
-
-                var title = productForm.querySelector('#product-form .panel-title span:first-child');
-                if (title) {
-                    title.textContent = 'Thêm sản phẩm';
+        // Price calculation
+        document.querySelectorAll('.js-price-field').forEach(function (input) {
+            input.addEventListener('change', function () {
+                var salePrice = parseFloat(document.querySelector('input[name="SalePrice"]')?.value || 0);
+                var discountPercent = parseFloat(document.querySelector('input[name="DiscountPercent"]')?.value || 0);
+                var priceAfterDiscountInput = document.querySelector('input[name="PriceAfterDiscount"]');
+                if (priceAfterDiscountInput && salePrice > 0) {
+                    var discountAmount = salePrice * (discountPercent / 100);
+                    priceAfterDiscountInput.value = (salePrice - discountAmount).toFixed(0);
                 }
             });
         });

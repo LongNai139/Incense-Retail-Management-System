@@ -1,0 +1,313 @@
+@{
+    Layout = "_ManagementLayout";
+}
+
+@model SV22T1080045.Shop.Models.ViewModels.Management.ProductManagementDetailViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Models.ViewModels.Management
+@using SV22T1080045.Shop.Models.ViewModels.Product
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+
+    var product = Model.Product;
+    var categories = Model.Categories;
+    var units = Model.Units;
+    var categoryMap = categories.ToDictionary(c => c.Id, c => c.CategoryName);
+    var unitMap = units.ToDictionary(u => u.Id, u => u.UnitName);
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+    string CategoryName(int categoryId) => categoryMap.TryGetValue(categoryId, out var name) ? name : "Chưa phân loại";
+    string UnitName(int unitId) => unitMap.TryGetValue(unitId, out var name) ? name : $"ID {unitId}";
+    
+    var galleryImages = new[] { product.ImageUrl, product.ImageUrl2, product.ImageUrl3, product.ImageUrl4 }
+        .Where(url => !string.IsNullOrWhiteSpace(url))
+        .ToList();
+}
+
+<section class="management-hero">
+    <div>
+        <div class="management-kicker">Precious Wood</div>
+        <h1>Chi tiết sản phẩm</h1>
+        <p>Xem thông tin chi tiết về sản phẩm: @product.ProductName</p>
+    </div>
+    <div class="management-actions">
+        <a class="admin-btn" asp-controller="Management" asp-action="Products"><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách</a>
+        <a class="admin-btn primary" asp-controller="Management" asp-action="Products" asp-route-editProductId="@product.Id"><i class="fa-solid fa-pen"></i> Chỉnh sửa</a>
+    </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-section-head">
+        <div>
+            <h2>Thông tin sản phẩm</h2>
+            <p class="admin-section-desc">Chi tiết thông tin sản phẩm bao gồm hình ảnh, mô tả, giá và các thông số kỹ thuật.</p>
+        </div>
+    </div>
+
+    <div class="product-detail-page">
+        <div class="product-detail-main">
+            <div class="product-detail-gallery-section">
+                <div class="main-image-container">
+                    @if (galleryImages.Any())
+                    {
+                        <img id="mainImage" src="@galleryImages.First()" alt="@product.ProductName" class="main-product-image" />
+                    }
+                    else
+                    {
+                        <div class="main-image-placeholder">
+                            <i class="fa-solid fa-image"></i>
+                            <span>Chưa có ảnh</span>
+                        </div>
+                    }
+                </div>
+                
+                @if (galleryImages.Count > 1)
+                {
+                    <div class="thumbnail-gallery">
+                        @foreach (var imageUrl in galleryImages)
+                        {
+                            <div class="thumbnail-item" onclick="changeMainImage('@imageUrl')">
+                                <img src="@imageUrl" alt="@product.ProductName" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="product-detail-content">
+                <div class="product-header">
+                    <h1 class="product-title">@product.ProductName</h1>
+                    <div class="product-code">Mã SP: #@product.Id.ToString("D4")</div>
+                </div>
+
+                <div class="product-rating-section">
+                    <div class="rating-stars">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <i class="fa-solid fa-star @(i <= product.Rating ? "active" : "")"></i>
+                        }
+                    </div>
+                    <span class="rating-score">@product.Rating</span>
+                    <span class="rating-count">(@product.ReviewCount đánh giá)</span>
+                </div>
+
+                <div class="product-price-section">
+                    <div class="current-price">@FormatMoney(product.PriceAfterDiscount)</div>
+                    @if (product.DiscountPercent > 0)
+                    {
+                        <div class="original-price">@FormatMoney(product.SalePrice)</div>
+                        <div class="discount-badge">-@product.DiscountPercent.ToString("F1", CultureInfo.InvariantCulture)%</div>
+                    }
+                </div>
+
+                <div class="product-stock-section">
+                    <div class="stock-info">
+                        <span class="stock-label">Tồn kho:</span>
+                        <span class="stock-value @(product.Quantity > 0 ? "in-stock" : "out-of-stock")">
+                            @(product.Quantity > 0 ? $"{product.Quantity} {UnitName(product.UnitId)}" : "Hết hàng")
+                        </span>
+                    </div>
+                    <div class="sold-info">
+                        <span class="sold-label">Đã bán:</span>
+                        <span class="sold-value">@(product.SoldCount ?? 0)</span>
+                    </div>
+                </div>
+
+                <div class="product-specs-quick">
+                    <div class="spec-row">
+                        <span class="spec-label">Xuất xứ:</span>
+                        <span class="spec-value">@product.Origin</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Loại trầm:</span>
+                        <span class="spec-value">@product.CategoryId > 0 ? CategoryName(product.CategoryId) : "Chưa phân loại"</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Độ tuổi trầm:</span>
+                        <span class="spec-value">@product.AgeYear</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Hàm lượng tinh dầu:</span>
+                        <span class="spec-value">@product.OilContent</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Thời gian cháy:</span>
+                        <span class="spec-value">@product.BurningTime</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Kích thước:</span>
+                        <span class="spec-value">@product.Length</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Trọng lượng:</span>
+                        <span class="spec-value">@product.Weight</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Mục đích sử dụng:</span>
+                        <span class="spec-value">@product.UsageTags</span>
+                    </div>
+                </div>
+
+                <div class="product-management-actions">
+                    <a class="admin-btn primary" asp-controller="Management" asp-action="Products" asp-route-editProductId="@product.Id">
+                        <i class="fa-solid fa-pen"></i> Chỉnh sửa thông tin
+                    </a>
+                    <a class="admin-btn" asp-controller="Management" asp-action="Products">
+                        <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-detail-tabs">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="full-info">Thông tin đầy đủ</button>
+                <button class="tab-btn" data-tab="inventory">Quản lý tồn kho</button>
+                <button class="tab-btn" data-tab="sales">Thông tin bán hàng</button>
+            </div>
+            
+            <div class="tabs-content">
+                <div class="tab-content active" id="full-info">
+                    <div class="description-section">
+                        <h3>Mô tả chi tiết</h3>
+                        <p>@product.Description</p>
+                    </div>
+                    
+                    @if (!string.IsNullOrWhiteSpace(product.Ingredient))
+                    {
+                        <div class="ingredient-section">
+                            <h3>Thành phần & Bào chế</h3>
+                            <p>@product.Ingredient</p>
+                        </div>
+                    }
+                    
+                    <div class="additional-info-section">
+                        <h3>Thông tin bổ sung</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Đơn vị tính:</span>
+                                <span class="info-value">@UnitName(product.UnitId)</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Danh mục:</span>
+                                <span class="info-value">@CategoryName(product.CategoryId)</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Ngưỡng báo hết hàng:</span>
+                                <span class="info-value">@product.LowStockThreshold</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Đánh giá trung bình:</span>
+                                <span class="info-value">@product.Rating</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Số lượng đánh giá:</span>
+                                <span class="info-value">@product.ReviewCount</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="inventory">
+                    <div class="inventory-section">
+                        <h3>Quản lý tồn kho</h3>
+                        <div class="inventory-info">
+                            <div class="inventory-item">
+                                <span class="inventory-label">Số lượng hiện tại:</span>
+                                <span class="inventory-value @(product.Quantity > 0 ? "in-stock" : "out-of-stock")">
+                                    @product.Quantity @UnitName(product.UnitId)
+                                </span>
+                            </div>
+                            <div class="inventory-item">
+                                <span class="inventory-label">Ngưỡng sắp hết:</span>
+                                <span class="inventory-value">@product.LowStockThreshold @UnitName(product.UnitId)</span>
+                            </div>
+                            <div class="inventory-item">
+                                <span class="inventory-label">Trạng thái:</span>
+                                <span class="inventory-value">
+                                    @(product.Quantity > product.LowStockThreshold ? "Bình thường" : 
+                                      product.Quantity > 0 ? "Sắp hết hàng" : "Hết hàng")
+                                </span>
+                            </div>
+                            <div class="inventory-item">
+                                <span class="inventory-label">Đã bán:</span>
+                                <span class="inventory-value">@(product.SoldCount ?? 0)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="inventory-actions">
+                            <a class="admin-btn primary" asp-controller="Management" asp-action="Products" asp-route-editProductId="@product.Id">
+                                <i class="fa-solid fa-pen"></i> Cập nhật tồn kho
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="sales">
+                    <div class="sales-section">
+                        <h3>Thông tin bán hàng</h3>
+                        <div class="sales-info">
+                            <div class="sales-item">
+                                <span class="sales-label">Giá nhập:</span>
+                                <span class="sales-value">@FormatMoney(product.ImportPrice)</span>
+                            </div>
+                            <div class="sales-item">
+                                <span class="sales-label">Giá bán:</span>
+                                <span class="sales-value">@FormatMoney(product.SalePrice)</span>
+                            </div>
+                            <div class="sales-item">
+                                <span class="sales-label">Chiết khấu:</span>
+                                <span class="sales-value">@product.DiscountPercent.ToString("F1", CultureInfo.InvariantCulture)%</span>
+                            </div>
+                            <div class="sales-item">
+                                <span class="sales-label">Giá sau chiết khấu:</span>
+                                <span class="sales-value">@FormatMoney(product.PriceAfterDiscount)</span>
+                            </div>
+                            <div class="sales-item">
+                                <span class="sales-label">Lợi nhuận dự kiến:</span>
+                                <span class="sales-value">@FormatMoney(product.PriceAfterDiscount - product.ImportPrice)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="sales-actions">
+                            <a class="admin-btn primary" asp-controller="Management" asp-action="Products" asp-route-editProductId="@product.Id">
+                                <i class="fa-solid fa-pen"></i> Điều chỉnh giá
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function changeMainImage(imageUrl) {
+            var mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                mainImage.src = imageUrl;
+            }
+        }
+
+        // Tab functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            var tabBtns = document.querySelectorAll('.tab-btn');
+            var tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all buttons and contents
+                    tabBtns.forEach(function(b) b.classList.remove('active'));
+                    tabContents.forEach(function(c) c.classList.remove('active'));
+                    
+                    // Add active class to clicked button and corresponding content
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        });
+    </script>
+}

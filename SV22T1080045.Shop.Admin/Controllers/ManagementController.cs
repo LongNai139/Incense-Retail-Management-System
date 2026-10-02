@@ -132,6 +132,85 @@ namespace SV22T1080045.Shop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public IActionResult DeleteProduct(int productId)
+        {
+            var result = _productService.DeleteProduct(productId);
+            if (!result)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = "Không thể xóa sản phẩm." });
+                TempData["ErrorMessage"] = "Không thể xóa sản phẩm.";
+                return RedirectToAction(nameof(Products));
+            }
+
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = "Đã xóa sản phẩm thành công." });
+
+            TempData["SuccessMessage"] = "Đã xóa sản phẩm thành công.";
+            return RedirectToAction(nameof(Products));
+        }
+
+        [HttpGet]
+        public IActionResult GetProduct(int id)
+        {
+            var product = _productService.GetProduct(id);
+            if (product == null)
+                return Json(new { success = false, message = "Không tìm thấy sản phẩm." });
+
+            return Json(new
+            {
+                success = true,
+                product = new
+                {
+                    id = product.Id,
+                    productName = product.ProductName,
+                    categoryId = product.CategoryId,
+                    unitId = product.UnitId,
+                    importPrice = product.ImportPrice,
+                    salePrice = product.SalePrice,
+                    discountPercent = product.DiscountPercent,
+                    priceAfterDiscount = product.DisplayPrice,
+                    quantity = product.DisplayQuantity,
+                    lowStockThreshold = product.DisplayLowStockThreshold,
+                    soldCount = product.SoldCount,
+                    rating = product.Rating,
+                    reviewCount = product.ReviewCount,
+                    origin = product.Origin,
+                    ageYear = product.AgeYear,
+                    oilContent = product.OilContent,
+                    burningTime = product.BurningTime,
+                    length = product.Length,
+                    weight = product.Weight,
+                    usageTags = product.UsageTags,
+                    ingredient = product.Ingredient,
+                    description = product.Description,
+                    imageUrl = product.ImageUrl,
+                    imageUrl2 = product.ImageUrl2,
+                    imageUrl3 = product.ImageUrl3,
+                    imageUrl4 = product.ImageUrl4
+                }
+            });
+        }
+
+        public IActionResult ProductDetails(int id)
+        {
+            var product = _productService.GetProduct(id);
+            if (product == null)
+                return RedirectToAction(nameof(Products));
+
+            var categories = _categoryService.ListCategories();
+            var units = _unitService.ListUnits();
+
+            return View("ProductDetails", new ProductManagementDetailViewModel
+            {
+                Product = product.ToEditViewModel(),
+                Categories = ToCategoryOptions(categories),
+                Units = ToUnitOptions(units)
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult SaveVoucher(ManagementVoucherInput model)
         {
             if (!ModelState.IsValid)
@@ -441,6 +520,7 @@ namespace SV22T1080045.Shop.Controllers
                 Quantity = product.DisplayQuantity,
                 LowStockThreshold = product.DisplayLowStockThreshold,
                 SoldCount = product.SoldCount
+                ImageUrl = product.ImageUrl
             }).ToList();
         }
 

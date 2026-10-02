@@ -77,6 +77,7 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
         public int? Quantity { get; set; }
         public int LowStockThreshold { get; set; } = 5;
         public int? SoldCount { get; set; }
+        public string? ImageUrl { get; set; }
     }
 
     public class ManagementMetricSummary
@@ -193,5 +194,12 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
         public DateTime? ExpiresAt { get; set; }
         public int? MaxUsage { get; set; }
         public bool IsActive { get; set; } = true;
+    }
+
+    public class ProductManagementDetailViewModel
+    {
+        public ProductEditViewModel Product { get; set; } = new();
+        public List<ManagementCategoryOptionViewModel> Categories { get; set; } = new();
+        public List<ManagementUnitOptionViewModel> Units { get; set; } = new();
     }
 }
