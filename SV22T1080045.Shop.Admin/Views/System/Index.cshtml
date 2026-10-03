@@ -1,6 +1,5 @@
 @model SV22T1080045.Shop.Models.ViewModels.System.SystemDashboardViewModel
 @using System.Globalization
-@using SV22T1080045.Shop.DomainModels
 
 @{
     ViewData["Title"] = "Hệ thống";
@@ -8,14 +7,14 @@
     string FormatDate(DateTime value) => value.ToString("dd/MM/yyyy HH:mm", vi);
     string RoleClass(string role) => role switch
     {
-        CustomerRoles.Admin => "role-admin",
-        CustomerRoles.Staff => "role-staff",
+        "Admin" => "role-admin",
+        "Staff" => "role-staff",
         _ => "role-user"
     };
     string RoleLabel(string role) => role switch
     {
-        CustomerRoles.Admin => "Quản trị viên",
-        CustomerRoles.Staff => "Nhân viên",
+        "Admin" => "Quản trị viên",
+        "Staff" => "Nhân viên",
         _ => "Khách hàng"
     };
     var isEditing = Model.AccountForm.Id > 0;
@@ -72,9 +71,9 @@
                     <input type="hidden" name="roleFilter" value="@Model.RoleFilter" />
                     <input class="admin-input" type="search" name="accountSearchValue" value="@Model.AccountSearchValue" placeholder="Tìm theo tên, SĐT, email..." />
                     <select class="admin-select" name="accountRoleFilter">
-                        <option value="">Tất cả vai trò</option>
-                        @* <option value="@CustomerRoles.Admin" @(Model.AccountRoleFilter == CustomerRoles.Admin ? "selected" : null)>Admin</option> *@
-                        @* <option value="@CustomerRoles.Staff" @(Model.AccountRoleFilter == CustomerRoles.Staff ? "selected" : null)>Staff</option> *@
+                        <option value="" selected="@Model.IsAccountFilterAll">Tất cả vai trò</option>
+                        <option value="@Model.AdminRole" selected="@Model.IsAccountFilterAdmin">@Model.AdminRoleLabel</option>
+                        <option value="@Model.StaffRole" selected="@Model.IsAccountFilterStaff">@Model.StaffRoleLabel</option>
                     </select>
                     <button class="admin-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Lọc</button>
                     <a class="admin-btn" asp-action="Index" asp-fragment="accounts">Xóa lọc</a>
@@ -117,8 +116,8 @@
                             <label class="system-field">
                                 <span>Vai trò</span>
                                 <select class="admin-select" asp-for="AccountForm.Role">
-                                    <option value="@CustomerRoles.Staff">Staff</option>
-                                    <option value="@CustomerRoles.Admin">Admin</option>
+                                    <option value="@Model.StaffRole">@Model.StaffRoleLabel</option>
+                                    <option value="@Model.AdminRole">@Model.AdminRoleLabel</option>
                                 </select>
                             </label>
 
@@ -234,11 +233,9 @@
                     <input type="hidden" name="editAccountId" value="@Model.EditAccountId" />
                     <input class="admin-input" type="search" name="roleSearchValue" value="@Model.RoleSearchValue" placeholder="Tìm tài khoản để gán quyền..." />
                     <select class="admin-select" name="roleFilter">
-                        <option value="">Tất cả vai trò</option>
-                        @foreach (var role in CustomerRoles.AllRoles)
-                        {
-                            @* <option value="@role" @(Model.RoleFilter == role ? "selected" : null)>@RoleLabel(role)</option> *@
-                        }
+                        <option value="" selected="@Model.IsFilterAll">Tất cả vai trò</option>
+                        <option value="@Model.AdminRole" selected="@Model.IsFilterAdmin">@Model.AdminRoleLabel</option>
+                        <option value="@Model.StaffRole" selected="@Model.IsFilterStaff">@Model.StaffRoleLabel</option>
                     </select>
                     <button class="admin-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Lọc</button>
                 </form>
@@ -273,10 +270,8 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="accountId" value="@account.Id" />
                                                 <select class="admin-select" name="role">
-                                                    @foreach (var role in CustomerRoles.AllRoles)
-                                                    {
-                                                        @* <option value="@role" @(account.Role == role ? "selected" : null)>@RoleLabel(role)</option> *@
-                                                    }
+                                                    <option value="@Model.AdminRole" selected="@account.IsAdminRole">@Model.AdminRoleLabel</option>
+                                                    <option value="@Model.StaffRole" selected="@account.IsStaffRole">@Model.StaffRoleLabel</option>
                                                 </select>
                                                 <button class="admin-btn success" type="submit">Cập nhật</button>
                                             </form>

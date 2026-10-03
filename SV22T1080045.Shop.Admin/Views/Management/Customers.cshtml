@@ -16,9 +16,9 @@
 
 <section class="management-hero">
     <div>
-        <div class="management-kicker">Quản lý khách hàng</div>
-        <h1>Danh sách khách hàng</h1>
-        <p>Danh sách lấy từ bảng Customers, tổng hợp số đơn và chi tiêu từ Orders. Nhấp vào khách hàng để xem 3 lần mua gần nhất.</p>
+        <div class="management-kicker">Precious Wood</div>
+        <h1>Quản lý khách hàng</h1>
+        <p>Quản lý thông tin khách hàng, lịch sử mua hàng và phân loại thành viên.</p>
     </div>
     <div class="management-actions">
         <button class="admin-btn"><i class="fa-solid fa-user-shield"></i> Cập nhật quyền</button>
@@ -29,84 +29,141 @@
     <div class="admin-section-head">
         <div>
             <h2>Quản lý khách hàng</h2>
-            <p class="admin-section-desc">Danh sách lấy từ bảng Customers, tổng hợp số đơn và chi tiêu từ Orders. Nhấp vào khách hàng để xem 3 lần mua gần nhất.</p>
+            <p class="admin-section-desc">Quản lý thông tin khách hàng, lịch sử mua hàng và phân loại thành viên.</p>
         </div>
     </div>
 
-    <div class="customer-grid dashboard-grid">
-        <div class="admin-panel">
-            <div class="panel-title">
-                <span>Danh sách khách hàng</span>
-                <span class="status-badge status-ready">Hiển thị 5 khách</span>
-            </div>
+    <div class="customers-layout">
+        <div class="customers-main">
             <div class="customer-search">
                 <input class="admin-input" type="search" id="customerSearchInput" placeholder="Tìm khách theo tên, SĐT, email..." autocomplete="off" />
-                <span class="item-meta" id="customerSearchHint">Nhập để tìm trong toàn bộ danh sách khách hàng.</span>
             </div>
             <div class="admin-table-wrap">
                 <table class="admin-table">
-                    <thead><tr><th>Khách</th><th>Liên hệ</th><th>SĐT</th><th>Đơn</th><th>Chi tiêu</th><th>Gần nhất</th><th>Quyền</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Mã KH</th>
+                            <th>Họ tên</th>
+                            <th>Số điện thoại</th>
+                            <th>Email</th>
+                            <th>Tổng chi tiêu</th>
+                            <th>Hạng thành viên</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         @if (Model.Customers.Any())
                         {
-                            var customerIndex = 0;
                             foreach (var customer in Model.Customers)
                             {
                                 var customerSearchText = $"{customer.CustomerName} {customer.Phone} {customer.Email} {customer.Address}".ToLowerInvariant();
-                                <tr class="@(Model.SelectedCustomer?.Id == customer.Id ? "product-row-highlight" : null) @(customerIndex >= 5 ? "is-hidden-by-limit" : null)" data-customer-row="@customer.Id" data-customer-search="@customerSearchText" data-customer-index="@customerIndex">
-                                    <td><button class="link-button" type="button" data-customer-link data-customer-id="@customer.Id"><strong>@customer.CustomerName</strong></button><div class="item-meta">@customer.Address</div></td>
-                                    <td>@(customer.Email ?? "Chưa có email")</td>
+                                <tr class="@(Model.SelectedCustomer?.Id == customer.Id ? "selected-row" : null)" data-customer-row="@customer.Id" data-customer-search="@customerSearchText">
+                                    <td>@customer.Id</td>
+                                    <td><button class="link-button" type="button" data-customer-link data-customer-id="@customer.Id">@customer.CustomerName</button></td>
                                     <td>@MaskPhone(customer.Phone)</td>
-                                    <td>@customer.OrderCount</td>
+                                    <td>@(customer.Email ?? "Chưa có email")</td>
                                     <td>@FormatMoney(customer.TotalSpent)</td>
-                                    <td>@(customer.LastOrderDate.HasValue ? customer.LastOrderDate.Value.ToString("dd/MM/yyyy") : "Chưa mua")</td>
-                                    <td><span class="role-badge @(customer.Role == "Admin" ? "role-admin" : "role-user")">@customer.Role</span></td>
+                                    <td><span class="status-badge status-ready">@GetMembershipRank(customer.TotalSpent)</span></td>
                                 </tr>
-                                customerIndex++;
                             }
-                            <tr id="customerNoResultRow" class="is-hidden"><td colspan="7">Không tìm thấy khách hàng phù hợp.</td></tr>
                         }
                         else
                         {
-                            <tr><td colspan="7">Chưa có khách hàng trong database.</td></tr>
+                            <tr><td colspan="6">Chưa có khách hàng trong database.</td></tr>
                         }
                     </tbody>
                 </table>
             </div>
         </div>
-        <div class="admin-panel" id="customerHistoryPanel">
-            <div class="panel-title">
-                <span>Lịch sử mua hàng</span>
-                @if (Model.SelectedCustomer != null)
-                {
-                    <span class="status-badge status-ready" id="selectedCustomerName">@Model.SelectedCustomer.CustomerName</span>
-                }
-            </div>
-            <div class="customer-history" id="customerHistoryList">
-                @if (Model.SelectedCustomerHistory.Any())
-                {
-                    foreach (var item in Model.SelectedCustomerHistory)
+
+        <div class="customers-sidebar">
+            <div class="admin-panel customer-detail-panel" id="customerDetailPanel">
+                <div class="panel-title">Chi tiết khách hàng</div>
+                <div id="customerDetailContent">
+                    @if (Model.SelectedCustomer != null)
                     {
-                        <div class="history-item">
-                            <strong>@item.OrderCode</strong>
-                            <span>@FormatMoney(item.TotalAmount) | @StatusText(item.Status) | @item.OrderDate.ToString("dd/MM/yyyy")</span>
-                            <span>@string.Join(", ", item.ProductNames)</span>
+                        <div class="customer-info">
+                            <div class="customer-name">@Model.SelectedCustomer.CustomerName</div>
+                            <div class="customer-meta">
+                                <div class="customer-meta-item">
+                                    <i class="fa-solid fa-phone customer-meta-icon"></i>
+                                    <div class="customer-meta-content">
+                                        <strong>SĐT:</strong> @Model.SelectedCustomer.Phone
+                                    </div>
+                                </div>
+                                <div class="customer-meta-item">
+                                    <i class="fa-solid fa-envelope customer-meta-icon"></i>
+                                    <div class="customer-meta-content">
+                                        <strong>Email:</strong> @(Model.SelectedCustomer.Email ?? "Chưa có email")
+                                    </div>
+                                </div>
+                                <div class="customer-meta-item">
+                                    <i class="fa-solid fa-location-dot customer-meta-icon"></i>
+                                    <div class="customer-meta-content">
+                                        <strong>Địa chỉ:</strong> @Model.SelectedCustomer.Address
+                                    </div>
+                                </div>
+                                <div class="customer-meta-item">
+                                    <i class="fa-solid fa-crown customer-meta-icon"></i>
+                                    <div class="customer-meta-content">
+                                        <strong>Hạng thành viên:</strong> <span class="status-badge status-ready" style="margin-left: 8px;">@GetMembershipRank(Model.SelectedCustomer.TotalSpent)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="customer-contact-actions" 
+                                 data-customer-phone="@Model.SelectedCustomer.Phone"
+                                 data-customer-email="@(Model.SelectedCustomer.Email ?? "")"
+                                 data-customer-address="@Model.SelectedCustomer.Address">
+                                <div class="contact-action-btn" title="Gọi điện" data-contact-action="phone"><i class="fa-solid fa-phone"></i></div>
+                                <div class="contact-action-btn" title="Gửi email" data-contact-action="email"><i class="fa-solid fa-envelope"></i></div>
+                                <div class="contact-action-btn" title="Gửi tin nhắn" data-contact-action="message"><i class="fa-solid fa-message"></i></div>
+                                <div class="contact-action-btn" title="Xem địa chỉ" data-contact-action="address"><i class="fa-solid fa-location-dot"></i></div>
+                            </div>
+                        </div>
+                        <div class="customer-history-section">
+                            <div class="section-title">Lịch sử mua hàng</div>
+                            <div class="customer-history" id="customerHistoryList">
+                                @if (Model.SelectedCustomerHistory.Any())
+                                {
+                                    foreach (var item in Model.SelectedCustomerHistory)
+                                    {
+                                        <div class="history-item" data-order-id="@item.OrderId">
+                                            <strong>@item.OrderCode</strong>
+                                            <span>@FormatMoney(item.TotalAmount) | @StatusText(item.Status)</span>
+                                            <span>@string.Join(", ", item.ProductNames)</span>
+                                            <button class="admin-btn view-order-btn" data-order-id="@item.OrderId" type="button">Xem chi tiết</button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="item-meta">Khách hàng này chưa có lịch sử mua hàng.</div>
+                                }
+                            </div>
+                            @if (Model.SelectedCustomer.OrderCount > 3)
+                            {
+                                <button class="admin-btn view-all-orders-btn" data-customer-id="@Model.SelectedCustomer.Id" type="button">Xem tất cả đơn hàng</button>
+                            }
                         </div>
                     }
-
-                    @if (!Model.ShowFullCustomerHistory && Model.SelectedCustomer != null && Model.SelectedCustomer.OrderCount > 3)
+                    else
                     {
-                        <a class="admin-btn" asp-controller="Management" asp-action="Customers" asp-route-selectedCustomerId="@Model.SelectedCustomer.Id" asp-route-showFullCustomerHistory="true" data-customer-more data-customer-id="@Model.SelectedCustomer.Id"><i class="fa-solid fa-clock-rotate-left"></i> Xem nhiều hơn</a>
+                        <div class="item-meta">Chọn một khách hàng để xem chi tiết.</div>
                     }
-                }
-                else
-                {
-                    <div class="item-meta">Khách hàng này chưa có lịch sử mua hàng.</div>
-                }
+                </div>
             </div>
         </div>
     </div>
 </section>
+
+@functions {
+    string GetMembershipRank(decimal totalSpent)
+    {
+        if (totalSpent >= 10000000) return "VIP";
+        if (totalSpent >= 5000000) return "Gold";
+        if (totalSpent >= 2000000) return "Silver";
+        return "Bronze";
+    }
+}
 
 @section Scripts {
     <script>
@@ -123,35 +180,6 @@
                 .replace(/'/g, '&#039;');
         }
 
-        function updateCustomerRows() {
-            var input = document.getElementById('customerSearchInput');
-            var hint = document.getElementById('customerSearchHint');
-            var noResultRow = document.getElementById('customerNoResultRow');
-            var keyword = input ? input.value.trim().toLowerCase() : '';
-            var visibleCount = 0;
-
-            document.querySelectorAll('[data-customer-row]').forEach(function (row) {
-                var searchText = row.getAttribute('data-customer-search') || '';
-                var index = Number(row.getAttribute('data-customer-index') || '0');
-                var visible = keyword ? searchText.indexOf(keyword) >= 0 : index < 5;
-                row.classList.remove('is-hidden-by-limit');
-                row.classList.toggle('is-hidden', !visible);
-                if (visible) {
-                    visibleCount++;
-                }
-            });
-
-            if (noResultRow) {
-                noResultRow.classList.toggle('is-hidden', visibleCount !== 0);
-            }
-
-            if (hint) {
-                hint.textContent = keyword
-                    ? 'Tìm thấy ' + visibleCount + ' khách hàng phù hợp.'
-                    : 'Đang hiển thị 5 khách gần đây nhất. Nhập để tìm trong toàn bộ danh sách.';
-            }
-        }
-
         function renderCustomerHistory(data) {
             var selectedName = document.getElementById('selectedCustomerName');
             var historyList = document.getElementById('customerHistoryList');
@@ -164,7 +192,7 @@
             }
 
             document.querySelectorAll('[data-customer-row]').forEach(function (row) {
-                row.classList.toggle('product-row-highlight', row.getAttribute('data-customer-row') === String(data.customer.id));
+                row.classList.toggle('selected-row', row.getAttribute('data-customer-row') === String(data.customer.id));
             });
 
             if (!data.history || data.history.length === 0) {
@@ -174,36 +202,42 @@
 
             var html = data.history.map(function (item) {
                 var products = Array.isArray(item.productNames) ? item.productNames.join(', ') : '';
-                return '<div class="history-item">' +
+                return '<div class="history-item" data-order-id="' + item.orderId + '">' +
                     '<strong>' + escapeHtml(item.orderCode) + '</strong>' +
-                    '<span>' + formatMoneyVnd(item.totalAmount) + ' | ' + escapeHtml(item.statusText) + ' | ' + escapeHtml(item.orderDate) + '</span>' +
+                    '<div class="history-meta">' +
+                    '<span>' + formatMoneyVnd(item.totalAmount) + '</span>' +
+                    '<span class="history-status ' + getHistoryStatusClass(item.statusText) + '">' + escapeHtml(item.statusText) + '</span>' +
+                    '</div>' +
                     '<span>' + escapeHtml(products) + '</span>' +
+                    '<button class="admin-btn view-order-btn" data-order-id="' + item.orderId + '" type="button">Xem chi tiết</button>' +
                     '</div>';
             }).join('');
 
-            if (data.canShowMore) {
-                html += '<button class="admin-btn" type="button" data-customer-more data-customer-id="' + data.customer.id + '">' +
-                    '<i class="fa-solid fa-clock-rotate-left"></i> Xem nhiều hơn</button>';
-            }
-
             historyList.innerHTML = html;
+
+            // Show/hide "view all orders" button
+            var viewAllBtn = document.querySelector('.view-all-orders-btn');
+            if (viewAllBtn) {
+                viewAllBtn.style.display = data.canShowMore ? 'inline-flex' : 'none';
+            }
         }
 
-        document.addEventListener('click', function (event) {
-            var trigger = event.target.closest('[data-customer-link], [data-customer-more]');
-            if (!trigger) {
-                return;
-            }
+        function getHistoryStatusClass(statusText) {
+            if (statusText.includes('Hoàn thành')) return 'status-done';
+            if (statusText.includes('Đang giao')) return 'status-shipped';
+            if (statusText.includes('Đang chuẩn bị')) return 'status-ready';
+            if (statusText.includes('Chờ xử lý')) return 'status-pending';
+            if (statusText.includes('Đã hủy')) return 'status-cancel';
+            return 'status-ready';
+        }
 
-            event.preventDefault();
-            var customerId = trigger.getAttribute('data-customer-id');
-            var showFull = trigger.hasAttribute('data-customer-more');
+        function loadCustomerHistory(customerId, showFullHistory = false) {
             var historyList = document.getElementById('customerHistoryList');
             if (historyList) {
                 historyList.classList.add('is-loading');
             }
 
-            fetch('/Management/CustomerHistory?selectedCustomerId=' + encodeURIComponent(customerId) + '&showFullCustomerHistory=' + showFull, {
+            fetch('/Management/CustomerHistory?selectedCustomerId=' + encodeURIComponent(customerId) + '&showFullCustomerHistory=' + showFullHistory, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
                 .then(function (response) {
@@ -223,12 +257,92 @@
                         historyList.classList.remove('is-loading');
                     }
                 });
+        }
+
+        document.addEventListener('click', function (event) {
+            // Handle customer link click
+            var trigger = event.target.closest('[data-customer-link]');
+            if (trigger) {
+                event.preventDefault();
+                var customerId = trigger.getAttribute('data-customer-id');
+                loadCustomerHistory(customerId);
+                return;
+            }
+
+            // Handle view all orders button
+            var viewAllBtn = event.target.closest('.view-all-orders-btn');
+            if (viewAllBtn) {
+                event.preventDefault();
+                var customerId = viewAllBtn.getAttribute('data-customer-id');
+                loadCustomerHistory(customerId, true);
+                return;
+            }
+
+            // Handle view order details button
+            var viewOrderBtn = event.target.closest('.view-order-btn');
+            if (viewOrderBtn) {
+                event.preventDefault();
+                var orderId = viewOrderBtn.getAttribute('data-order-id');
+                // Redirect to orders page with this order selected
+                window.location.href = '/Management/Orders?selectedOrderId=' + orderId + '&orderPage=1';
+                return;
+            }
+
+            // Handle contact icon clicks
+            var contactIcon = event.target.closest('.contact-action-btn');
+            if (contactIcon) {
+                event.preventDefault();
+                var action = contactIcon.getAttribute('data-contact-action');
+                var contactIconsContainer = document.querySelector('.customer-contact-actions');
+                var customerPhone = contactIconsContainer?.getAttribute('data-customer-phone') || '';
+                var customerEmail = contactIconsContainer?.getAttribute('data-customer-email') || '';
+                var customerAddress = contactIconsContainer?.getAttribute('data-customer-address') || '';
+                
+                var message = '';
+                
+                if (action === 'phone') {
+                    if (customerPhone) {
+                        message = 'Số điện thoại: ' + customerPhone + '\n\nTính năng gọi điện sẽ được tích hợp sau.';
+                    } else {
+                        message = 'Khách hàng chưa có số điện thoại.';
+                    }
+                } else if (action === 'email') {
+                    if (customerEmail) {
+                        message = 'Email: ' + customerEmail + '\n\nTính năng gửi email sẽ được tích hợp sau.';
+                    } else {
+                        message = 'Khách hàng chưa có email.';
+                    }
+                } else if (action === 'message') {
+                    if (customerPhone) {
+                        message = 'Số điện thoại: ' + customerPhone + '\n\nTính năng gửi tin nhắn sẽ được tích hợp sau.';
+                    } else {
+                        message = 'Khách hàng chưa có số điện thoại để gửi tin nhắn.';
+                    }
+                } else if (action === 'address') {
+                    if (customerAddress) {
+                        message = 'Địa chỉ: ' + customerAddress + '\n\nTính năng xem địa chỉ trên bản đồ sẽ được tích hợp sau.';
+                    } else {
+                        message = 'Khách hàng chưa có địa chỉ.';
+                    }
+                }
+                
+                if (message) {
+                    alert(message);
+                }
+                return;
+            }
         });
 
         var customerSearchInput = document.getElementById('customerSearchInput');
         if (customerSearchInput) {
-            customerSearchInput.addEventListener('input', updateCustomerRows);
-            updateCustomerRows();
+            customerSearchInput.addEventListener('input', function () {
+                var keyword = customerSearchInput.value.trim().toLowerCase();
+                document.querySelectorAll('[data-customer-row]').forEach(function (row) {
+                    var searchText = row.getAttribute('data-customer-search') || '';
+                    var visible = keyword ? searchText.indexOf(keyword) >= 0 : true;
+                    row.classList.toggle('is-hidden', !visible);
+                });
+            });
         }
     </script>
 }

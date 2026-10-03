@@ -590,3 +590,90 @@
         gap: 20px;
     }
 }
+/* ═══════════════════════════════════════════════════════
+   HEADER DARK THEME - for Management & System sections
+═══════════════════════════════════════════════════════ */
+.site-header-dark {
+    background: rgba(26, 18, 9, 0.95) !important;
+    border-bottom-color: #6b4f2e !important;
+    backdrop-filter: blur(16px);
+}
+
+    .site-header-dark .logo-text,
+    .site-header-dark .logo-text span {
+        color: #f5e6c8 !important;
+    }
+
+    .site-header-dark .logo-icon {
+        background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
+        color: #1a1209 !important;
+    }
+
+    .site-header-dark .nav-links a {
+        color: #c9b896 !important;
+    }
+
+        .site-header-dark .nav-links a:hover {
+            color: #d4b86a !important;
+            border-bottom-color: #c9a961 !important;
+        }
+
+    .site-header-dark .nav-search input {
+        background: rgba(61, 43, 28, 0.8) !important;
+        border-color: #6b4f2e !important;
+        color: #f5e6c8 !important;
+    }
+
+        .site-header-dark .nav-search input::placeholder {
+            color: #a89878 !important;
+        }
+
+    .site-header-dark .nav-search-icon {
+        color: #c9a961 !important;
+        opacity: 0.7;
+    }
+
+    .site-header-dark .nav-btn-ghost {
+        border-color: #6b4f2e !important;
+        color: #e8d9b8 !important;
+    }
+
+        .site-header-dark .nav-btn-ghost:hover {
+            background: rgba(201, 169, 97, 0.1) !important;
+            border-color: #c9a961 !important;
+            color: #f5e6c8 !important;
+        }
+
+    .site-header-dark .nav-btn-solid {
+        background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
+        color: #1a1209 !important;
+    }
+
+    .site-header-dark .cart-btn {
+        background: rgba(61, 43, 28, 0.8) !important;
+        border-color: #6b4f2e !important;
+        color: #e8d9b8 !important;
+    }
+
+    .site-header-dark .cart-count {
+        background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
+        color: #1a1209 !important;
+    }
+
+    .site-header-dark .nav-dropdown-menu {
+        background: rgba(45, 31, 20, 0.98) !important;
+        border-color: #6b4f2e !important;
+    }
+
+        .site-header-dark .nav-dropdown-menu a {
+            color: #e8d9b8 !important;
+        }
+
+            .site-header-dark .nav-dropdown-menu a:hover {
+                background: rgba(201, 169, 97, 0.1) !important;
+                color: #f5e6c8 !important;
+            }
+
+    .site-header-dark .nav-dropdown-divider {
+        background: #6b4f2e !important;
+    }

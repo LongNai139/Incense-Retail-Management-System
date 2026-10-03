@@ -28,9 +28,9 @@
 
 <section class="management-hero">
     <div>
-        <div class="management-kicker">Trầm Hương Shop</div>
-        <h1>Trung tâm vận hành</h1>
-        <p>Theo dõi doanh thu, xử lý đơn, chăm tồn kho và khách hàng trên cùng một khu vực quản trị. Các khối đơn hàng, khách hàng, mã giảm giá và báo cáo đang đọc từ database hiện tại.</p>
+        <div class="management-kicker">Precious Wood</div>
+        <h1>Trang tổng quan</h1>
+        <p>Theo dõi doanh thu, xử lý đơn, chăm tồn kho và khách hàng trên cùng một khu vực quản trị.</p>
     </div>
     <div class="management-actions">
         <button class="admin-btn" type="button" data-sound-toggle>
@@ -67,26 +67,26 @@
 
     <div class="kpi-grid">
         <div class="kpi-card">
-            <div class="kpi-icon revenue"><i class="fa-solid fa-dong-sign"></i></div>
-            <div class="kpi-label">Doanh thu</div>
+            <div class="kpi-icon revenue"><i class="fa-solid fa-coins"></i></div>
+            <div class="kpi-label">Doanh thu tổng cộng</div>
+            <div class="kpi-value">@FormatMoney(revenueSummary.TotalRevenue)</div>
+            <div class="kpi-note">Tổng doanh thu tất cả thời gian</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon revenue"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="kpi-label">Doanh thu kỳ này</div>
             <div class="kpi-value">@FormatMoney(revenueSummary.Revenue)</div>
             <div class="kpi-note">@FormatPercent(revenueSummary.RevenueChangePercent) so với kỳ trước</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon orders"><i class="fa-solid fa-bag-shopping"></i></div>
-            <div class="kpi-label">Đơn hàng</div>
+            <div class="kpi-icon orders"><i class="fa-solid fa-receipt"></i></div>
+            <div class="kpi-label">Tổng đơn hàng</div>
             <div class="kpi-value">@revenueSummary.OrderCount</div>
             <div class="kpi-note">@revenueSummary.CompletedOrderCount đơn hoàn thành</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon stock"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="kpi-label">Sản phẩm hết hàng</div>
-            <div class="kpi-value">@outOfStockCount</div>
-            <div class="kpi-note">@lowStockProducts.Count sản phẩm sắp hết hàng</div>
-        </div>
-        <div class="kpi-card">
             <div class="kpi-icon customers"><i class="fa-solid fa-user-plus"></i></div>
-            <div class="kpi-label">Khách mới</div>
+            <div class="kpi-label">Khách hàng mới</div>
             <div class="kpi-value">@revenueSummary.NewCustomerCount</div>
             <div class="kpi-note">@revenueSummary.GuestOrderCount đơn khách vãng lai</div>
         </div>
@@ -95,75 +95,20 @@
     <div class="dashboard-grid">
         <div class="admin-panel">
             <div class="panel-title">
-                <span>Biểu đồ doanh thu</span>
-                <span class="status-badge status-ready">@FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd)</span>
+                <span>Tổng quan chi tiết</span>
+                <span class="status-badge status-ready">Dữ liệu gần đây</span>
             </div>
-            <div class="chart-guide">
-                <strong>Kết luận nhanh:</strong>
-                @if (bestRevenuePoint != null && bestRevenuePoint.Revenue > 0)
-                {
-                    <span>@bestRevenuePoint.Label bán tốt nhất với @FormatMoney(bestRevenuePoint.Revenue) từ @bestRevenuePoint.OrderCount đơn.</span>
-                }
-                else
-                {
-                    <span>Khoảng này chưa có doanh thu.</span>
-                }
-            </div>
-            <div class="revenue-list" aria-label="Bảng thanh doanh thu">
-                @foreach (var point in Model.RevenuePoints.OrderByDescending(p => p.Revenue))
-                {
-                    <div class="revenue-row">
-                        <div class="revenue-row-label">@point.Label</div>
-                        <div class="revenue-row-track">
-                            <div class="revenue-row-fill" style="width:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
-                        </div>
-                        <div class="revenue-row-money">@FormatMoney(point.Revenue)</div>
-                        <div class="revenue-row-orders">@point.OrderCount đơn</div>
-                    </div>
-                }
-            </div>
-            <div class="chart-caption">Đọc từ trên xuống: mốc nào tạo nhiều tiền nhất nằm ở đầu danh sách. Tổng @FormatMoney(revenueSummary.Revenue) từ @revenueSummary.OrderCount đơn.</div>
-        </div>
-
-        <div class="admin-panel">
-            <div class="panel-title">Sản phẩm bán chạy top 5</div>
-            <div class="selling-list">
-                @if (bestSellers.Any())
-                {
-                    var rank = 1;
-                    foreach (var item in bestSellers)
-                    {
-                        var revenue = (item.SoldCount ?? 0) * item.PriceAfterDiscount;
-                        <div class="selling-item">
-                            <div>
-                                <div class="item-name">@item.ProductName</div>
-                                <div class="item-meta">@((item.SoldCount ?? 0).ToString("N0")) đã bán | @FormatMoney(revenue)</div>
-                            </div>
-                            <strong>@rank</strong>
-                        </div>
-                        rank++;
-                    }
-                }
-                else
-                {
-                    <div class="item-meta">Chưa có dữ liệu sản phẩm.</div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="dashboard-grid">
-        <div class="admin-panel">
-            <div class="panel-title">10 đơn hàng mới nhất</div>
             <div class="admin-table-wrap">
                 <table class="admin-table">
                     <thead>
                         <tr>
                             <th>Mã đơn</th>
-                            <th>Khách</th>
-                            <th>Tổng</th>
+                            <th>Khách hàng</th>
+                            <th>Sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Tổng tiền</th>
                             <th>Trạng thái</th>
-                            <th>Thời gian</th>
+                            <th>Ngày đặt</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -174,15 +119,17 @@
                                 <tr>
                                     <td>@order.OrderCode</td>
                                     <td>@(order.IsGuest ? $"Guest {MaskPhone(order.CustomerPhone)}" : order.CustomerName)</td>
+                                    <td>@order.ProductTypeCount món</td>
+                                    <td>@order.ItemCount</td>
                                     <td>@FormatMoney(order.TotalAmount)</td>
                                     <td><span class="status-badge @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
-                                    <td>@order.OrderDate.ToString("dd/MM HH:mm")</td>
+                                    <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="5">Chưa có đơn hàng trong database.</td></tr>
+                            <tr><td colspan="7">Chưa có đơn hàng trong database.</td></tr>
                         }
                     </tbody>
                 </table>
@@ -190,7 +137,149 @@
         </div>
 
         <div class="admin-panel">
-            <div class="panel-title">Cảnh báo sắp hết hàng (&lt;5 sp)</div>
+            <div class="panel-title">Alerts</div>
+            <div class="alert-box-red">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <strong>Cảnh báo hệ thống</strong>
+                    <span>Có @lowStockProducts.Count sản phẩm sắp hết hàng cần xử lý</span>
+                </div>
+            </div>
+            <div class="alerts-list">
+                @if (lowStockProducts.Any())
+                {
+                    foreach (var item in lowStockProducts.Take(3))
+                    {
+                        <div class="alert-item warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div>
+                                <strong>Lỗi kho</strong>
+                                <span>@item.ProductName còn @(item.Quantity ?? 0) chiếc</span>
+                            </div>
+                        </div>
+                    }
+                }
+                @if (Model.RecentOrders.Any(o => o.Status == 1))
+                {
+                    var pendingOrder = Model.RecentOrders.FirstOrDefault(o => o.Status == 1);
+                    if (pendingOrder != null)
+                    {
+                        <div class="alert-item warning">
+                            <i class="fa-solid fa-clock"></i>
+                            <div>
+                                <strong>Đơn hàng @pendingOrder.OrderCode chờ xác nhận</strong>
+                                <span>Khách hàng @(pendingOrder.IsGuest ? "vãng lai" : pendingOrder.CustomerName)</span>
+                            </div>
+                        </div>
+                    }
+                }
+                @if (!lowStockProducts.Any() && !Model.RecentOrders.Any(o => o.Status == 1))
+                {
+                    <div class="item-meta">Không có cảnh báo nào.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="admin-panel">
+            <div class="panel-title">
+                <span>Biểu đồ doanh thu</span>
+                <span class="status-badge status-ready">@FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd)</span>
+            </div>
+            <div class="chart-container">
+                <div class="chart-bars">
+                    @foreach (var point in Model.RevenuePoints.OrderBy(p => p.Label))
+                    {
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar" style="height:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%; background: linear-gradient(180deg, #c9a961, #8a6d28);"></div>
+                            <div class="chart-label">@point.Label</div>
+                            <div class="chart-value">@FormatMoney(point.Revenue)</div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="chart-guide" style="margin-top: 16px;">
+                <strong>Kết luận nhanh:</strong>
+                @if (bestRevenuePoint != null && bestRevenuePoint.Revenue > 0)
+                {
+                    <span>@bestRevenuePoint.Label bán tốt nhất với @FormatMoney(bestRevenuePoint.Revenue) từ @bestRevenuePoint.OrderCount đơn.</span>
+                }
+                else
+                {
+                    <span>Khoảng này chưa có doanh thu.</span>
+                }
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-title">Tỷ lệ danh mục sản phẩm</div>
+            <div class="donut-chart-container">
+                <div class="donut-chart">
+                    @{
+                        var categoryData = bestSellers.GroupBy(p => p.CategoryId).Select(g => new { 
+                            CategoryId = g.Key, 
+                            Count = g.Sum(x => x.SoldCount ?? 0),
+                            Revenue = g.Sum(x => (x.SoldCount ?? 0) * x.PriceAfterDiscount)
+                        }).ToList();
+                        var totalQuantity = categoryData.Sum(c => c.Count);
+                        var totalRevenue = categoryData.Sum(c => c.Revenue);
+                        var colors = new[] { "#c9a961", "#8a6d28", "#d4b86a", "#a67c3d", "#b98b36", "#52745b" };
+                        var colorIndex = 0;
+                    }
+                    @if (categoryData.Any())
+                    {
+                        var conicGradient = "";
+                        var currentPercentage = 0.0m;
+                        
+                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue))
+                        {
+                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
+                            var color = colors[colorIndex % colors.Length];
+                            var nextPercentage = currentPercentage + percentage;
+                            
+                            conicGradient += $"{color} {currentPercentage}% {nextPercentage}%, ";
+                            currentPercentage = nextPercentage;
+                            colorIndex++;
+                        }
+                        
+                        conicGradient = conicGradient.TrimEnd(',', ' ');
+                        
+                        <div class="donut-segment" style="background: conic-gradient(@conicGradient);"></div>
+                        <div class="donut-hole"></div>
+                        <div class="donut-text">@FormatMoney(totalRevenue)</div>
+                    }
+                    else
+                    {
+                        <div class="donut-empty">Chưa có dữ liệu</div>
+                    }
+                </div>
+                <div class="donut-legend">
+                    @if (categoryData.Any())
+                    {
+                        colorIndex = 0;
+                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue).Take(5))
+                        {
+                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
+                            var color = colors[colorIndex % colors.Length];
+                            
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: @color;"></div>
+                                <div class="legend-text">Danh mục @category.CategoryId</div>
+                                <div class="legend-value">@percentage.ToString("0.1")%</div>
+                            </div>
+                            
+                            colorIndex++;
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="admin-panel">
+            <div class="panel-title">Low Stock Items</div>
             <div class="warning-list">
                 @if (lowStockProducts.Any())
                 {

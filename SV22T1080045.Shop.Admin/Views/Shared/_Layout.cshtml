@@ -1,5 +1,7 @@
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
+    var isDarkSection = ViewContext.RouteData.Values["controller"]?.ToString() is "Management" or "System" or "Staff";
+    var isManagementSection = ViewContext.RouteData.Values["controller"]?.ToString() == "Management";
     var searchValue = ViewBag.SearchValue as string ?? string.Empty;
     var storefrontUrl = (Configuration["AppHosts:StorefrontUrl"] ?? "https://localhost:7126").TrimEnd('/');
     var isAdmin = User.IsInRole(SV22T1080045.Shop.DomainModels.CustomerRoles.Admin);
@@ -22,12 +24,14 @@
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/product-details.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/management.css" />
+    <link rel="stylesheet" href="/css/operational-alerts.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header class="site-header">
+    <header class="site-header @(isDarkSection ? "site-header-dark" : "")">
         <div class="nav-inner">
             <a class="nav-logo" href="@workspaceHome">
                 <div class="logo-icon">T</div>

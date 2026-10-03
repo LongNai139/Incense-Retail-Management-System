@@ -22,16 +22,16 @@
 
 <section class="management-hero">
     <div>
-        <div class="management-kicker">Báo cáo</div>
-        <h1>Báo cáo tổng hợp</h1>
-        <p>Báo cáo tổng hợp theo ngày/tuần/tháng, có doanh thu, số đơn, giá trị trung bình, top sản phẩm và top khách hàng.</p>
+        <div class="management-kicker">Precious Wood</div>
+        <h1>Báo cáo kinh doanh</h1>
+        <p>Theo dõi doanh thu, hiệu suất bán hàng và phân tích xu hướng kinh doanh.</p>
     </div>
     <div class="management-actions">
         <form class="management-actions" asp-controller="Management" asp-action="Reports" method="get">
             <select class="admin-select" name="reportPeriod">
-                <option value="day" selected="@(Model.ReportPeriod == "day" ? "selected" : null)">Theo ngày</option>
-                <option value="week" selected="@(Model.ReportPeriod == "week" ? "selected" : null)">Theo tuần</option>
-                <option value="month" selected="@(Model.ReportPeriod == "month" ? "selected" : null)">Theo tháng</option>
+                <option value="week" selected="@(Model.ReportPeriod == "week" ? "selected" : null)">Tuần</option>
+                <option value="month" selected="@(Model.ReportPeriod == "month" ? "selected" : null)">Tháng</option>
+                <option value="year" selected="@(Model.ReportPeriod == "year" ? "selected" : null)">Năm</option>
             </select>
             <input class="admin-input" type="date" name="reportDate" value="@reportDateValue" />
             <button class="admin-btn" type="submit"><i class="fa-solid fa-chart-line"></i> Xem báo cáo</button>
@@ -43,41 +43,73 @@
 <section class="admin-section">
     <div class="admin-section-head">
         <div>
-            <h2>Báo cáo</h2>
-            <p class="admin-section-desc">Báo cáo tổng hợp theo ngày/tuần/tháng, có doanh thu, số đơn, giá trị trung bình, top sản phẩm và top khách hàng.</p>
+            <h2>Báo cáo kinh doanh</h2>
+            <p class="admin-section-desc">Phân tích doanh thu, hiệu suất bán hàng và xu hướng kinh doanh.</p>
+        </div>
+    </div>
+
+    <div class="report-hero">
+        <div class="report-filter">
+            <span class="filter-label active" data-period="week">Tuần</span>
+            <span class="filter-label" data-period="month">Tháng</span>
+            <span class="filter-label" data-period="year">Năm</span>
         </div>
     </div>
 
     <div class="kpi-grid">
         <div class="kpi-card">
-            <div class="kpi-label">Doanh thu kỳ báo cáo</div>
+            <div class="kpi-icon revenue"><i class="fa-solid fa-coins"></i></div>
+            <div class="kpi-label">Doanh thu hôm nay</div>
             <div class="kpi-value">@FormatMoney(reportSummary.Revenue)</div>
-            <div class="kpi-note">@FormatRange(Model.ReportRangeStart, Model.ReportRangeEnd)</div>
+            <div class="kpi-note">@FormatPercent(reportSummary.RevenueChangePercent)</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Tổng đơn</div>
+            <div class="kpi-icon orders"><i class="fa-solid fa-receipt"></i></div>
+            <div class="kpi-label">Đơn hàng</div>
             <div class="kpi-value">@reportSummary.OrderCount</div>
-            <div class="kpi-note">@reportSummary.CompletedOrderCount đơn hoàn thành</div>
+            <div class="kpi-note">đơn</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Giá trị trung bình</div>
-            <div class="kpi-value">@FormatMoney(reportSummary.AverageOrderValue)</div>
-            <div class="kpi-note">Tính trên đơn trong kỳ</div>
+            <div class="kpi-icon stock"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div class="kpi-label">Sản phẩm</div>
+            <div class="kpi-value">@Model.ProductSalesReports.Count</div>
+            <div class="kpi-note">loại</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Khách mới</div>
+            <div class="kpi-icon customers"><i class="fa-solid fa-user-plus"></i></div>
+            <div class="kpi-label">Khách hàng mới</div>
             <div class="kpi-value">@reportSummary.NewCustomerCount</div>
-            <div class="kpi-note">@reportSummary.GuestOrderCount đơn guest</div>
+            <div class="kpi-note">người</div>
         </div>
     </div>
 
-    <div class="report-grid dashboard-grid">
+    <div class="alert-box-red" style="margin-top: 20px;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+            <strong>Cảnh báo doanh thu</strong>
+            <span>Doanh thu tháng này giảm @FormatPercent(reportSummary.RevenueChangePercent) so với tháng trước</span>
+        </div>
+    </div>
+
+    <div class="dashboard-grid" style="margin-top: 20px;">
         <div class="admin-panel">
             <div class="panel-title">
-                <span>Doanh thu trong kỳ</span>
-                <span class="status-badge status-ready">@FormatPercent(reportSummary.RevenueChangePercent)</span>
+                <span>Biểu đồ doanh thu</span>
+                <span class="status-badge status-ready">Doanh thu theo tháng</span>
             </div>
-            <div class="chart-guide">
+            <div class="chart-container">
+                <div class="chart-bars">
+                    @foreach (var point in Model.ReportRevenuePoints.OrderBy(p => p.Label))
+                    {
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar" style="height:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%; background: linear-gradient(180deg, #c9a961, #8a6d28);"></div>
+                            <div class="chart-label">@point.Label</div>
+                            <div class="chart-value">@FormatMoney(point.Revenue)</div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="chart-guide" style="margin-top: 16px;">
                 <strong>Kết luận nhanh:</strong>
                 @if (bestReportPoint != null && bestReportPoint.Revenue > 0)
                 {
@@ -88,55 +120,122 @@
                     <span>Kỳ báo cáo này chưa có doanh thu.</span>
                 }
             </div>
-            <div class="revenue-list" aria-label="Bảng thanh doanh thu báo cáo">
-                @foreach (var point in Model.ReportRevenuePoints.OrderByDescending(p => p.Revenue))
-                {
-                    <div class="revenue-row">
-                        <div class="revenue-row-label">@point.Label</div>
-                        <div class="revenue-row-track">
-                            <div class="revenue-row-fill" style="width:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
-                        </div>
-                        <div class="revenue-row-money">@FormatMoney(point.Revenue)</div>
-                        <div class="revenue-row-orders">@point.OrderCount đơn</div>
-                    </div>
-                }
-            </div>
-            <div class="chart-caption">Tổng @FormatMoney(reportSummary.Revenue), trung bình @FormatMoney(reportSummary.AverageOrderValue) mỗi đơn.</div>
         </div>
+
         <div class="admin-panel">
-            <div class="panel-title">Top sản phẩm theo doanh thu</div>
-            <div class="selling-list">
-                @if (Model.ProductSalesReports.Any())
-                {
-                    foreach (var item in Model.ProductSalesReports)
-                    {
-                        <div class="selling-item">
-                            <div>
-                                <div class="item-name">@item.ProductName</div>
-                                <div class="item-meta">@item.Quantity.ToString("N0") sản phẩm | @item.OrderCount đơn</div>
-                            </div>
-                            <strong>@FormatMoney(item.Revenue)</strong>
-                        </div>
+            <div class="panel-title">Tỷ lệ danh mục sản phẩm</div>
+            <div class="donut-chart-container">
+                <div class="donut-chart">
+                    @{
+                        var categoryData = Model.ProductSalesReports.GroupBy(p => p.ProductId).Select(g => new { 
+                            CategoryId = g.Key, 
+                            Count = g.Sum(x => x.Quantity),
+                            Revenue = g.Sum(x => x.Revenue)
+                        }).ToList();
+                        var totalQuantity = categoryData.Sum(c => c.Count);
+                        var totalRevenue = categoryData.Sum(c => c.Revenue);
+                        var colors = new[] { "#c9a961", "#8a6d28", "#d4b86a", "#a67c3d", "#b98b36", "#52745b" };
+                        var colorIndex = 0;
                     }
-                }
-                else
-                {
-                    <div class="item-meta">Chưa có dữ liệu bán hàng trong kỳ này.</div>
-                }
+                    @if (categoryData.Any())
+                    {
+                        var conicGradient = "";
+                        var currentPercentage = 0.0m;
+                        
+                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue))
+                        {
+                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
+                            var color = colors[colorIndex % colors.Length];
+                            var nextPercentage = currentPercentage + percentage;
+                            
+                            conicGradient += $"{color} {currentPercentage}% {nextPercentage}%, ";
+                            currentPercentage = nextPercentage;
+                            colorIndex++;
+                        }
+                        
+                        conicGradient = conicGradient.TrimEnd(',', ' ');
+                        
+                        <div class="donut-segment" style="background: conic-gradient(@conicGradient);"></div>
+                        <div class="donut-hole"></div>
+                        <div class="donut-text">@FormatMoney(totalRevenue)</div>
+                    }
+                    else
+                    {
+                        <div class="donut-empty">Chưa có dữ liệu</div>
+                    }
+                </div>
+                <div class="donut-legend">
+                    @if (categoryData.Any())
+                    {
+                        colorIndex = 0;
+                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue).Take(5))
+                        {
+                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
+                            var color = colors[colorIndex % colors.Length];
+                            
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: @color;"></div>
+                                <div class="legend-text">Danh mục @category.CategoryId</div>
+                                <div class="legend-value">@percentage.ToString("0.1")%</div>
+                            </div>
+                            
+                            colorIndex++;
+                        }
+                    }
+                </div>
             </div>
-            <div class="panel-title" style="margin-top:18px;">Top khách hàng</div>
-            <div class="selling-list">
-                @foreach (var customer in Model.TopCustomers)
-                {
-                    <div class="selling-item">
-                        <div>
-                            <div class="item-name">@customer.CustomerName</div>
-                            <div class="item-meta">@customer.OrderCount đơn | @MaskPhone(customer.Phone)</div>
-                        </div>
-                        <strong>@FormatMoney(customer.TotalSpent)</strong>
-                    </div>
-                }
+        </div>
+    </div>
+
+    <div class="dashboard-grid" style="margin-top: 20px;">
+        <div class="admin-panel">
+            <div class="panel-title">Sản phẩm</div>
+            <div class="kpi-card">
+                <div class="kpi-icon stock"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <div class="kpi-label">Tổng sản phẩm</div>
+                <div class="kpi-value">@Model.ProductSalesReports.Count</div>
+                <div class="kpi-note">loại</div>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-title">Khách hàng mới</div>
+            <div class="kpi-card">
+                <div class="kpi-icon customers"><i class="fa-solid fa-user-plus"></i></div>
+                <div class="kpi-label">Khách hàng mới</div>
+                <div class="kpi-value">@reportSummary.NewCustomerCount</div>
+                <div class="kpi-note">người</div>
             </div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        // Report filter tabs
+        document.querySelectorAll('.filter-label').forEach(function (label) {
+            label.addEventListener('click', function () {
+                document.querySelectorAll('.filter-label').forEach(function (l) {
+                    l.classList.remove('active');
+                });
+                label.classList.add('active');
+
+                var period = label.getAttribute('data-period');
+                var currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('reportPeriod', period);
+                window.location.href = currentUrl.toString();
+            });
+        });
+
+        // Form filter submission
+        var reportForm = document.querySelector('.management-actions form');
+        if (reportForm) {
+            reportForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                var formData = new FormData(reportForm);
+                var params = new URLSearchParams(formData);
+                window.location.href = '/Management/Reports?' + params.toString();
+            });
+        }
+    </script>
+}
