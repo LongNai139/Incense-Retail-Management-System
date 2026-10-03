@@ -61,6 +61,24 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             };
         }
 
+        public VoucherDeleteResult DeleteVoucher(int id)
+        {
+            var voucher = _managementDAL.GetVoucher(id);
+            if (voucher == null)
+                return new VoucherDeleteResult { Message = "Không tìm thấy mã giảm giá." };
+
+            // Soft delete - just mark as deleted
+            voucher.IsDeleted = true;
+            if (!_managementDAL.SetVoucherDeleted(voucher.Id, true))
+                return new VoucherDeleteResult { Message = "Không thể xóa mã giảm giá." };
+
+            return new VoucherDeleteResult
+            {
+                Success = true,
+                Message = $"Đã xóa mã giảm giá {voucher.Code}."
+            };
+        }
+
         public List<Voucher> ListVouchers(int take = 10) => _managementDAL.ListVouchers(take);
 
         public List<ManagementOrderData> ListRecentOrders(int take = 10) => _managementDAL.ListRecentOrders(take);

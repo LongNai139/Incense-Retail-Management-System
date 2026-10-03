@@ -48,6 +48,14 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 new { id, isActive }) > 0;
         }
 
+        public bool SetVoucherDeleted(int id, bool isDeleted)
+        {
+            using var conn = OpenConnection();
+            return conn.Execute(
+                "UPDATE Vouchers SET IsDeleted = @isDeleted WHERE Id = @id",
+                new { id, isDeleted }) > 0;
+        }
+
         public List<Voucher> ListVouchers(int take)
         {
             using var conn = OpenConnection();

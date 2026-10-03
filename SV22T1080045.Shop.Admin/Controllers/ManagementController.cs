@@ -266,6 +266,27 @@ namespace SV22T1080045.Shop.Controllers
             return RedirectToAction(nameof(Discounts));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteVoucher(int id)
+        {
+            var result = _managementService.DeleteVoucher(id);
+            if (!result.Success)
+            {
+                if (IsAjaxRequest())
+                    return Json(new { success = false, message = result.Message });
+
+                TempData["VoucherMessage"] = result.Message;
+                return RedirectToAction(nameof(Discounts));
+            }
+
+            if (IsAjaxRequest())
+                return Json(new { success = true, message = result.Message });
+
+            TempData["VoucherMessage"] = result.Message;
+            return RedirectToAction(nameof(Discounts));
+        }
+
         [HttpGet]
         public IActionResult ExportRevenueReport(string reportPeriod = "month", DateTime? reportDate = null)
         {

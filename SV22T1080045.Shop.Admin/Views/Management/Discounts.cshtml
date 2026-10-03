@@ -14,34 +14,132 @@
 
 <section class="management-hero">
     <div>
-        <div class="management-kicker">Quản lý mã giảm giá</div>
-        <h1>Mã giảm giá</h1>
-        <p>Tạo code thủ công hoặc sinh tự động, chọn kiểu giảm, điều kiện đơn tối thiểu và sản phẩm áp dụng.</p>
+        <div class="management-kicker">Precious Wood</div>
+        <h1>Quản lý mã giảm giá</h1>
+        <p>Tạo và quản lý các chương trình khuyến mãi cho khách hàng.</p>
     </div>
     <div class="management-actions">
-        <button class="admin-btn primary" type="button" id="generateCouponCode"><i class="fa-solid fa-wand-magic-sparkles"></i> Sinh mã tự động</button>
+        <button class="admin-btn primary" type="button" id="generateCouponCode"><i class="fa-solid fa-plus"></i> Create New Promotion</button>
     </div>
 </section>
 
 <section class="admin-section">
     <div class="admin-section-head">
         <div>
-            <h2>Quản lý mã giảm giá</h2>
-            <p class="admin-section-desc">Tạo code thủ công hoặc sinh tự động, chọn kiểu giảm, điều kiện đơn tối thiểu và sản phẩm áp dụng.</p>
+            <h2>Promotion Management</h2>
+            <p class="admin-section-desc">Tạo và quản lý các chương trình khuyến mãi cho khách hàng.</p>
         </div>
     </div>
 
-    <div class="coupon-grid dashboard-grid">
-        <div class="admin-panel">
-            <div class="panel-title">Tạo mã</div>
+    <div class="promotion-cards">
+        @if (Model.Vouchers.Any())
+        {
+            foreach (var voucher in Model.Vouchers.Take(4))
+            {
+                <div class="promotion-card">
+                    <div class="promotion-icon">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                    <div class="promotion-info">
+                        <div class="promotion-title">@((voucher.DiscountType == ManagementVoucherDiscountType.Percent) ? $"Discount {voucher.DiscountValue}%" : $"Discount {FormatMoney(voucher.DiscountValue)}")</div>
+                        <div class="promotion-code">Code @voucher.Code</div>
+                        <div class="promotion-details">@voucher.Description</div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="item-meta">Chưa có mã giảm giá nào.</div>
+        }
+    </div>
+
+    <div class="admin-panel" style="margin-top: 20px;">
+        <div class="panel-title">List of Codes</div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Details</th>
+                        <th>Expiration Date</th>
+                        <th>Status</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Vouchers.Any())
+                    {
+                        foreach (var voucher in Model.Vouchers)
+                        {
+                            var isExpired = voucher.ExpiresAt.HasValue && voucher.ExpiresAt.Value < DateTime.Today;
+                            <tr>
+                                <td>@voucher.Id.ToString("D6")</td>
+                                <td>@voucher.Code</td>
+                                <td>@voucher.DiscountValue</td>
+                                <td>@(voucher.ExpiresAt.HasValue ? voucher.ExpiresAt.Value.ToString("dd/MM/yyyy") : "Không giới hạn")</td>
+                                <td>
+                                    <span class="status-badge @(voucher.IsActive ? "status-ready" : "status-cancel")">@(voucher.IsActive ? "Active" : "Inactive")</span>
+                                    @if (isExpired)
+                                    {
+                                        <span class="status-badge status-cancel" style="margin-left: 8px;">Đã hết hạn</span>
+                                    }
+                                </td>
+                                <td>
+                                    <form asp-controller="Management" asp-action="ToggleVoucher" method="post" data-voucher-toggle-form style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@voucher.Id" />
+                                        <button class="admin-btn" type="submit" data-voucher-toggle-button style="margin-left:8px; padding:4px 8px; font-size:11px;">
+                                            <i class="fa-solid @(voucher.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                                        </button>
+                                    </form>
+                                    @if (isExpired)
+                                    {
+                                        <button class="admin-btn delete-btn" type="button" data-delete-voucher data-voucher-id="@voucher.Id" style="margin-left:8px; padding:4px 8px; font-size:11px;" title="Xóa mã giảm giá">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6">Chưa có mã giảm giá nào.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Modal tạo mã giảm giá -->
+<div class="modal-overlay" id="createPromotionModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Tạo mã giảm giá mới</h3>
+            <button class="modal-close" type="button" id="closeModalBtn">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="modal-body">
             @if (!string.IsNullOrWhiteSpace(Model.VoucherMessage))
             {
                 <div class="status-badge status-ready" style="margin-bottom:12px;">@Model.VoucherMessage</div>
             }
-            <form asp-controller="Management" asp-action="SaveVoucher" method="post">
+            <form asp-controller="Management" asp-action="SaveVoucher" method="post" id="voucherForm">
                 @Html.AntiForgeryToken()
                 <div class="form-grid">
-                    <div class="field"><label>Code</label><input class="admin-input coupon-code" id="couponCodeInput" name="Code" value="@Model.VoucherForm.Code" required /></div>
+                    <div class="field">
+                        <label>Code</label>
+                        <div class="input-group">
+                            <input class="admin-input coupon-code" id="couponCodeInput" name="Code" value="@Model.VoucherForm.Code" required />
+                            <button class="admin-btn" type="button" id="generateCouponCode" title="Sinh mã tự động">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="field">
                         <label>Loại giảm</label>
                         <select class="admin-select" name="DiscountType">
@@ -56,62 +154,96 @@
                     <div class="field"><label>Hạn dùng</label><input class="admin-input" type="date" name="ExpiresAt" value="@(Model.VoucherForm.ExpiresAt.HasValue ? Model.VoucherForm.ExpiresAt.Value.ToString("yyyy-MM-dd") : "")" /></div>
                     <div class="field"><label>Mô tả</label><input class="admin-input" name="Description" value="@Model.VoucherForm.Description" placeholder="Ví dụ: giảm cho đơn đầu tiên" /></div>
                 </div>
-                <div class="management-actions" style="margin-top:14px;">
-                    <button class="admin-btn primary" type="submit"><i class="fa-solid fa-check"></i> Xác nhận tạo mã</button>
-                </div>
             </form>
         </div>
-        <div class="admin-panel">
-            <div class="panel-title">Thống kê sử dụng</div>
-            <div class="coupon-list">
-                @if (Model.Vouchers.Any())
-                {
-                    foreach (var voucher in Model.Vouchers)
-                    {
-                        var percent = voucher.MaxUsage.HasValue && voucher.MaxUsage.Value > 0 ? Math.Min(100, voucher.UsedCount * 100 / voucher.MaxUsage.Value) : 0;
-                        <div class="coupon-item" data-voucher-row="@voucher.Id">
-                            <div>
-                                <div class="coupon-code">@voucher.Code</div>
-                                <div class="item-meta">@voucher.UsedCount lượt dùng | tối thiểu @FormatMoney(voucher.MinOrderAmount)</div>
-                                <div class="progress-track"><div class="progress-fill" style="width:@percent%"></div></div>
-                            </div>
-                            <form asp-controller="Management" asp-action="ToggleVoucher" method="post" data-voucher-toggle-form>
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@voucher.Id" />
-                                <button class="admin-btn @(voucher.IsActive ? "primary" : null)" type="submit" data-voucher-toggle-button>
-                                    <i class="fa-solid @(voucher.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
-                                    <span>@(voucher.IsActive ? "Bật" : "Tắt")</span>
-                                </button>
-                            </form>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="item-meta">Chưa có mã giảm giá.</div>
-                }
-            </div>
+        <div class="modal-footer">
+            <button class="admin-btn" type="button" id="cancelModalBtn">Hủy</button>
+            <button class="admin-btn primary" type="submit" form="voucherForm"><i class="fa-solid fa-check"></i> Xác nhận tạo mã</button>
         </div>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <script>
+        // Modal functionality
+        var modal = document.getElementById('createPromotionModal');
+        var openModalBtn = document.getElementById('generateCouponCode');
+        var closeModalBtn = document.getElementById('closeModalBtn');
+        var cancelModalBtn = document.getElementById('cancelModalBtn');
+
+        function openModal() {
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        if (openModalBtn) {
+            openModalBtn.addEventListener('click', openModal);
+        }
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', closeModal);
+        }
+
+        if (cancelModalBtn) {
+            cancelModalBtn.addEventListener('click', closeModal);
+        }
+
+        // Close modal when clicking outside
+        if (modal) {
+            modal.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && modal && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Generate coupon code
+        var generateCodeBtn = document.getElementById('generateCouponCode');
+        var couponInput = document.getElementById('couponCodeInput');
+        if (generateCodeBtn && couponInput) {
+            generateCodeBtn.addEventListener('click', function () {
+                var now = new Date();
+                var datePart = String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+                var randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+                couponInput.value = 'TRAM' + datePart + randomPart;
+                couponInput.classList.add('generated-coupon');
+                couponInput.focus();
+                couponInput.select();
+                window.setTimeout(function () {
+                    couponInput.classList.remove('generated-coupon');
+                }, 1200);
+            });
+        }
+
         document.addEventListener('submit', function (event) {
-            var form = event.target.closest('[data-voucher-toggle-form]');
-            if (!form) {
+            var toggleForm = event.target.closest('[data-voucher-toggle-form]');
+            if (!toggleForm) {
                 return;
             }
 
             event.preventDefault();
-            var button = form.querySelector('[data-voucher-toggle-button]');
+            var button = toggleForm.querySelector('[data-voucher-toggle-button]');
             if (button) {
                 button.disabled = true;
             }
 
-            fetch(form.action, {
+            fetch(toggleForm.action, {
                 method: 'POST',
-                body: new FormData(form),
+                body: new FormData(toggleForm),
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
                 .then(function (response) {
@@ -125,14 +257,10 @@
                         return;
                     }
                     var icon = button.querySelector('i');
-                    var label = button.querySelector('span');
                     button.classList.toggle('primary', data.isActive);
                     if (icon) {
                         icon.classList.toggle('fa-toggle-on', data.isActive);
                         icon.classList.toggle('fa-toggle-off', !data.isActive);
-                    }
-                    if (label) {
-                        label.textContent = data.isActive ? 'Bật' : 'Tắt';
                     }
                     button.title = data.message || '';
                 })
@@ -146,21 +274,48 @@
                 });
         });
 
-        var couponButton = document.getElementById('generateCouponCode');
-        var couponInput = document.getElementById('couponCodeInput');
-        if (couponButton && couponInput) {
-            couponButton.addEventListener('click', function () {
-                var now = new Date();
-                var datePart = String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
-                var randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
-                couponInput.value = 'TRAM' + datePart + randomPart;
-                couponInput.classList.add('generated-coupon');
-                couponInput.focus();
-                couponInput.select();
-                window.setTimeout(function () {
-                    couponInput.classList.remove('generated-coupon');
-                }, 1200);
-            });
-        }
+        // Handle delete voucher button
+        document.addEventListener('click', function (event) {
+            var deleteBtn = event.target.closest('[data-delete-voucher]');
+            if (!deleteBtn) {
+                return;
+            }
+
+            event.preventDefault();
+            var voucherId = deleteBtn.getAttribute('data-voucher-id');
+            
+            if (confirm('Bạn có chắc muốn xóa mã giảm giá này? Dữ liệu sẽ được lưu trữ nhưng không hiển thị nữa.')) {
+                deleteBtn.disabled = true;
+                
+                fetch('/Management/DeleteVoucher', {
+                    method: 'POST',
+                    headers: { 
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'id=' + encodeURIComponent(voucherId)
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Không xóa được mã giảm giá.');
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(function () {
+                    alert('Không xóa được mã giảm giá. Vui lòng thử lại.');
+                })
+                .finally(function () {
+                    deleteBtn.disabled = false;
+                });
+            }
+        });
     </script>
 }

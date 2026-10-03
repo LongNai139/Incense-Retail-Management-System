@@ -9,6 +9,7 @@ namespace SV22T1080045.Shop.Abstractions.Interfaces
         int AddVoucher(Voucher voucher);
         Voucher? GetVoucher(int id);
         bool SetVoucherActive(int id, bool isActive);
+        bool SetVoucherDeleted(int id, bool isDeleted);
         List<Voucher> ListVouchers(int take);
         List<ManagementOrderData> ListRecentOrders(int take);
         (List<ManagementOrderData> Orders, int TotalCount) ListOrdersPaginated(int page, int pageSize, int? status = null);

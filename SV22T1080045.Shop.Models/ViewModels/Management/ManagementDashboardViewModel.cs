@@ -171,9 +171,11 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
         public ManagementVoucherDiscountType DiscountType { get; set; } = ManagementVoucherDiscountType.Percent;
         public decimal DiscountValue { get; set; }
         public decimal MinOrderAmount { get; set; }
+        public string Description { get; set; } = "";
         public int? MaxUsage { get; set; }
         public int UsedCount { get; set; }
         public bool IsActive { get; set; }
+        public DateTime? ExpiresAt { get; set; }
     }
 
     public class ManagementVoucherInput

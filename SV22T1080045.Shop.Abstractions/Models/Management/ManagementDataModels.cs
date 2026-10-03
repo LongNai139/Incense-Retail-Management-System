@@ -78,4 +78,10 @@ namespace SV22T1080045.Shop.Abstractions.Models.Management
         public string Message { get; set; } = "";
         public Voucher? Voucher { get; set; }
     }
+
+    public class VoucherDeleteResult
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+    }
 }
