@@ -30,6 +30,7 @@ namespace SV22T1080045.Shop.BusinessLayers
             services.AddScoped<IStartupSeedService, StartupSeedService>();
             services.AddScoped<ISystemService, SystemService>();
             services.AddSingleton<ISmsService, FakeSmsService>();
+            services.AddScoped<IWarehouseService, WarehouseService>();
 
             return services;
         }

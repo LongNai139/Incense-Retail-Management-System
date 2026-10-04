@@ -83,6 +83,7 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
     public class ManagementMetricSummary
     {
         public decimal Revenue { get; set; }
+        public decimal TotalRevenue { get; set; } // Total revenue across all time
         public decimal PreviousRevenue { get; set; }
         public int OrderCount { get; set; }
         public int CompletedOrderCount { get; set; }
@@ -111,6 +112,8 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
         public int Status { get; set; }
         public string CustomerName { get; set; } = "";
         public string CustomerPhone { get; set; } = "";
+        public string CustomerEmail { get; set; } = "";
+        public string ShippingAddress { get; set; } = "";
         public int ItemCount { get; set; }
         public int ProductTypeCount { get; set; }
         public bool IsGuest { get; set; }
@@ -122,6 +125,15 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
         public string StatusText { get; set; } = "";
         public string StatusClass { get; set; } = "";
         public List<ManagementOrderViewModel> Orders { get; set; } = new();
+    }
+
+    public class ManagementOrderDetailViewModel
+    {
+        public int Id { get; set; }
+        public string ProductName { get; set; } = "";
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal LineTotal => Quantity * UnitPrice;
     }
 
     public class CustomerManagementRowViewModel

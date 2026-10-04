@@ -22,6 +22,11 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             var summary = conn.QuerySingle<RevenueReportSummary>(@"
                 SELECT
                     COALESCE(SUM(o.TotalAmount), 0) AS Revenue,
+                    (
+                        SELECT COALESCE(SUM(too.TotalAmount), 0)
+                        FROM Orders too
+                        WHERE too.IsDeleted = 0
+                    ) AS TotalRevenue,
                     COALESCE(SUM(CASE WHEN o.Status = 4 THEN 1 ELSE 0 END), 0) AS CompletedOrderCount,
                     COALESCE(SUM(CASE WHEN o.CustomerId <= 0 THEN 1 ELSE 0 END), 0) AS GuestOrderCount,
                     COUNT(1) AS OrderCount,

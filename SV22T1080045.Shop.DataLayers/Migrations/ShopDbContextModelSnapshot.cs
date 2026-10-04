@@ -95,7 +95,7 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                         {
                             Id = 1,
                             Address = "Cửa hàng Hương Trầm",
-                            CreatedTime = new DateTime(2026, 5, 30, 17, 20, 4, 732, DateTimeKind.Local).AddTicks(6644),
+                            CreatedTime = new DateTime(2026, 9, 23, 16, 42, 6, 762, DateTimeKind.Local).AddTicks(670),
                             CustomerName = "Quản trị viên",
                             IsDeleted = false,
                             Password = "123",
@@ -503,6 +503,129 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                         .IsUnique();
 
                     b.ToTable("Vouchers", (string)null);
+                });
+
+            modelBuilder.Entity("SV22T1080045.Shop.DomainModels.Warehouse.CustomerDebt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DebtAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("OrderAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("DueDate");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("CustomerDebts", (string)null);
+                });
+
+            modelBuilder.Entity("SV22T1080045.Shop.DomainModels.Warehouse.StockTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ReferenceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("TransactionDate");
+
+                    b.HasIndex("TransactionType");
+
+                    b.ToTable("StockTransactions", (string)null);
                 });
 
             modelBuilder.Entity("SV22T1080045.Shop.DomainModels.GuestOrder", b =>

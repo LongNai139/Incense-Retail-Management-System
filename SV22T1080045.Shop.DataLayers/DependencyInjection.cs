@@ -27,6 +27,7 @@ namespace SV22T1080045.Shop.DataLayers
             services.AddScoped<IGuestOrderDAL>(_ => new GuestOrderDAL(connectionString));
             services.AddScoped<IPhoneOtpDAL>(_ => new PhoneOtpDAL(connectionString));
             services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            services.AddScoped<IWarehouseDAL>(_ => new WarehouseDAL(connectionString));
 
             return services;
         }

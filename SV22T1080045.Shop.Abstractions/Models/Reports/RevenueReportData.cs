@@ -15,6 +15,7 @@ namespace SV22T1080045.Shop.Abstractions.Models.Reports
     public class RevenueReportSummary
     {
         public decimal Revenue { get; set; }
+        public decimal TotalRevenue { get; set; } // Total revenue across all time
         public decimal PreviousRevenue { get; set; }
         public int OrderCount { get; set; }
         public int CompletedOrderCount { get; set; }

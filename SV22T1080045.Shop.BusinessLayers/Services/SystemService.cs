@@ -192,9 +192,6 @@ public class SystemService : ISystemService
         if (string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase))
             return CustomerRoles.Staff;
 
-        if (string.Equals(role, CustomerRoles.Customer, StringComparison.OrdinalIgnoreCase))
-            return CustomerRoles.Customer;
-
         return null;
     }
 

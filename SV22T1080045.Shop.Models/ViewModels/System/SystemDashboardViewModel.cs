@@ -12,6 +12,21 @@ public class SystemDashboardViewModel
     public List<SystemAccountRowViewModel> RoleAccounts { get; set; } = new();
     public List<SystemRoleDefinitionViewModel> RoleDefinitions { get; set; } = new();
     public int CurrentUserId { get; set; }
+    
+    // Role constants for view
+    public string AdminRole { get; set; } = "Admin";
+    public string StaffRole { get; set; } = "Staff";
+    public string AdminRoleLabel { get; set; } = "Quản trị viên";
+    public string StaffRoleLabel { get; set; } = "Nhân viên";
+    
+    // Helper properties for filters
+    public bool IsFilterAll => string.IsNullOrEmpty(RoleFilter);
+    public bool IsFilterAdmin => RoleFilter == AdminRole;
+    public bool IsFilterStaff => RoleFilter == StaffRole;
+    
+    public bool IsAccountFilterAll => string.IsNullOrEmpty(AccountRoleFilter);
+    public bool IsAccountFilterAdmin => AccountRoleFilter == AdminRole;
+    public bool IsAccountFilterStaff => AccountRoleFilter == StaffRole;
 }
 
 public class SystemAccountFormViewModel
@@ -35,6 +50,10 @@ public class SystemAccountRowViewModel
     public string Role { get; set; } = "";
     public DateTime CreatedTime { get; set; }
     public bool IsCurrentUser { get; set; }
+    
+    // Helper properties for view
+    public bool IsAdminRole => Role == "Admin";
+    public bool IsStaffRole => Role == "Staff";
 }
 
 public class SystemRoleDefinitionViewModel

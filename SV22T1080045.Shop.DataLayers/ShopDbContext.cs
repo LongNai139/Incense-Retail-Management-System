@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.DomainModels;
+using SV22T1080045.Shop.DomainModels.Warehouse;
 
 namespace SV22T1080045.Shop.DataLayers
 {
@@ -20,6 +21,10 @@ namespace SV22T1080045.Shop.DataLayers
         public DbSet<PhoneOtp> PhoneOtps { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<ProductInventory> ProductInventories { get; set; }
+        
+        // Warehouse management tables
+        public DbSet<StockTransaction> StockTransactions { get; set; }
+        public DbSet<CustomerDebt> CustomerDebts { get; set; }
 
         // 2. Cấu hình thêm (Ví dụ: Tự tạo tài khoản Admin mặc định)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +33,8 @@ namespace SV22T1080045.Shop.DataLayers
 
             // 👇 1. Cấu hình kiểu dữ liệu cho TIỀN TỆ (Sửa lỗi warning màu vàng)
             modelBuilder.Entity<Order>().Property(o => o.TotalAmount).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Order>().Property(o => o.DiscountAmount).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Order>().Property(o => o.FinalAmount).HasColumnType("decimal(18,2)");
             modelBuilder.Entity<Order>().Property(o => o.Note).HasMaxLength(500);
             modelBuilder.Entity<Order>().Property(o => o.PaymentTransactionNo).HasMaxLength(100);
             modelBuilder.Entity<Order>().Property(o => o.PaymentBankCode).HasMaxLength(50);
@@ -106,6 +113,39 @@ namespace SV22T1080045.Shop.DataLayers
                 e.Property(x => x.MinOrderAmount).HasPrecision(18, 2);
 
                 e.HasIndex(x => x.Code).IsUnique();
+            });
+
+            // StockTransactions
+            modelBuilder.Entity<StockTransaction>(e =>
+            {
+                e.ToTable("StockTransactions");
+                e.Property(x => x.TransactionType).HasMaxLength(50).IsRequired();
+                e.Property(x => x.UnitPrice).HasPrecision(18, 2);
+                e.Property(x => x.ReferenceNumber).HasMaxLength(100);
+                e.Property(x => x.Reason).HasMaxLength(500);
+
+                e.HasIndex(x => x.ProductId);
+                e.HasIndex(x => x.TransactionDate);
+                e.HasIndex(x => x.TransactionType);
+            });
+
+
+
+            // CustomerDebts
+            modelBuilder.Entity<CustomerDebt>(e =>
+            {
+                e.ToTable("CustomerDebts");
+                e.Property(x => x.OrderCode).HasMaxLength(50);
+                e.Property(x => x.OrderAmount).HasPrecision(18, 2);
+                e.Property(x => x.DebtAmount).HasPrecision(18, 2);
+                e.Property(x => x.PaidAmount).HasPrecision(18, 2);
+                e.Property(x => x.PaymentReference).HasMaxLength(100);
+                e.Property(x => x.Status).HasMaxLength(50).IsRequired();
+                e.Property(x => x.Notes).HasMaxLength(500);
+
+                e.HasIndex(x => x.CustomerId);
+                e.HasIndex(x => x.DueDate);
+                e.HasIndex(x => x.Status);
             });
         }
     }
