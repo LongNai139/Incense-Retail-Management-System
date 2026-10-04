@@ -78,7 +78,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                     COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest') AS CustomerName,
                     COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), '') AS CustomerPhone,
                     CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit) AS IsGuest,
-                    COALESCE(SUM(d.Quantity), 0) AS ItemCount
+                    COALESCE(SUM(d.Quantity), 0) AS ItemCount,
                     COALESCE(COUNT(DISTINCT d.ProductId), 0) AS ProductTypeCount
                 FROM Orders o
                 LEFT JOIN Customers c ON o.CustomerId = c.Id

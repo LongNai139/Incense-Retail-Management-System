@@ -115,7 +115,11 @@ public class SystemController : Controller
                     AccountCount = roleCounts.TryGetValue(def.Role, out var count) ? count : 0
                 })
                 .ToList(),
-            CurrentUserId = currentUserId
+            CurrentUserId = currentUserId,
+            AdminRole = CustomerRoles.Admin,
+            StaffRole = CustomerRoles.Staff,
+            AdminRoleLabel = "Quản trị viên",
+            StaffRoleLabel = "Nhân viên"
         };
     }
 

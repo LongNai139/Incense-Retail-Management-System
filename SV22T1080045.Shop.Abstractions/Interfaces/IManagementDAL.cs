@@ -18,3 +18,4 @@ namespace SV22T1080045.Shop.Abstractions.Interfaces
         ManagementOrderDetailsData? GetOrderDetails(int orderId);
     }
 }
+    

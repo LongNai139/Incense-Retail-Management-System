@@ -9,6 +9,7 @@ using SV22T1080045.Shop.Models.Mappers;
 using SV22T1080045.Shop.Models.ViewModels.Management;
 using SV22T1080045.Shop.Models.ViewModels.Product;
 using System.Security.Claims;
+using SV22T1080045.Shop.BusinessLayers;
 
 namespace SV22T1080045.Shop.Controllers
 {
@@ -81,7 +82,7 @@ namespace SV22T1080045.Shop.Controllers
             if (selectedOrderId == null && int.TryParse(Request.Query["selectedOrderId"], out var queryOrderId))
             {
                 selectedOrderId = queryOrderId;
-        }
+            }
             return View("Orders", BuildOrderModel(orderPage, selectedOrderId, status));
         }
 
@@ -540,7 +541,7 @@ namespace SV22T1080045.Shop.Controllers
                 OilContent = product.OilContent,
                 Quantity = product.DisplayQuantity,
                 LowStockThreshold = product.DisplayLowStockThreshold,
-                SoldCount = product.SoldCount
+                SoldCount = product.SoldCount,
                 ImageUrl = product.ImageUrl
             }).ToList();
         }
@@ -565,6 +566,7 @@ namespace SV22T1080045.Shop.Controllers
             return new ManagementMetricSummary
             {
                 Revenue = summary.Revenue,
+                TotalRevenue = summary.TotalRevenue,
                 PreviousRevenue = summary.PreviousRevenue,
                 OrderCount = summary.OrderCount,
                 CompletedOrderCount = summary.CompletedOrderCount,
