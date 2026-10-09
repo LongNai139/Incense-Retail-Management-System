@@ -1,6 +1,7 @@
 
 using SV22T1080045.Shop.Abstractions;
 using SV22T1080045.Shop.Abstractions.Interfaces;
+using SV22T1080045.Shop.Abstractions.Models;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 
 namespace SV22T1080045.Shop.BusinessLayers.Services

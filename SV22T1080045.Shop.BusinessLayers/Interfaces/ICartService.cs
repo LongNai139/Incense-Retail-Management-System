@@ -1,4 +1,4 @@
-using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.Abstractions.Models;
 
 namespace SV22T1080045.Shop.BusinessLayers.Interfaces
 {

@@ -187,18 +187,25 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                 return (start, start.AddMonths(1));
             }
 
+            if (period == "year")
+            {
+                var start = new DateTime(date.Year, 1, 1);
+                return (start, start.AddYears(1));
+            }
+
             return (date.Date, date.Date.AddDays(1));
         }
 
         private static string NormalizePeriod(string? period)
         {
-            return period is "week" or "month" ? period : "day";
+            return period is "week" or "month" or "year" ? period : "day";
         }
 
         private static string PeriodText(string period) => period switch
         {
             "week" => "Theo tuan",
             "month" => "Theo thang",
+            "year" => "Theo nam",
             _ => "Theo ngay"
         };
 

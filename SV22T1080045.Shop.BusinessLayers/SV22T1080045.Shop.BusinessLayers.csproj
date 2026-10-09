@@ -13,6 +13,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\SV22T1080045.Shop.Abstractions\SV22T1080045.Shop.Abstractions.csproj" />
+		<ProjectReference Include="..\SV22T1080045.Shop.Common\SV22T1080045.Shop.Common.csproj" />
 		<ProjectReference Include="..\SV22T1080045.Shop.DomainModels\SV22T1080045.Shop.DomainModels.csproj" />
 	</ItemGroup>
 

@@ -15,10 +15,7 @@ namespace SV22T1080045.Shop.BusinessLayers
             services.AddScoped<IUnitService, UnitService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IVoucherService, VoucherService>();
-            services.AddScoped<IOrderService>(sp => new OrderService(
-                sp.GetRequiredService<IOrderDAL>(),
-                sp.GetRequiredService<IVoucherService>()
-            ));
+            services.AddScoped<IOrderService, OrderService>();
 
             services.AddScoped<IRevenueReportService, RevenueReportService>();
             services.AddScoped<IManagementService, ManagementService>();

@@ -1,8 +1,8 @@
 using SV22T1080045.Shop.Abstractions.Contracts.Products;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Abstractions.Models;
-using SV22T1080045.Shop.BusinessLayers.Helpers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.Common.Helpers;
 using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.BusinessLayers.Services

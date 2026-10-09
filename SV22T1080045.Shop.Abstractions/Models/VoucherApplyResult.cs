@@ -1,6 +1,6 @@
 using SV22T1080045.Shop.DomainModels;
 
-namespace SV22T1080045.Shop.BusinessLayers.Services
+namespace SV22T1080045.Shop.Abstractions.Models
 {
     public class VoucherApplyResult
     {

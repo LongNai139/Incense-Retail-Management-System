@@ -1,4 +1,4 @@
-namespace SV22T1080045.Shop.BusinessLayers
+namespace SV22T1080045.Shop.Abstractions.Models
 {
     public static class OtpPurpose
     {

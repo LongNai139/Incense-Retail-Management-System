@@ -1,4 +1,4 @@
-namespace SV22T1080045.Shop.BusinessLayers.Helpers
+namespace SV22T1080045.Shop.Common.Helpers
 {
     public static class ProductImageUrlHelper
     {

@@ -1,4 +1,5 @@
 ﻿using SV22T1080045.Shop.Abstractions.Interfaces;
+using SV22T1080045.Shop.Abstractions.Models;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 
@@ -7,15 +8,8 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
     public class OrderService : IOrderService
     {
         private readonly IOrderDAL _orderDAL;
-        private readonly IVoucherService? _voucherService;
+        private readonly IVoucherService _voucherService;
 
-        // Constructor không có voucher — giữ tương thích ngược
-        public OrderService(IOrderDAL orderDAL)
-        {
-            _orderDAL = orderDAL;
-        }
-
-        // Constructor đầy đủ (khuyến nghị dùng)
         public OrderService(IOrderDAL orderDAL, IVoucherService voucherService)
         {
             _orderDAL = orderDAL;
