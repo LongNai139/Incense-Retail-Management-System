@@ -80,13 +80,19 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Phone")
+                        .HasDatabaseName("IX_Customers_Phone");
+
+                    b.HasIndex("Phone", "IsDeleted")
+                        .HasDatabaseName("IX_Customers_Phone_IsDeleted");
 
                     b.ToTable("Customers");
 
@@ -95,7 +101,7 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                         {
                             Id = 1,
                             Address = "Cửa hàng Hương Trầm",
-                            CreatedTime = new DateTime(2026, 9, 23, 16, 42, 6, 762, DateTimeKind.Local).AddTicks(670),
+                            CreatedTime = new DateTime(2026, 10, 8, 18, 37, 58, 288, DateTimeKind.Local).AddTicks(9350),
                             CustomerName = "Quản trị viên",
                             IsDeleted = false,
                             Password = "123",
@@ -519,6 +525,9 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CustomerName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("DebtAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -593,6 +602,9 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");

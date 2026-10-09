@@ -1,189 +1,237 @@
-using Dapper;
+using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Abstractions.Models.Management;
 using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.DataLayers.Implements
 {
-    public class ManagementDAL : _BaseDAL, IManagementDAL
+    public class ManagementDAL : IManagementDAL
     {
-        public ManagementDAL(string connectionString) : base(connectionString) { }
+        private readonly ShopDbContext _context;
+
+        public ManagementDAL(ShopDbContext context)
+        {
+            _context = context;
+        }
 
         public bool VoucherCodeExists(string code, int exceptId)
         {
-            using var conn = OpenConnection();
-            return conn.ExecuteScalar<int>(@"
-                SELECT COUNT(1)
-                FROM Vouchers
-                WHERE IsDeleted = 0 AND Code = @Code AND Id <> @ExceptId",
-                new { Code = code.Trim().ToUpperInvariant(), ExceptId = exceptId }) > 0;
+            var normalizedCode = code.Trim().ToUpperInvariant();
+            return _context.Vouchers
+                .Any(v => !v.IsDeleted && v.Code == normalizedCode && v.Id != exceptId);
         }
 
         public int AddVoucher(Voucher voucher)
         {
-            using var conn = OpenConnection();
-            return conn.ExecuteScalar<int>(@"
-                INSERT INTO Vouchers
-                    (Code, Description, DiscountType, DiscountValue, MaxDiscount,
-                     MinOrderAmount, ExpiresAt, MaxUsage, UsedCount, IsActive, CreatedTime, IsDeleted)
-                VALUES
-                    (@Code, @Description, @DiscountType, @DiscountValue, @MaxDiscount,
-                     @MinOrderAmount, @ExpiresAt, @MaxUsage, @UsedCount, @IsActive, @CreatedTime, @IsDeleted);
-                SELECT CAST(SCOPE_IDENTITY() AS int);", voucher);
+            voucher.Code = voucher.Code.Trim().ToUpperInvariant();
+            voucher.CreatedTime = DateTime.Now;
+            voucher.IsDeleted = false;
+
+            _context.Vouchers.Add(voucher);
+            _context.SaveChanges();
+            return voucher.Id;
         }
 
         public Voucher? GetVoucher(int id)
         {
-            using var conn = OpenConnection();
-            return conn.QueryFirstOrDefault<Voucher>(
-                "SELECT * FROM Vouchers WHERE Id = @id AND IsDeleted = 0",
-                new { id });
+            return _context.Vouchers
+                .FirstOrDefault(v => v.Id == id && !v.IsDeleted);
         }
 
         public bool SetVoucherActive(int id, bool isActive)
         {
-            using var conn = OpenConnection();
-            return conn.Execute(
-                "UPDATE Vouchers SET IsActive = @isActive WHERE Id = @id AND IsDeleted = 0",
-                new { id, isActive }) > 0;
+            var voucher = _context.Vouchers
+                .FirstOrDefault(v => v.Id == id && !v.IsDeleted);
+            if (voucher == null)
+                return false;
+
+            voucher.IsActive = isActive;
+            return _context.SaveChanges() > 0;
         }
 
         public bool SetVoucherDeleted(int id, bool isDeleted)
         {
-            using var conn = OpenConnection();
-            return conn.Execute(
-                "UPDATE Vouchers SET IsDeleted = @isDeleted WHERE Id = @id",
-                new { id, isDeleted }) > 0;
+            var voucher = _context.Vouchers
+                .FirstOrDefault(v => v.Id == id);
+            if (voucher == null)
+                return false;
+
+            voucher.IsDeleted = isDeleted;
+            return _context.SaveChanges() > 0;
         }
 
         public List<Voucher> ListVouchers(int take)
         {
-            using var conn = OpenConnection();
-            return conn.Query<Voucher>(@"
-                SELECT TOP (@Take) *
-                FROM Vouchers
-                WHERE IsDeleted = 0
-                ORDER BY CreatedTime DESC", new { Take = take }).ToList();
+            return _context.Vouchers
+                .Where(v => !v.IsDeleted)
+                .OrderByDescending(v => v.CreatedTime)
+                .Take(take)
+                .ToList();
         }
 
         public List<ManagementOrderData> ListRecentOrders(int take)
         {
-            using var conn = OpenConnection();
-            var rows = conn.Query<ManagementOrderData>(@"
-                SELECT TOP (@Take)
-                    o.Id,
-                    o.OrderDate,
-                    o.TotalAmount,
-                    o.Status,
-                    COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest') AS CustomerName,
-                    COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), '') AS CustomerPhone,
-                    CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit) AS IsGuest,
-                    COALESCE(SUM(d.Quantity), 0) AS ItemCount,
-                    COALESCE(COUNT(DISTINCT d.ProductId), 0) AS ProductTypeCount
-                FROM Orders o
-                LEFT JOIN Customers c ON o.CustomerId = c.Id
-                LEFT JOIN OrderDetails d ON o.Id = d.OrderId
-                WHERE o.IsDeleted = 0
-                GROUP BY o.Id, o.OrderDate, o.TotalAmount, o.Status,
-                    COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest'),
-                    COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), ''),
-                    CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit)
-                ORDER BY o.OrderDate DESC", new { Take = take }).ToList();
+            var query = from o in _context.Orders
+                        join c in _context.Customers on o.CustomerId equals c.Id into customerGroup
+                        from c in customerGroup.DefaultIfEmpty()
+                        join d in _context.OrderDetails on o.Id equals d.OrderId into detailGroup
+                        from d in detailGroup.DefaultIfEmpty()
+                        where !o.IsDeleted
+                        group new { o, c, d } by new
+                        {
+                            o.Id,
+                            o.OrderDate,
+                            o.TotalAmount,
+                            o.Status,
+                            CustomerName = c != null && !string.IsNullOrWhiteSpace(c.CustomerName)
+                                ? c.CustomerName
+                                : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
+                            CustomerPhone = c != null && !string.IsNullOrWhiteSpace(c.Phone)
+                                ? c.Phone
+                                : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
+                            IsGuest = c == null || o.CustomerId <= 0
+                        } into g
+                        select new ManagementOrderData
+                        {
+                            Id = g.Key.Id,
+                            OrderDate = g.Key.OrderDate,
+                            TotalAmount = g.Key.TotalAmount,
+                            Status = g.Key.Status,
+                            CustomerName = g.Key.CustomerName,
+                            CustomerPhone = g.Key.CustomerPhone,
+                            IsGuest = g.Key.IsGuest,
+                            ItemCount = g.Sum(x => x.d != null ? x.d.Quantity : 0),
+                            ProductTypeCount = g.Count(x => x.d != null && x.d.ProductId > 0)
+                        };
 
-            return rows;
+            return query
+                .OrderByDescending(o => o.OrderDate)
+                .Take(take)
+                .ToList();
         }
 
         public (List<ManagementOrderData> Orders, int TotalCount) ListOrdersPaginated(int page, int pageSize, int? status = null)
         {
-            using var conn = OpenConnection();
-            var offset = (page - 1) * pageSize;
+            var baseQuery = from o in _context.Orders
+                            join c in _context.Customers on o.CustomerId equals c.Id into customerGroup
+                            from c in customerGroup.DefaultIfEmpty()
+                            join d in _context.OrderDetails on o.Id equals d.OrderId into detailGroup
+                            from d in detailGroup.DefaultIfEmpty()
+                            where !o.IsDeleted
+                            group new { o, c, d } by new
+                            {
+                                o.Id,
+                                o.OrderDate,
+                                o.TotalAmount,
+                                o.Status,
+                                CustomerName = c != null && !string.IsNullOrWhiteSpace(c.CustomerName)
+                                    ? c.CustomerName
+                                    : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
+                                CustomerPhone = c != null && !string.IsNullOrWhiteSpace(c.Phone)
+                                    ? c.Phone
+                                    : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
+                                IsGuest = c == null || o.CustomerId <= 0
+                            } into g
+                            select new
+                            {
+                                OrderData = new ManagementOrderData
+                                {
+                                    Id = g.Key.Id,
+                                    OrderDate = g.Key.OrderDate,
+                                    TotalAmount = g.Key.TotalAmount,
+                                    Status = g.Key.Status,
+                                    CustomerName = g.Key.CustomerName,
+                                    CustomerPhone = g.Key.CustomerPhone,
+                                    IsGuest = g.Key.IsGuest,
+                                    ItemCount = g.Sum(x => x.d != null ? x.d.Quantity : 0),
+                                    ProductTypeCount = g.Count(x => x.d != null && x.d.ProductId > 0)
+                                },
+                                g.Key.Status
+                            };
 
-            // Build WHERE clause for status filter
-            var statusFilter = status.HasValue ? "AND o.Status = @Status" : "";
+            if (status.HasValue)
+            {
+                baseQuery = baseQuery.Where(x => x.Status == status.Value);
+            }
 
-            // Get total count with filter
-            var totalCount = conn.ExecuteScalar<int>($@"
-                SELECT COUNT(DISTINCT o.Id)
-                FROM Orders o
-                WHERE o.IsDeleted = 0 {statusFilter}",
-                new { Status = status });
+            var totalCount = baseQuery.Count();
 
-            // Get paginated orders with filter
-            var orders = conn.Query<ManagementOrderData>($@"
-                SELECT
-                    o.Id,
-                    o.OrderDate,
-                    o.TotalAmount,
-                    o.Status,
-                    COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest') AS CustomerName,
-                    COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), '') AS CustomerPhone,
-                    CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit) AS IsGuest,
-                    COALESCE(SUM(d.Quantity), 0) AS ItemCount,
-                    COALESCE(COUNT(DISTINCT d.ProductId), 0) AS ProductTypeCount
-                FROM Orders o
-                LEFT JOIN Customers c ON o.CustomerId = c.Id
-                LEFT JOIN OrderDetails d ON o.Id = d.OrderId
-                WHERE o.IsDeleted = 0 {statusFilter}
-                GROUP BY o.Id, o.OrderDate, o.TotalAmount, o.Status,
-                    COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest'),
-                    COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), ''),
-                    CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit)
-                ORDER BY o.OrderDate DESC
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
-                new { Offset = offset, PageSize = pageSize, Status = status }).ToList();
+            var orders = baseQuery
+                .OrderByDescending(x => x.OrderData.OrderDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => x.OrderData)
+                .ToList();
 
             return (orders, totalCount);
         }
 
         public List<CustomerManagementData> ListCustomers()
         {
-            using var conn = OpenConnection();
-            return conn.Query<CustomerManagementData>(@"
-                SELECT
-                    c.Id,
-                    c.CustomerName,
-                    c.Phone,
-                    c.Email,
-                    c.Address,
-                    c.Role,
-                    c.CreatedTime,
-                    COUNT(o.Id) AS OrderCount,
-                    COALESCE(SUM(o.TotalAmount), 0) AS TotalSpent,
-                    MAX(o.OrderDate) AS LastOrderDate
-                FROM Customers c
-                LEFT JOIN Orders o ON c.Id = o.CustomerId AND o.IsDeleted = 0
-                WHERE c.IsDeleted = 0
-                GROUP BY c.Id, c.CustomerName, c.Phone, c.Email, c.Address, c.Role, c.CreatedTime
-                ORDER BY COALESCE(MAX(o.OrderDate), c.CreatedTime) DESC").ToList();
+            return (from c in _context.Customers
+                    join o in _context.Orders on c.Id equals o.CustomerId into orderGroup
+                    from o in orderGroup.DefaultIfEmpty()
+                    where !c.IsDeleted
+                    group o by new
+                    {
+                        c.Id,
+                        c.CustomerName,
+                        c.Phone,
+                        c.Email,
+                        c.Address,
+                        c.Role,
+                        c.CreatedTime
+                    } into g
+                    select new CustomerManagementData
+                    {
+                        Id = g.Key.Id,
+                        CustomerName = g.Key.CustomerName,
+                        Phone = g.Key.Phone,
+                        Email = g.Key.Email,
+                        Address = g.Key.Address,
+                        Role = g.Key.Role,
+                        CreatedTime = g.Key.CreatedTime,
+                        OrderCount = g.Count(x => x != null && !x.IsDeleted),
+                        TotalSpent = g.Where(x => x != null && !x.IsDeleted).Sum(x => x.TotalAmount),
+                        LastOrderDate = g.Where(x => x != null && !x.IsDeleted).Max(x => (DateTime?)x.OrderDate)
+                    })
+                    .OrderByDescending(c => c.LastOrderDate ?? c.CreatedTime)
+                    .ToList();
         }
 
         public List<CustomerPurchaseHistoryData> ListCustomerHistory(int customerId, int take)
         {
-            using var conn = OpenConnection();
-            var histories = conn.Query<CustomerPurchaseHistoryData>(@"
-                SELECT TOP (@Take)
-                    o.Id AS OrderId,
-                    o.OrderDate,
-                    o.TotalAmount,
-                    o.Status,
-                    COALESCE(SUM(d.Quantity), 0) AS ItemCount
-                FROM Orders o
-                LEFT JOIN OrderDetails d ON o.Id = d.OrderId
-                WHERE o.IsDeleted = 0 AND o.CustomerId = @CustomerId
-                GROUP BY o.Id, o.OrderDate, o.TotalAmount, o.Status
-                ORDER BY o.OrderDate DESC",
-                new { CustomerId = customerId, Take = take }).ToList();
+            var histories = _context.Orders
+                .Where(o => !o.IsDeleted && o.CustomerId == customerId)
+                .GroupJoin(
+                    _context.OrderDetails,
+                    o => o.Id,
+                    d => d.OrderId,
+                    (o, details) => new { o, details })
+                .SelectMany(
+                    x => x.details.DefaultIfEmpty(),
+                    (o, d) => new { o.o, d })
+                .GroupBy(x => new { x.o.Id, x.o.OrderDate, x.o.TotalAmount, x.o.Status })
+                .Select(g => new CustomerPurchaseHistoryData
+                {
+                    OrderId = g.Key.Id,
+                    OrderDate = g.Key.OrderDate,
+                    TotalAmount = g.Key.TotalAmount,
+                    Status = g.Key.Status,
+                    ItemCount = g.Sum(x => x.d != null ? x.d.Quantity : 0)
+                })
+                .OrderByDescending(h => h.OrderDate)
+                .Take(take)
+                .ToList();
 
             var orderIds = histories.Select(h => h.OrderId).ToArray();
             if (orderIds.Length == 0)
                 return histories;
 
-            var products = conn.Query<(int OrderId, string ProductName)>(@"
-                SELECT d.OrderId, p.ProductName
-                FROM OrderDetails d
-                INNER JOIN Products p ON d.ProductId = p.Id
-                WHERE d.OrderId IN @OrderIds",
-                new { OrderIds = orderIds }).ToList();
+            var products = _context.OrderDetails
+                .Join(_context.Products, d => d.ProductId, p => p.Id, (d, p) => new { d.OrderId, p.ProductName })
+                .Where(x => orderIds.Contains(x.OrderId))
+                .ToList();
 
             foreach (var history in histories)
             {
@@ -199,35 +247,40 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public ManagementOrderDetailsData? GetOrderDetails(int orderId)
         {
-            using var conn = OpenConnection();
-            var order = conn.QueryFirstOrDefault<ManagementOrderDetailHeaderData>(@"
-                SELECT
-                    o.Id,
-                    o.OrderDate,
-                    o.TotalAmount,
-                    o.Status,
-                    COALESCE(NULLIF(c.CustomerName, ''), NULLIF(o.ShippingName, ''), 'Guest') AS CustomerName,
-                    COALESCE(NULLIF(c.Phone, ''), NULLIF(o.ShippingPhone, ''), '') AS CustomerPhone,
-                    o.ShippingAddress,
-                    CAST(CASE WHEN c.Id IS NULL OR o.CustomerId <= 0 THEN 1 ELSE 0 END AS bit) AS IsGuest
-                FROM Orders o
-                LEFT JOIN Customers c ON o.CustomerId = c.Id
-                WHERE o.IsDeleted = 0 AND o.Id = @OrderId",
-                new { OrderId = orderId });
+            var order = _context.Orders
+                .Join(_context.Customers, o => o.CustomerId, c => c.Id, (o, c) => new { o, c })
+                .Where(x => !x.o.IsDeleted && x.o.Id == orderId)
+                .Select(x => new ManagementOrderDetailHeaderData
+                {
+                    Id = x.o.Id,
+                    OrderDate = x.o.OrderDate,
+                    TotalAmount = x.o.TotalAmount,
+                    Status = x.o.Status,
+                    CustomerName = x.c != null && !string.IsNullOrWhiteSpace(x.c.CustomerName)
+                        ? x.c.CustomerName
+                        : (!string.IsNullOrWhiteSpace(x.o.ShippingName) ? x.o.ShippingName : "Guest"),
+                    CustomerPhone = x.c != null && !string.IsNullOrWhiteSpace(x.c.Phone)
+                        ? x.c.Phone
+                        : (!string.IsNullOrWhiteSpace(x.o.ShippingPhone) ? x.o.ShippingPhone : ""),
+                    ShippingAddress = x.o.ShippingAddress,
+                    IsGuest = x.c == null || x.o.CustomerId <= 0
+                })
+                .FirstOrDefault();
 
             if (order == null)
                 return null;
 
-            var details = conn.Query<ManagementOrderDetailLineData>(@"
-                SELECT
-                    p.ProductName,
-                    d.Quantity,
-                    d.UnitPrice,
-                    d.Quantity * d.UnitPrice AS LineTotal
-                FROM OrderDetails d
-                INNER JOIN Products p ON d.ProductId = p.Id
-                WHERE d.OrderId = @OrderId",
-                new { OrderId = orderId }).ToList();
+            var details = _context.OrderDetails
+                .Join(_context.Products, d => d.ProductId, p => p.Id, (d, p) => new { d, p })
+                .Where(x => x.d.OrderId == orderId)
+                .Select(x => new ManagementOrderDetailLineData
+                {
+                    ProductName = x.p.ProductName,
+                    Quantity = x.d.Quantity,
+                    UnitPrice = x.d.UnitPrice,
+                    LineTotal = x.d.Quantity * x.d.UnitPrice
+                })
+                .ToList();
 
             return new ManagementOrderDetailsData
             {

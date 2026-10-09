@@ -12,22 +12,31 @@ namespace SV22T1080045.Shop.DataLayers
             string connectionString)
         {
             services.AddDbContext<ShopDbContext>(options =>
-                options.UseSqlServer(connectionString));
+            {
+                options.UseSqlServer(connectionString, sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorNumbersToAdd: null);
+                });
+                options.EnableDetailedErrors();
+            });
 
             services.AddScoped<IProductDAL, ProductDAL>();
             services.AddScoped<ICategoryDAL, CategoryDAL>();
             services.AddScoped<IUnitDAL, UnitDAL>();
             services.AddScoped<ICustomerDAL, CustomerDAL>();
             services.AddScoped<ISystemDAL, SystemDAL>();
-            services.AddScoped<IOrderDAL>(_ => new OrderDAL(connectionString));
-            services.AddScoped<IRevenueReportDAL>(_ => new RevenueReportDAL(connectionString));
-            services.AddScoped<IManagementDAL>(_ => new ManagementDAL(connectionString));
-            services.AddScoped<IStaffDAL>(_ => new StaffDAL(connectionString));
-            services.AddScoped<IVoucherDAL>(_ => new VoucherDAL(connectionString));
-            services.AddScoped<IGuestOrderDAL>(_ => new GuestOrderDAL(connectionString));
-            services.AddScoped<IPhoneOtpDAL>(_ => new PhoneOtpDAL(connectionString));
+            services.AddScoped<IOrderDAL, OrderDAL>();
+            services.AddScoped<IRevenueReportDAL, RevenueReportDAL>();
+            services.AddScoped<IManagementDAL, ManagementDAL>();
+            services.AddScoped<IStaffDAL, StaffDAL>();
+            services.AddScoped<IVoucherDAL, VoucherDAL>();
+            services.AddScoped<IGuestOrderDAL, GuestOrderDAL>();
+            services.AddScoped<IPhoneOtpDAL, PhoneOtpDAL>();
             services.AddScoped<IFileStorageService, LocalFileStorageService>();
-            services.AddScoped<IWarehouseDAL>(_ => new WarehouseDAL(connectionString));
+            services.AddScoped<IWarehouseDAL, WarehouseDAL>();
 
             return services;
         }

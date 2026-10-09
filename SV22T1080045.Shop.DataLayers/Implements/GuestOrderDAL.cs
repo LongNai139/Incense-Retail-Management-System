@@ -1,4 +1,4 @@
-using Dapper;
+using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.DomainModels;
@@ -7,9 +7,14 @@ using System.Text;
 
 namespace SV22T1080045.Shop.DataLayers.Implements
 {
-    public class GuestOrderDAL : _BaseDAL, IGuestOrderDAL
+    public class GuestOrderDAL : IGuestOrderDAL
     {
-        public GuestOrderDAL(string connectionString) : base(connectionString) { }
+        private readonly ShopDbContext _context;
+
+        public GuestOrderDAL(ShopDbContext context)
+        {
+            _context = context;
+        }
 
         // ── HASH SĐT (SHA-256, không lưu SĐT gốc) ────────────────────────────
         public static string HashPhone(string phone)
@@ -28,60 +33,61 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public void Save(int orderId, string phone)
         {
-            using var conn = OpenConnection();
-            var exists = conn.ExecuteScalar<int>(
-                "SELECT COUNT(1) FROM GuestOrders WHERE OrderId = @orderId AND IsDeleted = 0",
-                new { orderId });
-            if (exists > 0) return;
+            var exists = _context.GuestOrders
+                .Any(g => g.OrderId == orderId && !g.IsDeleted);
+            if (exists) return;
 
-            conn.Execute(@"
-                INSERT INTO GuestOrders (OrderId, PhoneHash, PhoneLastFour, CreatedAt, Id, CreatedTime, IsDeleted)
-                VALUES (@orderId, @phoneHash, @phoneLastFour, GETDATE(), @orderId, GETDATE(), 0)",
-                new
-                {
-                    orderId,
-                    phoneHash = HashPhone(phone),
-                    phoneLastFour = LastFour(phone)
-                });
+            var guestOrder = new GuestOrder
+            {
+                OrderId = orderId,
+                PhoneHash = HashPhone(phone),
+                PhoneLastFour = LastFour(phone),
+                CreatedAt = DateTime.Now,
+                CreatedTime = DateTime.Now,
+                IsDeleted = false
+            };
+
+            _context.GuestOrders.Add(guestOrder);
+            _context.SaveChanges();
         }
 
         public List<Order> GetOrdersByPhone(string phone)
         {
-            using var conn = OpenConnection();
             var hash = HashPhone(phone);
 
-            return conn.Query<Order>(@"
-                SELECT o.*
-                FROM   Orders o
-                JOIN   GuestOrders g ON g.OrderId = o.Id
-                WHERE  g.PhoneHash = @hash
-                  AND  g.IsDeleted = 0
-                  AND  o.IsDeleted = 0
-                ORDER BY o.OrderDate DESC",
-                new { hash }).ToList();
+            return _context.Orders
+                .Join(_context.GuestOrders, o => o.Id, g => g.OrderId, (o, g) => new { o, g })
+                .Where(x => x.g.PhoneHash == hash && !x.g.IsDeleted && !x.o.IsDeleted)
+                .OrderByDescending(x => x.o.OrderDate)
+                .Select(x => x.o)
+                .ToList();
         }
 
         public bool MergeToCustomer(string phone, int customerId)
         {
-            using var conn = OpenConnection();
             var hash = HashPhone(phone);
 
-            int rows = conn.Execute(@"
-                UPDATE o SET o.CustomerId = @customerId
-                FROM   Orders o
-                JOIN   GuestOrders g ON g.OrderId = o.Id
-                WHERE  g.PhoneHash = @hash
-                  AND  g.IsDeleted = 0
-                  AND  (o.CustomerId = 0 OR o.CustomerId IS NULL)",
-                new { hash, customerId });
+            var orders = _context.Orders
+                .Join(_context.GuestOrders, o => o.Id, g => g.OrderId, (o, g) => new { o, g })
+                .Where(x => x.g.PhoneHash == hash && !x.g.IsDeleted && x.o.CustomerId == 0)
+                .Select(x => x.o)
+                .ToList();
 
-            conn.Execute(@"
-                UPDATE GuestOrders
-                SET    ConvertedCustomerId = @customerId
-                WHERE  PhoneHash = @hash AND ConvertedCustomerId IS NULL",
-                new { hash, customerId });
+            foreach (var order in orders)
+            {
+                order.CustomerId = customerId;
+            }
 
-            return rows > 0;
+            var guestOrders = _context.GuestOrders
+                .Where(g => g.PhoneHash == hash && g.ConvertedCustomerId == null)
+                .ToList();
+
+            foreach (var guestOrder in guestOrders)
+            {
+                guestOrder.ConvertedCustomerId = customerId;
+            }
+
+            return _context.SaveChanges() > 0;
         }
     }
 }

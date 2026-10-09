@@ -60,6 +60,15 @@ namespace SV22T1080045.Shop.DataLayers
                  .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // Customer index optimization
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => c.Phone)
+                .HasDatabaseName("IX_Customers_Phone");
+
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => new { c.Phone, c.IsDeleted })
+                .HasDatabaseName("IX_Customers_Phone_IsDeleted");
+
             // 👇 2. Seed Data (Tạo Admin mẫu - Giữ nguyên cái cũ của bạn)
             modelBuilder.Entity<Customer>().HasData(
                 new Customer

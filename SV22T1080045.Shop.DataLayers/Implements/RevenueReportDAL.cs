@@ -1,16 +1,22 @@
 using Dapper;
+using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Abstractions.Models.Reports;
 
 namespace SV22T1080045.Shop.DataLayers.Implements
 {
-    public class RevenueReportDAL : _BaseDAL, IRevenueReportDAL
+    public class RevenueReportDAL : IRevenueReportDAL
     {
-        public RevenueReportDAL(string connectionString) : base(connectionString) { }
+        private readonly ShopDbContext _context;
+
+        public RevenueReportDAL(ShopDbContext context)
+        {
+            _context = context;
+        }
 
         public RevenueReportData GetRevenueReport(DateTime start, DateTime end, DateTime previousStart, DateTime previousEnd)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             var args = new
             {
                 Start = start,

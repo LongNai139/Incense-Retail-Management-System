@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 
@@ -15,6 +16,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
         public Customer? GetById(int id)
         {
             return _context.Customers
+                .AsNoTracking()
                 .FirstOrDefault(c => !c.IsDeleted && c.Id == id);
         }
 
@@ -22,6 +24,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
         {
             var normalizedPhone = phone.Trim();
             return _context.Customers
+                .AsNoTracking()
                 .FirstOrDefault(c => !c.IsDeleted && c.Phone == normalizedPhone);
         }
 
@@ -29,6 +32,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
         {
             var normalizedPhone = phone.Trim();
             return _context.Customers
+                .AsNoTracking()
                 .FirstOrDefault(c => !c.IsDeleted && c.Phone == normalizedPhone && c.Password == password);
         }
 
@@ -41,7 +45,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public bool UpdateProfile(Customer customer)
         {
-            var existing = GetById(customer.Id);
+            var existing = _context.Customers
+                .FirstOrDefault(c => !c.IsDeleted && c.Id == customer.Id);
             if (existing == null)
                 return false;
 

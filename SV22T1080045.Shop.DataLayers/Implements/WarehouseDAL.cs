@@ -1,17 +1,23 @@
 using Dapper;
+using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.DomainModels.Warehouse;
 
 namespace SV22T1080045.Shop.DataLayers.Implements
 {
-    public class WarehouseDAL : _BaseDAL, IWarehouseDAL
+    public class WarehouseDAL : IWarehouseDAL
     {
-        public WarehouseDAL(string connectionString) : base(connectionString) { }
+        private readonly ShopDbContext _context;
+
+        public WarehouseDAL(ShopDbContext context)
+        {
+            _context = context;
+        }
 
         public List<StockTransaction> ListStockTransactions(int productId, DateTime? fromDate, DateTime? toDate)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             var sql = @"
                 SELECT st.*, p.ProductName
                 FROM StockTransactions st
@@ -34,7 +40,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public StockTransaction? GetStockTransaction(int id)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.QueryFirstOrDefault<StockTransaction>(
                 "SELECT * FROM StockTransactions WHERE Id = @Id AND IsDeleted = 0",
                 new { Id = id });
@@ -42,10 +48,10 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public int AddStockTransaction(StockTransaction transaction)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.ExecuteScalar<int>(@"
                 INSERT INTO StockTransactions
-                    (ProductId, Quantity, TransactionType, UnitPrice, ReferenceNumber, Reason, 
+                    (ProductId, Quantity, TransactionType, UnitPrice, ReferenceNumber, Reason,
                      TransactionDate, CreatedTime, CreatedBy, IsDeleted)
                 VALUES
                     (@ProductId, @Quantity, @TransactionType, @UnitPrice, @ReferenceNumber, @Reason,
@@ -55,7 +61,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public bool UpdateStockTransaction(StockTransaction transaction)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.Execute(@"
                 UPDATE StockTransactions
                 SET Quantity = @Quantity, TransactionType = @TransactionType, UnitPrice = @UnitPrice,
@@ -66,7 +72,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public bool DeleteStockTransaction(int id)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.Execute(
                 "UPDATE StockTransactions SET IsDeleted = 1 WHERE Id = @Id",
                 new { Id = id }) > 0;
@@ -74,9 +80,9 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public List<StockInventory> ListStockInventories()
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.Query<StockInventory>(
-                @"SELECT pi.ProductId, p.ProductName, pi.Quantity as CurrentQuantity, pi.LowStockThreshold, pi.UpdatedTime as LastUpdated, GETDATE() as CreatedTime, 0 as AverageCost, 1000 as MaxStockThreshold 
+                @"SELECT pi.ProductId, p.ProductName, pi.Quantity as CurrentQuantity, pi.LowStockThreshold, pi.UpdatedTime as LastUpdated, GETDATE() as CreatedTime, 0 as AverageCost, 1000 as MaxStockThreshold
                 FROM ProductInventories pi
                 LEFT JOIN Products p ON pi.ProductId = p.Id
                 ORDER BY pi.Quantity ASC").ToList();
@@ -84,9 +90,9 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public StockInventory? GetStockInventory(int productId)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.QueryFirstOrDefault<StockInventory>(
-                @"SELECT pi.ProductId, p.ProductName, pi.Quantity as CurrentQuantity, pi.LowStockThreshold, pi.UpdatedTime as LastUpdated, GETDATE() as CreatedTime, 0 as AverageCost, 1000 as MaxStockThreshold 
+                @"SELECT pi.ProductId, p.ProductName, pi.Quantity as CurrentQuantity, pi.LowStockThreshold, pi.UpdatedTime as LastUpdated, GETDATE() as CreatedTime, 0 as AverageCost, 1000 as MaxStockThreshold
                 FROM ProductInventories pi
                 LEFT JOIN Products p ON pi.ProductId = p.Id
                 WHERE pi.ProductId = @ProductId",
@@ -95,9 +101,9 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public bool UpdateStockInventory(int productId, int quantityChange, decimal averageCost)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             var existing = GetStockInventory(productId);
-            
+
             if (existing == null)
             {
                 // Create new inventory record
@@ -122,24 +128,24 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public List<CustomerDebt> ListCustomerDebts(int? customerId)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             var sql = @"
                 SELECT cd.*, c.CustomerName
                 FROM CustomerDebts cd
                 LEFT JOIN Customers c ON cd.CustomerId = c.Id
                 WHERE cd.IsDeleted = 0";
-            
+
             if (customerId.HasValue)
                 sql += " AND cd.CustomerId = @CustomerId";
-            
+
             sql += " ORDER BY cd.DueDate ASC";
-            
+
             return conn.Query<CustomerDebt>(sql, new { CustomerId = customerId }).ToList();
         }
 
         public CustomerDebt? GetCustomerDebt(int id)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.QueryFirstOrDefault<CustomerDebt>(
                 "SELECT * FROM CustomerDebts WHERE Id = @Id AND IsDeleted = 0",
                 new { Id = id });
@@ -147,10 +153,10 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public int AddCustomerDebt(CustomerDebt debt)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.ExecuteScalar<int>(@"
                 INSERT INTO CustomerDebts
-                    (CustomerId, OrderId, OrderCode, OrderAmount, DebtAmount, PaidAmount, PaymentReference, DueDate, PaidDate, 
+                    (CustomerId, OrderId, OrderCode, OrderAmount, DebtAmount, PaidAmount, PaymentReference, DueDate, PaidDate,
                      Status, Notes, CreatedTime, UpdatedTime, IsDeleted)
                 VALUES
                     (@CustomerId, @OrderId, @OrderCode, @OrderAmount, @DebtAmount, @PaidAmount, @PaymentReference, @DueDate, @PaidDate,
@@ -160,7 +166,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public bool UpdateCustomerDebt(CustomerDebt debt)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.Execute(@"
                 UPDATE CustomerDebts
                 SET PaidAmount = @PaidAmount, PaidDate = @PaidDate, Status = @Status,
@@ -170,7 +176,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public bool DeleteCustomerDebt(int id)
         {
-            using var conn = OpenConnection();
+            using var conn = _context.GetConnection();
             return conn.Execute(
                 "UPDATE CustomerDebts SET IsDeleted = 1 WHERE Id = @Id",
                 new { Id = id }) > 0;
