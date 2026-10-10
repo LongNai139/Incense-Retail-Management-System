@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.Abstractions;
+using SV22T1080045.Shop.Abstractions.Models;
 using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.Models.Mappers;
