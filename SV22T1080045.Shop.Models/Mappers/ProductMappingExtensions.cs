@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using SV22T1080045.Shop.Abstractions.Contracts.Products;
 using SV22T1080045.Shop.Abstractions.Models;
-using SV22T1080045.Shop.BusinessLayers.Helpers;
+using SV22T1080045.Shop.Common.Helpers;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models.ViewModels.Product;
 

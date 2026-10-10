@@ -10,5 +10,6 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
         public List<RevenuePointViewModel> ReportRevenuePoints { get; set; } = new();
         public List<ProductSalesReportViewModel> ProductSalesReports { get; set; } = new();
         public List<CustomerManagementRowViewModel> TopCustomers { get; set; } = new();
+        public List<ManagementCategoryOptionViewModel> Categories { get; set; } = new();
     }
 }

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SV22T1080045.Shop.Models.ViewModels.System;
 
 public class SystemDashboardViewModel
@@ -32,11 +34,26 @@ public class SystemDashboardViewModel
 public class SystemAccountFormViewModel
 {
     public int Id { get; set; }
+
+    [Required(ErrorMessage = "Vui lòng nhập họ tên.")]
+    [StringLength(120, ErrorMessage = "Họ tên không được quá 120 ký tự.")]
     public string CustomerName { get; set; } = "";
+
+    [Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
+    [StringLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự.")]
     public string Phone { get; set; } = "";
+
+    [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+    [StringLength(120, ErrorMessage = "Email không được quá 120 ký tự.")]
     public string? Email { get; set; }
+
+    [StringLength(200, ErrorMessage = "Địa chỉ không được quá 200 ký tự.")]
     public string? Address { get; set; }
+
+    [Required(ErrorMessage = "Vui lòng chọn vai trò.")]
     public string Role { get; set; } = "Staff";
+
+    [StringLength(100, ErrorMessage = "Mật khẩu không được quá 100 ký tự.")]
     public string? Password { get; set; }
 }
 
