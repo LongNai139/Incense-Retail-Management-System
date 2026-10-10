@@ -5,6 +5,19 @@
     border-radius: 8px;
     padding: 12px 16px;
     font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.system-shell .system-toast.success {
+    background: rgba(82, 116, 91, 0.2);
+    border-color: rgba(82, 116, 91, 0.5);
+    color: #6b9e76;
+}
+
+.system-shell .system-toast.error {
+    background: rgba(180, 80, 80, 0.2);
+    border-color: rgba(180, 80, 80, 0.5);
+    color: #e8a8a8;
 }
 
 .system-filter-row {

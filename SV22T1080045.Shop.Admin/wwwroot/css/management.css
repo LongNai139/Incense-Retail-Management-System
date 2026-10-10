@@ -51,90 +51,96 @@
 }
 
 /* Header Dark Theme for Management */
+.site-header {
+    background: rgba(26, 18, 9, 0.95) !important;
+    border-bottom-color: #6b4f2e !important;
+    backdrop-filter: blur(16px);
+}
+
 .site-header-dark {
     background: rgba(26, 18, 9, 0.95) !important;
     border-bottom-color: #6b4f2e !important;
     backdrop-filter: blur(16px);
 }
 
-    .site-header-dark .logo-text,
-    .site-header-dark .logo-text span {
+.site-header .logo-text,
+.site-header .logo-text span {
+    color: #ffffff !important;
+}
+
+.site-header .logo-icon {
+    background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
+    color: #1a1209 !important;
+}
+
+.site-header .nav-links a {
+    color: #e0e0e0 !important;
+}
+
+    .site-header .nav-links a:hover {
+        color: #ffffff !important;
+        border-bottom-color: #c9a961 !important;
+    }
+
+.site-header .nav-search input {
+    background: rgba(61, 43, 28, 0.8) !important;
+    border-color: #6b4f2e !important;
+    color: #ffffff !important;
+}
+
+    .site-header .nav-search input::placeholder {
+        color: #d0d0d0 !important;
+    }
+
+.site-header .nav-search-icon {
+    color: #c9a961 !important;
+    opacity: 0.7;
+}
+
+.site-header .nav-btn-ghost {
+    border-color: #6b4f2e !important;
+    color: #e0e0e0 !important;
+}
+
+    .site-header .nav-btn-ghost:hover {
+        background: rgba(201, 169, 97, 0.1) !important;
+        border-color: #c9a961 !important;
         color: #ffffff !important;
     }
 
-    .site-header-dark .logo-icon {
-        background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
-        color: #1a1209 !important;
-    }
+.site-header .nav-btn-solid {
+    background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
+    color: #1a1209 !important;
+}
 
-    .site-header-dark .nav-links a {
+.site-header .cart-btn {
+    background: rgba(61, 43, 28, 0.8) !important;
+    border-color: #6b4f2e !important;
+    color: #e0e0e0 !important;
+}
+
+.site-header .cart-count {
+    background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
+    color: #1a1209 !important;
+}
+
+.site-header .nav-dropdown-menu {
+    background: rgba(45, 31, 20, 0.98) !important;
+    border-color: #6b4f2e !important;
+}
+
+    .site-header .nav-dropdown-menu a {
         color: #e0e0e0 !important;
     }
 
-        .site-header-dark .nav-links a:hover {
-            color: #ffffff !important;
-            border-bottom-color: #c9a961 !important;
-        }
-
-    .site-header-dark .nav-search input {
-        background: rgba(61, 43, 28, 0.8) !important;
-        border-color: #6b4f2e !important;
-        color: #ffffff !important;
-    }
-
-        .site-header-dark .nav-search input::placeholder {
-            color: #d0d0d0 !important;
-        }
-
-    .site-header-dark .nav-search-icon {
-        color: #c9a961 !important;
-        opacity: 0.7;
-    }
-
-    .site-header-dark .nav-btn-ghost {
-        border-color: #6b4f2e !important;
-        color: #e0e0e0 !important;
-    }
-
-        .site-header-dark .nav-btn-ghost:hover {
+        .site-header .nav-dropdown-menu a:hover {
             background: rgba(201, 169, 97, 0.1) !important;
-            border-color: #c9a961 !important;
-            color: #ffffff !important;
+            color: #f5e6c8 !important;
         }
 
-    .site-header-dark .nav-btn-solid {
-        background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
-        color: #1a1209 !important;
-    }
-
-    .site-header-dark .cart-btn {
-        background: rgba(61, 43, 28, 0.8) !important;
-        border-color: #6b4f2e !important;
-        color: #e0e0e0 !important;
-    }
-
-    .site-header-dark .cart-count {
-        background: linear-gradient(135deg, #c9a961, #8a6d28) !important;
-        color: #1a1209 !important;
-    }
-
-    .site-header-dark .nav-dropdown-menu {
-        background: rgba(45, 31, 20, 0.98) !important;
-        border-color: #6b4f2e !important;
-    }
-
-        .site-header-dark .nav-dropdown-menu a {
-            color: #e0e0e0 !important;
-        }
-
-            .site-header-dark .nav-dropdown-menu a:hover {
-                background: rgba(201, 169, 97, 0.1) !important;
-                color: #f5e6c8 !important;
-            }
-
-    .site-header-dark .nav-dropdown-divider {
-        background: #6b4f2e !important;
-    }
+.site-header .nav-dropdown-divider {
+    background: #6b4f2e !important;
+}
 
 .management-shell {
     background: linear-gradient(135deg, #1a1209 0%, #2d1f14 50%, #241810 100%);
@@ -510,41 +516,6 @@
     border-bottom: 1px solid rgba(107, 79, 46, 0.3);
 }
 
-.chart-box {
-    height: 284px;
-    display: grid;
-}
-
-.line-chart {
-    width: 100%;
-    height: 100%;
-}
-
-.bar-chart {
-    height: 240px;
-    display: flex;
-    align-items: end;
-    gap: 12px;
-    padding-top: 12px;
-}
-
-.bar-item {
-    flex: 1;
-    display: grid;
-    gap: 8px;
-    justify-items: center;
-    color: var(--ink-4);
-    font-size: 11px;
-}
-
-.bar-fill {
-    width: 100%;
-    max-width: 34px;
-    min-height: 24px;
-    border-radius: 8px 8px 3px 3px;
-    background: linear-gradient(180deg, #52745b, #b98b36);
-}
-
 .chart-guide {
     border: 1px solid rgba(201, 169, 97, 0.3);
     border-radius: 8px;
@@ -554,77 +525,6 @@
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 12px;
-}
-
-.simple-chart-wrap {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 8px;
-}
-
-.simple-revenue-chart {
-    min-width: max-content;
-    height: 280px;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 76px;
-    gap: 10px;
-    align-items: end;
-    padding: 10px 2px 0;
-}
-
-.simple-bar-item {
-    height: 100%;
-    display: grid;
-    grid-template-rows: auto 1fr auto auto;
-    gap: 6px;
-    justify-items: center;
-    min-width: 0;
-}
-
-.simple-bar-value {
-    min-height: 18px;
-    color: var(--ink);
-    font-size: 11px;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.simple-bar-track {
-    width: 38px;
-    height: 178px;
-    border-radius: 10px;
-    background: #efe6d6;
-    display: flex;
-    align-items: end;
-    overflow: hidden;
-}
-
-.simple-bar-fill {
-    width: 100%;
-    min-height: 3px;
-    border-radius: 10px 10px 0 0;
-    background: linear-gradient(180deg, #52745b, #b98b36);
-}
-
-.simple-bar-label,
-.simple-bar-orders {
-    max-width: 72px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 11px;
-    text-align: center;
-}
-
-.simple-bar-label {
-    color: var(--ink-2);
-    font-weight: 800;
-}
-
-.simple-bar-orders {
-    color: var(--ink-4);
 }
 
 .revenue-list {
@@ -1088,53 +988,6 @@
 
 .chart-container {
     padding: 16px 0;
-}
-
-.chart-bars {
-    display: flex;
-    align-items: flex-end;
-    gap: 12px;
-    height: 280px;
-    padding: 0 8px;
-}
-
-.chart-bar-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-
-.chart-bar {
-    width: 100%;
-    max-width: 50px;
-    min-height: 8px;
-    border-radius: 8px 8px 3px 3px;
-    background: linear-gradient(180deg, #c9a961, #8a6d28);
-    transition: height 0.3s ease;
-}
-
-.chart-bar:hover {
-    background: linear-gradient(180deg, #d4b86a, #a67c3d);
-}
-
-.chart-label {
-    font-size: 11px;
-    color: #e8d9b8;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-
-.chart-value {
-    font-size: 11px;
-    color: #f5e6c8;
-    font-weight: 700;
-    text-align: center;
 }
 
 .donut-chart-container {
@@ -2221,10 +2074,6 @@
         background: rgba(92, 64, 40, 0.7) !important;
     }
 
-.chart-box {
-    background: rgba(26, 18, 9, 0.3) !important;
-}
-
 .admin-table tr:hover td {
     background: rgba(201, 169, 97, 0.04) !important;
 }
@@ -2263,12 +2112,6 @@
     .coupon-item:hover {
         transform: none !important;
     }
-
-/* Gradients cho bars */
-.simple-bar-fill,
-.bar-fill {
-    background: linear-gradient(180deg, #4a7c59, #b8943f) !important;
-}
 
 .revenue-row-fill {
     background: linear-gradient(90deg, #4a7c59, #b8943f) !important;

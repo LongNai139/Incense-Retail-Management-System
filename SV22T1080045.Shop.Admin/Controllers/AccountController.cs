@@ -18,6 +18,8 @@ namespace SV22T1080045.Shop.Controllers
         private readonly ILogger<AccountController> _logger;
         private const int MaxLoginFailCount = 5;
         private const int LockMinutes = 5;
+        private const string LoginLockKeyPrefix = "login_lock_";
+        private const string LoginFailKeyPrefix = "login_fail_";
 
         public AccountController(IAccountService accountService, IConfiguration configuration, ILogger<AccountController> logger)
         {
@@ -93,6 +95,7 @@ namespace SV22T1080045.Shop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(UserSignInRequest model, string? returnUrl = null)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             _logger.LogInformation("Login attempt. Phone: {Phone}, Password length: {PasswordLength}", model.Phone, model.Password?.Length);
 
             ViewBag.AuthMode = "Login";
@@ -107,7 +110,8 @@ namespace SV22T1080045.Shop.Controllers
                 return View(new LoginViewModel { Phone = model.Phone, Password = model.Password });
             }
 
-            var lockUntil = HttpContext.Session.GetString($"login_lock_{model.Phone}");
+            var lockKey = $"{LoginLockKeyPrefix}{model.Phone}";
+            var lockUntil = HttpContext.Session.GetString(lockKey);
             if (!string.IsNullOrWhiteSpace(lockUntil) &&
                 DateTime.TryParse(lockUntil, out var lockTime) &&
                 lockTime > DateTime.Now)
@@ -117,8 +121,10 @@ namespace SV22T1080045.Shop.Controllers
                 return View(new LoginViewModel { Phone = model.Phone, Password = model.Password });
             }
 
+            var loginStart = System.Diagnostics.Stopwatch.StartNew();
             var customer = _accountService.Login(model.Phone, model.Password);
-            _logger.LogInformation("Login result: {Result}", customer != null ? "Success" : "Failed");
+            loginStart.Stop();
+            _logger.LogInformation("Login result: {Result}, DB time: {DbTime}ms", customer != null ? "Success" : "Failed", loginStart.ElapsedMilliseconds);
 
             if (customer != null)
             {
@@ -134,10 +140,10 @@ namespace SV22T1080045.Shop.Controllers
 
                 await SignInCustomerAsync(customer);
 
-                HttpContext.Session.Remove($"login_fail_{model.Phone}");
-                HttpContext.Session.Remove($"login_lock_{model.Phone}");
+                HttpContext.Session.Remove($"{LoginFailKeyPrefix}{model.Phone}");
+                HttpContext.Session.Remove(lockKey);
 
-                _logger.LogInformation("Login successful. Customer ID: {CustomerId}, Role: {Role}", customer.Id, customer.Role);
+                _logger.LogInformation("Login successful. Customer ID: {CustomerId}, Role: {Role}, Total time: {TotalTime}ms", customer.Id, customer.Role, stopwatch.ElapsedMilliseconds);
                 _logger.LogInformation("Redirecting to Admin: {IsAdmin}", string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase));
 
                 if (string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase))
@@ -146,16 +152,16 @@ namespace SV22T1080045.Shop.Controllers
                 return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Staff"));
             }
 
-            var failKey = $"login_fail_{model.Phone}";
+            var failKey = $"{LoginFailKeyPrefix}{model.Phone}";
             var failCount = int.TryParse(HttpContext.Session.GetString(failKey), out var c) ? c + 1 : 1;
             HttpContext.Session.SetString(failKey, failCount.ToString());
 
-            _logger.LogWarning("Login failed. Fail count: {FailCount}", failCount);
+            _logger.LogWarning("Login failed. Fail count: {FailCount}, Total time: {TotalTime}ms", failCount, stopwatch.ElapsedMilliseconds);
 
             if (failCount >= MaxLoginFailCount)
             {
                 _logger.LogWarning("Account locked. Phone: {Phone}", model.Phone);
-                HttpContext.Session.SetString($"login_lock_{model.Phone}", DateTime.Now.AddMinutes(LockMinutes).ToString("o"));
+                HttpContext.Session.SetString(lockKey, DateTime.Now.AddMinutes(LockMinutes).ToString("o"));
                 HttpContext.Session.Remove(failKey);
                 ModelState.AddModelError("", $"Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau {LockMinutes} phút.");
             }

@@ -187,17 +187,8 @@
                 <span>Biểu đồ doanh thu</span>
                 <span class="status-badge status-ready">@FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd)</span>
             </div>
-            <div class="chart-container">
-                <div class="chart-bars">
-                    @foreach (var point in Model.RevenuePoints.OrderBy(p => p.Label))
-                    {
-                        <div class="chart-bar-wrapper">
-                            <div class="chart-bar" style="height:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%; background: linear-gradient(180deg, #c9a961, #8a6d28);"></div>
-                            <div class="chart-label">@point.Label</div>
-                            <div class="chart-value">@FormatMoney(point.Revenue)</div>
-                        </div>
-                    }
-                </div>
+            <div class="chart-container" style="padding: 16px;">
+                <canvas id="revenueBarChart" height="220"></canvas>
             </div>
             <div class="chart-guide" style="margin-top: 16px;">
                 <strong>Kết luận nhanh:</strong>
@@ -217,8 +208,9 @@
             <div class="donut-chart-container">
                 <div class="donut-chart">
                     @{
-                        var categoryData = bestSellers.GroupBy(p => p.CategoryId).Select(g => new { 
-                            CategoryId = g.Key, 
+                        var categoryData = bestSellers.GroupBy(p => p.CategoryId).Select(g => new {
+                            CategoryId = g.Key,
+                            CategoryName = Model.Categories.FirstOrDefault(c => c.Id == g.Key)?.CategoryName ?? $"Danh mục {g.Key}",
                             Count = g.Sum(x => x.SoldCount ?? 0),
                             Revenue = g.Sum(x => (x.SoldCount ?? 0) * x.PriceAfterDiscount)
                         }).ToList();
@@ -231,20 +223,20 @@
                     {
                         var conicGradient = "";
                         var currentPercentage = 0.0m;
-                        
+
                         foreach (var category in categoryData.OrderByDescending(c => c.Revenue))
                         {
                             var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
                             var color = colors[colorIndex % colors.Length];
                             var nextPercentage = currentPercentage + percentage;
-                            
+
                             conicGradient += $"{color} {currentPercentage}% {nextPercentage}%, ";
                             currentPercentage = nextPercentage;
                             colorIndex++;
                         }
-                        
+
                         conicGradient = conicGradient.TrimEnd(',', ' ');
-                        
+
                         <div class="donut-segment" style="background: conic-gradient(@conicGradient);"></div>
                         <div class="donut-hole"></div>
                         <div class="donut-text">@FormatMoney(totalRevenue)</div>
@@ -262,13 +254,13 @@
                         {
                             var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
                             var color = colors[colorIndex % colors.Length];
-                            
+
                             <div class="legend-item">
                                 <div class="legend-color" style="background: @color;"></div>
-                                <div class="legend-text">Danh mục @category.CategoryId</div>
+                                <div class="legend-text">@category.CategoryName</div>
                                 <div class="legend-value">@percentage.ToString("0.1")%</div>
                             </div>
-                            
+
                             colorIndex++;
                         }
                     }
@@ -304,6 +296,38 @@
 </section>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenuePoints.OrderBy(p => p.Label).Select(p => p.Label)));
+            const values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenuePoints.OrderBy(p => p.Label).Select(p => p.Revenue)));
+            const canvas = document.getElementById('revenueBarChart');
+            if (!canvas || typeof Chart === 'undefined') {
+                console.error('Chart.js chưa được tải');
+                return;
+            }
+            new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: values,
+                        backgroundColor: 'rgba(201, 169, 97, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#e8d9b5' }, grid: { color: 'rgba(255,255,255,.06)' } },
+                        y: { beginAtZero: true, ticks: { color: '#e8d9b5' }, grid: { color: 'rgba(255,255,255,.06)' } }
+                    }
+                }
+            });
+        })();
+    </script>
     <script>
         document.querySelectorAll('.management-nav a').forEach(function (link) {
             link.addEventListener('click', function () {

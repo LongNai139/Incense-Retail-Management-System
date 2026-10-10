@@ -346,6 +346,7 @@ namespace SV22T1080045.Shop.Controllers
                     StatusClass = StatusClass(data.Order.Status),
                     data.Order.CustomerName,
                     data.Order.CustomerPhone,
+                    data.Order.CustomerEmail,
                     data.Order.ShippingAddress,
                     data.Order.IsGuest
                 },
@@ -361,6 +362,7 @@ namespace SV22T1080045.Shop.Controllers
             var bestSellers = allProducts.OrderByDescending(p => p.SoldCount ?? 0).Take(5).ToList();
             var lowStockProducts = allProducts.Where(p => p.DisplayQuantity > 0 && p.DisplayQuantity <= p.DisplayLowStockThreshold).OrderBy(p => p.DisplayQuantity).Take(5).ToList();
             var outOfStockCount = allProducts.Count(p => p.DisplayQuantity <= 0);
+            var categories = _categoryService.ListCategories();
 
             var selectedRevenueDate = (revenueDate ?? DateTime.Today).Date;
             var revenueData = _revenueReportService.GetRevenueReport(revenuePeriod, selectedRevenueDate);
@@ -368,6 +370,7 @@ namespace SV22T1080045.Shop.Controllers
 
             return new ManagementDashboardViewModel
             {
+                Categories = categories.Select(c => new ManagementCategoryOptionViewModel { Id = c.Id, CategoryName = c.CategoryName }).ToList(),
                 AllProducts = ToManagementProducts(allProducts),
                 RevenuePeriod = revenueData.Period,
                 RevenueDate = selectedRevenueDate,
@@ -480,17 +483,19 @@ namespace SV22T1080045.Shop.Controllers
         {
             var selectedReportDate = (reportDate ?? DateTime.Today).Date;
             var reportData = _revenueReportService.GetRevenueReport(reportPeriod, selectedReportDate);
+            var categories = _categoryService.ListCategories();
 
             return new ReportManagementViewModel
             {
-                ReportPeriod = reportData.Period,
+                ReportPeriod = reportPeriod,
                 ReportDate = selectedReportDate,
                 ReportRangeStart = reportData.StartDate,
                 ReportRangeEnd = reportData.EndDate,
                 ReportSummary = ToManagementSummary(reportData.Summary),
                 ReportRevenuePoints = ToRevenuePoints(reportData.RevenuePoints),
                 ProductSalesReports = ToProductSalesReports(reportData.ProductRows),
-                TopCustomers = ToCustomerRows(reportData.CustomerRows.Take(5))
+                TopCustomers = ToCustomerRows(reportData.CustomerRows.Take(5)),
+                Categories = categories.Select(c => new ManagementCategoryOptionViewModel { Id = c.Id, CategoryName = c.CategoryName }).ToList()
             };
         }
 
@@ -723,12 +728,12 @@ namespace SV22T1080045.Shop.Controllers
 
         public static string StatusText(int status) => status switch
         {
-            1 => "Cho xu ly",
-            2 => "Dang chuan bi",
-            3 => "Dang giao",
-            4 => "Hoan thanh",
-            -1 => "Da huy",
-            _ => "Khac"
+            1 => "Chờ xử lý",
+            2 => "Đang chuẩn bị",
+            3 => "Đang giao",
+            4 => "Hoàn thành",
+            -1 => "Đã hủy",
+            _ => "Khác"
         };
 
         public static string StatusClass(int status) => status switch

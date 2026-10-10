@@ -7,6 +7,9 @@ using SV22T1080045.Shop.Admin.Extensions.FileLogger;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Disable Browser Link
+builder.WebHost.UseSetting("Microsoft.AspNetCore.Diagnostics.BrowserLink.Enabled", "false");
+
 // Configure logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -20,6 +23,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 
 var connectionString = builder.Configuration.GetConnectionString("ShopConnectionString")!;
+Console.WriteLine($"[DEBUG] ConnectionString = '{connectionString}'");
 
 builder.Services.AddSession(options =>
 {

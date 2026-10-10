@@ -27,7 +27,7 @@
         <p>Theo dõi doanh thu, hiệu suất bán hàng và phân tích xu hướng kinh doanh.</p>
     </div>
     <div class="management-actions">
-        <form class="management-actions" asp-controller="Management" asp-action="Reports" method="get">
+        <form asp-controller="Management" asp-action="Reports" method="get">
             <select class="admin-select" name="reportPeriod">
                 <option value="week" selected="@(Model.ReportPeriod == "week" ? "selected" : null)">Tuần</option>
                 <option value="month" selected="@(Model.ReportPeriod == "month" ? "selected" : null)">Tháng</option>
@@ -35,7 +35,11 @@
             </select>
             <input class="admin-input" type="date" name="reportDate" value="@reportDateValue" />
             <button class="admin-btn" type="submit"><i class="fa-solid fa-chart-line"></i> Xem báo cáo</button>
-            <button class="admin-btn success" type="submit" formaction="@Url.Action("ExportRevenueReport", "Management")"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</button>
+        </form>
+        <form asp-controller="Management" asp-action="ExportRevenueReport" method="get">
+            <input type="hidden" name="reportPeriod" value="@Model.ReportPeriod" />
+            <input type="hidden" name="reportDate" value="@reportDateValue" />
+            <button class="admin-btn success" type="submit"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</button>
         </form>
     </div>
 </section>
@@ -45,14 +49,6 @@
         <div>
             <h2>Báo cáo kinh doanh</h2>
             <p class="admin-section-desc">Phân tích doanh thu, hiệu suất bán hàng và xu hướng kinh doanh.</p>
-        </div>
-    </div>
-
-    <div class="report-hero">
-        <div class="report-filter">
-            <span class="filter-label active" data-period="week">Tuần</span>
-            <span class="filter-label" data-period="month">Tháng</span>
-            <span class="filter-label" data-period="year">Năm</span>
         </div>
     </div>
 
@@ -97,17 +93,8 @@
                 <span>Biểu đồ doanh thu</span>
                 <span class="status-badge status-ready">Doanh thu theo tháng</span>
             </div>
-            <div class="chart-container">
-                <div class="chart-bars">
-                    @foreach (var point in Model.ReportRevenuePoints.OrderBy(p => p.Label))
-                    {
-                        <div class="chart-bar-wrapper">
-                            <div class="chart-bar" style="height:@point.PercentOfMax.ToString("0.##", CultureInfo.InvariantCulture)%; background: linear-gradient(180deg, #c9a961, #8a6d28);"></div>
-                            <div class="chart-label">@point.Label</div>
-                            <div class="chart-value">@FormatMoney(point.Revenue)</div>
-                        </div>
-                    }
-                </div>
+            <div class="chart-container" style="padding: 16px;">
+                <canvas id="revenueReportChart" height="220"></canvas>
             </div>
             <div class="chart-guide" style="margin-top: 16px;">
                 <strong>Kết luận nhanh:</strong>
@@ -123,41 +110,36 @@
         </div>
 
         <div class="admin-panel">
-            <div class="panel-title">Tỷ lệ danh mục sản phẩm</div>
+            <div class="panel-title">Tỷ lệ sản phẩm bán chạy</div>
             <div class="donut-chart-container">
                 <div class="donut-chart">
                     @{
-                        var categoryData = Model.ProductSalesReports.GroupBy(p => p.ProductId).Select(g => new { 
-                            CategoryId = g.Key, 
-                            Count = g.Sum(x => x.Quantity),
-                            Revenue = g.Sum(x => x.Revenue)
-                        }).ToList();
-                        var totalQuantity = categoryData.Sum(c => c.Count);
-                        var totalRevenue = categoryData.Sum(c => c.Revenue);
+                        var topProducts = Model.ProductSalesReports.OrderByDescending(p => p.Revenue).Take(5).ToList();
+                        var totalProductRevenue = topProducts.Sum(p => p.Revenue);
                         var colors = new[] { "#c9a961", "#8a6d28", "#d4b86a", "#a67c3d", "#b98b36", "#52745b" };
                         var colorIndex = 0;
                     }
-                    @if (categoryData.Any())
+                    @if (topProducts.Any())
                     {
                         var conicGradient = "";
                         var currentPercentage = 0.0m;
-                        
-                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue))
+
+                        foreach (var product in topProducts)
                         {
-                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
+                            var percentage = totalProductRevenue > 0 ? (product.Revenue / totalProductRevenue) * 100 : 0;
                             var color = colors[colorIndex % colors.Length];
                             var nextPercentage = currentPercentage + percentage;
-                            
+
                             conicGradient += $"{color} {currentPercentage}% {nextPercentage}%, ";
                             currentPercentage = nextPercentage;
                             colorIndex++;
                         }
-                        
+
                         conicGradient = conicGradient.TrimEnd(',', ' ');
-                        
+
                         <div class="donut-segment" style="background: conic-gradient(@conicGradient);"></div>
                         <div class="donut-hole"></div>
-                        <div class="donut-text">@FormatMoney(totalRevenue)</div>
+                        <div class="donut-text">@FormatMoney(totalProductRevenue)</div>
                     }
                     else
                     {
@@ -165,20 +147,20 @@
                     }
                 </div>
                 <div class="donut-legend">
-                    @if (categoryData.Any())
+                    @if (topProducts.Any())
                     {
                         colorIndex = 0;
-                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue).Take(5))
+                        foreach (var product in topProducts)
                         {
-                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
+                            var percentage = totalProductRevenue > 0 ? (product.Revenue / totalProductRevenue) * 100 : 0;
                             var color = colors[colorIndex % colors.Length];
-                            
+
                             <div class="legend-item">
                                 <div class="legend-color" style="background: @color;"></div>
-                                <div class="legend-text">Danh mục @category.CategoryId</div>
+                                <div class="legend-text">@product.ProductName</div>
                                 <div class="legend-value">@percentage.ToString("0.1")%</div>
                             </div>
-                            
+
                             colorIndex++;
                         }
                     }
@@ -186,55 +168,86 @@
             </div>
         </div>
     </div>
-
-    <div class="dashboard-grid" style="margin-top: 20px;">
-        <div class="admin-panel">
-            <div class="panel-title">Sản phẩm</div>
-            <div class="kpi-card">
-                <div class="kpi-icon stock"><i class="fa-solid fa-boxes-stacked"></i></div>
-                <div class="kpi-label">Tổng sản phẩm</div>
-                <div class="kpi-value">@Model.ProductSalesReports.Count</div>
-                <div class="kpi-note">loại</div>
-            </div>
-        </div>
-
-        <div class="admin-panel">
-            <div class="panel-title">Khách hàng mới</div>
-            <div class="kpi-card">
-                <div class="kpi-icon customers"><i class="fa-solid fa-user-plus"></i></div>
-                <div class="kpi-label">Khách hàng mới</div>
-                <div class="kpi-value">@reportSummary.NewCustomerCount</div>
-                <div class="kpi-note">người</div>
-            </div>
-        </div>
-    </div>
 </section>
 
 @section Scripts {
+    <script src="~/themes/bower_components/chart.js/Chart.min.js"></script>
     <script>
-        // Report filter tabs
-        document.querySelectorAll('.filter-label').forEach(function (label) {
-            label.addEventListener('click', function () {
-                document.querySelectorAll('.filter-label').forEach(function (l) {
-                    l.classList.remove('active');
-                });
-                label.classList.add('active');
+        // Revenue Report Chart with Chart.js
+        const reportCtx = document.getElementById('revenueReportChart');
+        if (reportCtx) {
+            const reportLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportRevenuePoints.OrderBy(p => p.Label).Select(p => p.Label)));
+            const reportData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportRevenuePoints.OrderBy(p => p.Label).Select(p => p.Revenue)));
 
-                var period = label.getAttribute('data-period');
-                var currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('reportPeriod', period);
-                window.location.href = currentUrl.toString();
-            });
-        });
-
-        // Form filter submission
-        var reportForm = document.querySelector('.management-actions form');
-        if (reportForm) {
-            reportForm.addEventListener('submit', function (event) {
-                event.preventDefault();
-                var formData = new FormData(reportForm);
-                var params = new URLSearchParams(formData);
-                window.location.href = '/Management/Reports?' + params.toString();
+            new Chart(reportCtx, {
+                type: 'bar',
+                data: {
+                    labels: reportLabels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: reportData,
+                        backgroundColor: 'rgba(201, 169, 97, 0.8)',
+                        borderColor: '#c9a961',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        hoverBackgroundColor: 'rgba(212, 184, 106, 0.9)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(45, 31, 20, 0.95)',
+                            titleColor: '#e8d9b8',
+                            bodyColor: '#f5e6c8',
+                            borderColor: '#c9a961',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(232, 217, 184, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#e8d9b8',
+                                callback: function(value) {
+                                    if (value >= 1000000) {
+                                        return (value / 1000000).toFixed(1) + 'M';
+                                    }
+                                    if (value >= 1000) {
+                                        return (value / 1000).toFixed(0) + 'k';
+                                    }
+                                    return value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#e8d9b8',
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        }
+                    }
+                }
             });
         }
     </script>

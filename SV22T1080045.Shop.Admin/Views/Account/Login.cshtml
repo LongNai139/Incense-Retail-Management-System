@@ -91,7 +91,7 @@
 
                             <p class="form-sub" style="margin-bottom:14px;">Chỉ dành cho <strong>Staff</strong> và <strong>Admin</strong>. Khách mua hàng dùng <a href="@($"{storefrontUrl}/Account/Login")">cửa hàng (7126)</a>.</p>
 
-                            <form id="formLogin" method="post" asp-controller="Account" asp-action="Login" onsubmit="return validateLoginForm(event)">
+                            <form id="formLogin" method="post" asp-controller="Account" asp-action="Login">
                                 @Html.AntiForgeryToken()
                                 @if (!string.IsNullOrWhiteSpace(returnUrl))
                                 {
@@ -110,7 +110,7 @@
                                     <label class="field-label">Mật khẩu <span>*</span></label>
                                     <input class="field-input" type="password" asp-for="Password" id="login-password" placeholder="Nhập mật khẩu..." required minlength="8" oninput="clearLoginPwError()">
                                     <div class="field-hint">Mật khẩu tối thiểu 8 ký tự</div>
-                                    <span asp-validation-for="Password" class="field-error"></span>
+                                    <span asp-validation-for="Password" class="field-error" id="login-pw-err"></span>
                                 </div>
 
                                 <button type="submit" class="btn-primary" style="margin-bottom:12px;">
@@ -143,12 +143,12 @@
 
                             <div class="field" style="margin-bottom:12px;">
                                 <div class="otp-wrap" id="login-otp-wrap">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(event,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'login')" onkeydown="otpKeydown(e,this)">
                                 </div>
                                 <div class="otp-timer-row">
                                     <span class="otp-timer">Hết hạn sau <strong id="login-otp-timer">5:00</strong></span>
@@ -222,12 +222,12 @@
 
                             <div class="field">
                                 <div class="otp-wrap" id="reg-otp-wrap">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
-                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(event,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(e,this)">
+                                    <input class="otp-input" maxlength="1" type="tel" oninput="otpInput(this,'reg')" onkeydown="otpKeydown(e,this)">
                                 </div>
                                 <div class="otp-timer-row">
                                     <span class="otp-timer">Hết hạn sau <strong id="reg-otp-timer">5:00</strong></span>
@@ -566,6 +566,7 @@
                 pwErr.style.display = 'block';
                 document.getElementById('login-password').classList.add('error');
                 showToast('Mật khẩu phải có ít nhất 8 ký tự');
+                event.preventDefault();
                 return false;
               }
 
@@ -582,6 +583,9 @@
                 pwInput.classList.remove('error');
               }
             }
+
+            // Attach event listener to form
+            document.getElementById('formLogin')?.addEventListener('submit', validateLoginForm);
         </script>
 </body>
 </html>

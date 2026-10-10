@@ -37,6 +37,11 @@ public class SystemController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult SaveAccount(SystemAccountFormViewModel form)
     {
+        if (!ModelState.IsValid)
+        {
+            return RedirectToAction(nameof(Index), null, new { editAccountId = form.Id }, "accounts");
+        }
+
         var result = _systemService.SaveBackofficeAccount(new SystemAccountInput
         {
             Id = form.Id,
@@ -49,6 +54,7 @@ public class SystemController : Controller
         }, GetCurrentUserId());
 
         TempData["SystemMessage"] = result.Message;
+        TempData["SystemMessageSuccess"] = result.Success;
         return RedirectToAction(nameof(Index), null, new
         {
             editAccountId = result.Success && form.Id <= 0 ? result.AccountId : form.Id > 0 ? form.Id : (int?)null
@@ -61,6 +67,7 @@ public class SystemController : Controller
     {
         var result = _systemService.ResetPassword(accountId, newPassword, GetCurrentUserId());
         TempData["SystemMessage"] = result.Message;
+        TempData["SystemMessageSuccess"] = result.Success;
         return RedirectToAction(nameof(Index), null, new { editAccountId = accountId }, "accounts");
     }
 
@@ -70,6 +77,7 @@ public class SystemController : Controller
     {
         var result = _systemService.UpdateAccountRole(accountId, role, GetCurrentUserId());
         TempData["SystemMessage"] = result.Message;
+        TempData["SystemMessageSuccess"] = result.Success;
         return RedirectToAction(nameof(Index), null, null, "permissions");
     }
 

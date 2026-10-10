@@ -55,7 +55,8 @@
 
             @if (TempData["SystemMessage"] is string message)
             {
-                <div class="system-toast">@message</div>
+                var isSuccess = TempData["SystemMessageSuccess"] as bool? ?? false;
+                <div class="system-toast @(isSuccess ? "success" : "error")">@message</div>
             }
 
             <section class="admin-section" id="accounts">
@@ -92,6 +93,16 @@
                         <form method="post" asp-action="SaveAccount" class="system-form">
                             @Html.AntiForgeryToken()
                             <input type="hidden" asp-for="AccountForm.Id" />
+
+                            @if (!ViewData.ModelState.IsValid)
+                            {
+                                <div class="system-toast error">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <div>@error.ErrorMessage</div>
+                                    }
+                                </div>
+                            }
 
                             <label class="system-field">
                                 <span>Họ tên</span>
@@ -305,6 +316,12 @@
                     });
                     link.classList.add('active');
                 });
+            });
+
+            // Debug form submission
+            document.querySelector('.system-form')?.addEventListener('submit', function(e) {
+                console.log('Form submitting...');
+                console.log('Form data:', new FormData(this));
             });
         })();
     </script>
