@@ -46,8 +46,8 @@ namespace SV22T1080045.Shop.Controllers
             DateTime? revenueDate = null)
         {
             // Debug: Check if user is authenticated and has Admin role
-            _logger.LogInformation("Management Index called. IsAuthenticated: {IsAuthenticated}", User.Identity?.IsAuthenticated);
-            var userRoles = string.Join(", ", User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value));
+            if (!User.HasAnyPermission(PermissionConstants.ViewReport, PermissionConstants.ViewRevenue, PermissionConstants.ManageSystem))
+                return Forbid();
             _logger.LogInformation("User roles: {Roles}", userRoles);
             _logger.LogInformation("IsInRole Admin: {IsInRole}", User.IsInRole(CustomerRoles.Admin));
 
@@ -65,6 +65,9 @@ namespace SV22T1080045.Shop.Controllers
             int? savedProductId = null,
             string? savedAction = null)
         {
+            if (!User.HasAnyPermission(PermissionConstants.ViewProduct, PermissionConstants.ManageSystem))
+                return Forbid();
+
             return View("Products", BuildProductModel(
                 editProductId,
                 productForm: null,
@@ -111,6 +114,10 @@ namespace SV22T1080045.Shop.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SaveProduct(ProductEditViewModel model)
         {
+            var requiredPermission = model.Id > 0 ? PermissionConstants.EditProduct : PermissionConstants.AddProduct;
+            if (!User.HasAnyPermission(requiredPermission, PermissionConstants.ManageSystem))
+                return Forbid();
+
             if (!ModelState.IsValid)
                 return View("Products", BuildProductModel(model.Id > 0 ? model.Id : null, model));
 

@@ -22,6 +22,8 @@ builder.Logging.AddProvider(new FileLoggerProvider(Directory.GetCurrentDirectory
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddScoped<CustomClaimsPrincipal>();
+
 var connectionString = builder.Configuration.GetConnectionString("ShopConnectionString")!;
 Console.WriteLine($"[DEBUG] ConnectionString = '{connectionString}'");
 
