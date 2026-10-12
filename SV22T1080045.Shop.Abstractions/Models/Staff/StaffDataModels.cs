@@ -56,5 +56,15 @@ namespace SV22T1080045.Shop.Abstractions.Models.Staff
     {
         public bool Success { get; set; }
         public string Message { get; set; } = "";
+        public List<InventoryCheckResult> InventoryChecks { get; set; } = new();
+    }
+
+    public class InventoryCheckResult
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = "";
+        public int RequestedQuantity { get; set; }
+        public int AvailableQuantity { get; set; }
+        public bool IsSufficient { get; set; }
     }
 }

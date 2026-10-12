@@ -19,7 +19,11 @@ namespace SV22T1080045.Shop.Controllers
             _staffService = staffService;
         }
 
-        public IActionResult Index(
+        public IActionResult Index()
+        {
+            return View(BuildDashboardModel("", null, "", 1));
+        }
+
         public IActionResult Orders(
             string orderSearchValue = "",
             int? orderStatus = null)
@@ -43,7 +47,7 @@ namespace SV22T1080045.Shop.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult UpdateOrderStatus(int orderId, int status)
         {
-            var result = _staffService.UpdateOrderStatus(orderId, status);
+            var result = _staffService.UpdateOrderStatusWithInventoryCheck(orderId, status);
             TempData["StaffMessage"] = result.Message;
             return RedirectToAction(nameof(Index), null, null, "orders");
         }
@@ -137,6 +141,90 @@ namespace SV22T1080045.Shop.Controllers
                 Alerts = BuildAlerts(pendingTooLong, failedDeliveries, lowStock),
                 Notifications = BuildNotifications(todayOrders, lowStock),
                 Profile = BuildProfile()
+            };
+        }
+
+        private StaffOrderViewModel BuildOrderModel(
+            string orderSearchValue,
+            int? orderStatus)
+        {
+            var data = _staffService.GetDashboardData();
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+            var orders = ToOrderRows(data.Orders);
+            var todayOrders = orders
+                .Where(o => o.OrderDate >= today && o.OrderDate < tomorrow)
+                .ToList();
+            var filteredOrders = todayOrders.AsEnumerable();
+            var orderKeyword = Normalize(orderSearchValue);
+
+            if (!string.IsNullOrWhiteSpace(orderKeyword))
+            {
+                filteredOrders = filteredOrders.Where(o =>
+                    o.OrderCode.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase) ||
+                    o.CustomerName.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase) ||
+                    o.CustomerPhone.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (orderStatus.HasValue)
+                filteredOrders = filteredOrders.Where(o => o.Status == orderStatus.Value);
+
+            return new StaffOrderViewModel
+            {
+                OrderSearchValue = orderSearchValue?.Trim() ?? "",
+                OrderStatus = orderStatus,
+                WorkDate = today,
+                Orders = filteredOrders.OrderByDescending(o => o.OrderDate).Take(30).ToList()
+            };
+        }
+
+        private StaffProductViewModel BuildProductModel(
+            string productSearchValue,
+            int productPage)
+        {
+            var data = _staffService.GetDashboardData();
+            var allProducts = ToProductRows(data.Products);
+            var productKeyword = Normalize(productSearchValue);
+            var products = string.IsNullOrWhiteSpace(productKeyword)
+                ? allProducts
+                : allProducts.Where(p =>
+                    p.ProductName.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ||
+                    p.CategoryName.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ||
+                    (p.Origin?.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+
+            var orderedProducts = products
+                .OrderBy(p => p.Quantity <= 0 ? 0 : p.Quantity < 5 ? 1 : 2)
+                .ThenBy(p => p.Quantity)
+                .ThenBy(p => p.ProductName)
+                .ToList();
+            var productTotalItems = orderedProducts.Count;
+            var productTotalPages = Math.Max(1, (int)Math.Ceiling(productTotalItems / (double)ProductPageSize));
+            var currentProductPage = Math.Clamp(productPage, 1, productTotalPages);
+            var pagedProducts = orderedProducts
+                .Skip((currentProductPage - 1) * ProductPageSize)
+                .Take(ProductPageSize)
+                .ToList();
+
+            return new StaffProductViewModel
+            {
+                ProductSearchValue = productSearchValue?.Trim() ?? "",
+                ProductPage = currentProductPage,
+                ProductPageSize = ProductPageSize,
+                ProductTotalItems = productTotalItems,
+                ProductTotalPages = productTotalPages,
+                ProductStartItem = productTotalItems == 0 ? 0 : ((currentProductPage - 1) * ProductPageSize) + 1,
+                ProductEndItem = Math.Min(currentProductPage * ProductPageSize, productTotalItems),
+                Products = pagedProducts
+            };
+        }
+
+        private StaffCustomerViewModel BuildCustomerModel()
+        {
+            var data = _staffService.GetDashboardData();
+            return new StaffCustomerViewModel
+            {
+                Customers = ToCustomerRows(data.Customers)
             };
         }
 

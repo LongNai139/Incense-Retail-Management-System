@@ -6,5 +6,6 @@ namespace SV22T1080045.Shop.BusinessLayers.Interfaces
     {
         StaffDashboardData GetDashboardData();
         StaffOperationResult UpdateOrderStatus(int orderId, int status);
+        StaffOperationResult UpdateOrderStatusWithInventoryCheck(int orderId, int status);
     }
 }

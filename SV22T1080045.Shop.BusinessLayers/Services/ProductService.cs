@@ -46,6 +46,9 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
         public bool DeleteProduct(int id)
             => _productDal.Delete(id);
 
+        public bool UpdateInventoryQuantity(int productId, int quantityChange)
+            => _productDal.UpdateInventoryQuantity(productId, quantityChange);
+
         public int SaveProduct(ProductSaveRequest request)
         {
             var productName = (request.ProductName ?? string.Empty).Trim();

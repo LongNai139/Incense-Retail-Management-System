@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Abstractions.Models.Staff;
+using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.DataLayers.Implements
 {
@@ -138,6 +139,70 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
             order.Status = status;
             return _context.SaveChanges() > 0;
+        }
+
+        public (bool Success, List<InventoryCheckResult> InventoryChecks) UpdateOrderStatusWithInventoryCheck(int orderId, int status)
+        {
+            var order = _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefault(o => o.Id == orderId
+                    && !o.IsDeleted
+                    && o.OrderDate >= DateTime.Today
+                    && o.OrderDate < DateTime.Today.AddDays(1));
+
+            if (order == null)
+                return (false, new List<InventoryCheckResult>());
+
+            // Check inventory only when moving from "Chờ xử lý" (1) to any status > 1 (2, 3, 4)
+            if (order.Status == 1 && status > 1)
+            {
+                var inventoryChecks = new List<InventoryCheckResult>();
+                var productIds = order.OrderDetails.Select(d => d.ProductId).Distinct().ToList();
+                var products = _context.Products
+                    .Include(p => p.Inventory)
+                    .Where(p => productIds.Contains(p.Id))
+                    .ToDictionary(p => p.Id);
+
+                foreach (var detail in order.OrderDetails)
+                {
+                    var product = products.GetValueOrDefault(detail.ProductId);
+                    var availableQuantity = product?.Inventory?.Quantity ?? product?.Quantity ?? 0;
+
+                    inventoryChecks.Add(new InventoryCheckResult
+                    {
+                        ProductId = detail.ProductId,
+                        ProductName = product?.ProductName ?? "Unknown",
+                        RequestedQuantity = detail.Quantity,
+                        AvailableQuantity = availableQuantity,
+                        IsSufficient = availableQuantity >= detail.Quantity
+                    });
+                }
+
+                // If any product has insufficient inventory, don't update status
+                if (inventoryChecks.Any(c => !c.IsSufficient))
+                {
+                    return (false, inventoryChecks);
+                }
+
+                // All checks passed - deduct inventory
+                foreach (var detail in order.OrderDetails)
+                {
+                    var product = products.GetValueOrDefault(detail.ProductId);
+                    if (product?.Inventory != null)
+                    {
+                        product.Inventory.Quantity = Math.Max(0, product.Inventory.Quantity - detail.Quantity);
+                        product.Inventory.UpdatedTime = DateTime.Now;
+                    }
+                    else if (product != null)
+                    {
+                        product.Quantity = Math.Max(0, (product.Quantity ?? 0) - detail.Quantity);
+                    }
+                }
+            }
+
+            order.Status = status;
+            var saved = _context.SaveChanges() > 0;
+            return (saved, new List<InventoryCheckResult>());
         }
     }
 }

@@ -149,6 +149,33 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             return _context.Units.Any(u => u.Id == unitId && !u.IsDeleted);
         }
 
+        public bool UpdateInventoryQuantity(int productId, int quantityChange)
+        {
+            var product = _context.Products
+                .Include(p => p.Inventory)
+                .FirstOrDefault(p => p.Id == productId && !p.IsDeleted);
+
+            if (product == null)
+                return false;
+
+            if (product.Inventory == null)
+            {
+                product.Inventory = new ProductInventory
+                {
+                    ProductId = productId,
+                    Quantity = Math.Max(0, quantityChange),
+                    UpdatedTime = DateTime.Now
+                };
+            }
+            else
+            {
+                product.Inventory.Quantity = Math.Max(0, product.Inventory.Quantity + quantityChange);
+                product.Inventory.UpdatedTime = DateTime.Now;
+            }
+
+            return _context.SaveChanges() > 0;
+        }
+
         private IQueryable<Product> CreateBaseQuery()
         {
             return _context.Products

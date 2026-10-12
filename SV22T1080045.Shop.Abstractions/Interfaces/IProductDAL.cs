@@ -17,5 +17,6 @@ namespace SV22T1080045.Shop.Abstractions.Interfaces
         bool IsNameExists(string productName, int id);
         bool CategoryExists(int categoryId);
         bool UnitExists(int unitId);
+        bool UpdateInventoryQuantity(int productId, int quantityChange);
     }
 }

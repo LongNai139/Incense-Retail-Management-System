@@ -6,5 +6,6 @@ namespace SV22T1080045.Shop.Abstractions.Interfaces
     {
         StaffDashboardData GetDashboardData();
         bool UpdateOrderStatus(int orderId, int status);
+        (bool Success, List<InventoryCheckResult> InventoryChecks) UpdateOrderStatusWithInventoryCheck(int orderId, int status);
     }
 }

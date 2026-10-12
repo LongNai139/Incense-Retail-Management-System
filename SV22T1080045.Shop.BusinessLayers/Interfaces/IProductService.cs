@@ -12,5 +12,6 @@ namespace SV22T1080045.Shop.BusinessLayers.Interfaces
         Product? GetProduct(int id);
         int SaveProduct(ProductSaveRequest request);
         bool DeleteProduct(int id);
+        bool UpdateInventoryQuantity(int productId, int quantityChange);
     }
 }
