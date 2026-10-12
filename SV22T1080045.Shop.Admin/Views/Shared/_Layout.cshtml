@@ -88,6 +88,12 @@
                                         <i class="fa-solid fa-gear"></i> Hệ thống
                                     </a>
                                 }
+                                else if (isStaff)
+                                {
+                                    <a role="menuitem" asp-controller="Staff" asp-action="Index">
+                                        <i class="fa-solid fa-headset"></i> Staff Workspace
+                                    </a>
+                                }
                                 <div class="nav-dropdown-divider" role="separator"></div>
                                 <a role="menuitem" asp-controller="Account" asp-action="Logout">
                                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất

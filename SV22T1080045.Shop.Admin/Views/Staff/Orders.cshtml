@@ -1,0 +1,136 @@
+@model SV22T1080045.Shop.Models.ViewModels.Staff.StaffOrderViewModel
+@using System.Globalization
+@using SV22T1080045.Shop.Controllers
+
+@{
+    ViewData["Title"] = "Đơn hàng";
+    Layout = "_StaffLayout";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal value) => value.ToString("N0", vi) + "đ";
+    string DateTimeText(DateTime value) => value.ToString("dd/MM HH:mm", vi);
+}
+
+@if (TempData["StaffMessage"] is string message)
+{
+    <div class="staff-toast">@message</div>
+}
+
+<section class="staff-section">
+    <div class="staff-section-head">
+        <div>
+            <span class="staff-kicker">Chức năng chính</span>
+            <h2>Quản lý đơn hàng</h2>
+        </div>
+        <div class="staff-note">Chỉ hiển thị đơn ngày @Model.WorkDate.ToString("dd/MM/yyyy", vi). Staff không thể xem ngày khác, xóa đơn hoặc chỉnh sửa tiền đơn hàng.</div>
+    </div>
+
+    <form class="staff-filter" asp-controller="Staff" asp-action="Orders" method="get">
+        <input type="search" name="orderSearchValue" value="@Model.OrderSearchValue" placeholder="Tìm mã đơn, khách, số điện thoại" />
+        <select name="orderStatus">
+            <option value="">Tất cả trạng thái</option>
+            <option value="1" selected="@(Model.OrderStatus == 1 ? "selected" : null)">Chờ xử lý</option>
+            <option value="2" selected="@(Model.OrderStatus == 2 ? "selected" : null)">Đang chuẩn bị</option>
+            <option value="3" selected="@(Model.OrderStatus == 3 ? "selected" : null)">Đang giao</option>
+            <option value="4" selected="@(Model.OrderStatus == 4 ? "selected" : null)">Hoàn thành</option>
+            <option value="-1" selected="@(Model.OrderStatus == -1 ? "selected" : null)">Giao thất bại</option>
+        </select>
+        <button class="staff-btn primary" type="submit"><i class="fa-solid fa-filter"></i> Lọc</button>
+        <a class="staff-btn" asp-controller="Staff" asp-action="Orders"><i class="fa-solid fa-xmark"></i> Xóa lọc</a>
+    </form>
+
+    <div class="staff-order-list">
+        @if (Model.Orders.Any())
+        {
+            foreach (var order in Model.Orders)
+            {
+                <article class="staff-order-card @(order.Status == 1 && order.OrderDate <= DateTime.Now.AddHours(-2) ? "urgent" : null)" id="order-@order.Id" data-order-code="@order.OrderCode">
+                    <div class="staff-order-main">
+                        <div>
+                            <div class="staff-order-code">@order.OrderCode</div>
+                            <div class="staff-order-meta">@order.CustomerName · @order.CustomerPhone · @DateTimeText(order.OrderDate)</div>
+                        </div>
+                        <div class="staff-order-money">@Money(order.TotalAmount)</div>
+                        <span class="staff-status @StaffController.StatusClass(order.Status)">@StaffController.StatusText(order.Status)</span>
+                    </div>
+
+                    <div class="staff-order-actions">
+                        <form asp-controller="Staff" asp-action="UpdateOrderStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@order.Id" />
+                            <select name="status">
+                                <option value="1" selected="@(order.Status == 1 ? "selected" : null)">Chờ xử lý</option>
+                                <option value="2" selected="@(order.Status == 2 ? "selected" : null)">Đang chuẩn bị</option>
+                                <option value="3" selected="@(order.Status == 3 ? "selected" : null)">Đang giao</option>
+                                <option value="4" selected="@(order.Status == 4 ? "selected" : null)">Hoàn thành</option>
+                            </select>
+                            <button class="staff-btn primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Cập nhật</button>
+                        </form>
+                        <button class="staff-btn" type="button" data-print-target="invoice-@order.Id"><i class="fa-solid fa-print"></i> In hóa đơn</button>
+                        <button class="staff-btn" type="button" data-print-target="delivery-@order.Id"><i class="fa-solid fa-file-export"></i> Phiếu giao</button>
+                    </div>
+
+                    <details class="staff-order-detail">
+                        <summary>Chi tiết đơn hàng</summary>
+                        <div class="staff-detail-grid">
+                            <div>
+                                <strong>Thông tin khách</strong>
+                                <span>@order.CustomerName</span>
+                                <span>@order.CustomerPhone</span>
+                                <span>@order.ShippingAddress</span>
+                            </div>
+                            <div>
+                                <strong>Lịch sử trạng thái</strong>
+                                <span>Hiện tại: @StaffController.StatusText(order.Status)</span>
+                                <span>Cập nhật gần nhất theo dữ liệu đơn hàng.</span>
+                            </div>
+                        </div>
+                        <table class="staff-table compact">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>SL</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>@item.ProductName</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@Money(item.UnitPrice)</td>
+                                        <td>@Money(item.LineTotal)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </details>
+
+                    <div class="staff-print" id="invoice-@order.Id">
+                        <h2>Hóa đơn @order.OrderCode</h2>
+                        <p>@order.CustomerName - @order.CustomerPhone</p>
+                        <p>@order.ShippingAddress</p>
+                        <table>
+                            @foreach (var item in order.Items)
+                            {
+                                <tr><td>@item.ProductName</td><td>@item.Quantity</td><td>@Money(item.LineTotal)</td></tr>
+                            }
+                        </table>
+                        <strong>Tổng: @Money(order.TotalAmount)</strong>
+                    </div>
+                    <div class="staff-print" id="delivery-@order.Id">
+                        <h2>Phiếu giao hàng @order.OrderCode</h2>
+                        <p>Người nhận: @order.CustomerName</p>
+                        <p>SĐT: @order.CustomerPhone</p>
+                        <p>Địa chỉ: @order.ShippingAddress</p>
+                    </div>
+                </article>
+            }
+        }
+        else
+        {
+            <div class="staff-empty">Không tìm thấy đơn hàng phù hợp.</div>
+        }
+    </div>
+</section>

@@ -1,0 +1,40 @@
+@model SV22T1080045.Shop.Models.ViewModels.Staff.StaffCustomerViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Khách hàng";
+    Layout = "_StaffLayout";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="staff-section">
+    <div class="staff-section-head">
+        <div>
+            <span class="staff-kicker">Tra cứu khách</span>
+            <h2>Bối cảnh khách hàng</h2>
+        </div>
+        <div class="staff-note">Dùng để nhận diện khách khi gọi xác nhận đơn và xem thói quen mua gần đây. Email và số điện thoại được ẩn bớt.</div>
+    </div>
+
+    <div class="staff-customer-grid">
+        @foreach (var customer in Model.Customers)
+        {
+            <article class="staff-customer">
+                <strong>@customer.CustomerName</strong>
+                <span>@customer.MaskedPhone</span>
+                <span>@customer.MaskedEmail</span>
+                <div>@customer.OrderCount đơn · @(customer.LastOrderDate?.ToString("dd/MM/yyyy", vi) ?? "Chưa mua")</div>
+                @if (customer.RecentProducts.Any())
+                {
+                    <div class="staff-customer-products">
+                        <span>Sản phẩm gần đây:</span>
+                        @foreach (var product in customer.RecentProducts.Take(3))
+                        {
+                            <span>@product</span>
+                        }
+                    </div>
+                }
+            </article>
+        }
+    </div>
+</section>

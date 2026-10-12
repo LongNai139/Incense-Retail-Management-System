@@ -1,0 +1,18 @@
+@{
+    Layout = "_Layout";
+}
+
+<link rel="stylesheet" href="~/css/staff.css" asp-append-version="true" />
+@await RenderSectionAsync("Styles", required: false)
+
+<div class="management-shell">
+    <div class="management-wrap">
+        @await Component.InvokeAsync("StaffHeader")
+
+        <main class="management-main">
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+@await RenderSectionAsync("Scripts", required: false)

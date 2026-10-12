@@ -20,12 +20,23 @@ namespace SV22T1080045.Shop.Controllers
         }
 
         public IActionResult Index(
+        public IActionResult Orders(
             string orderSearchValue = "",
-            int? orderStatus = null,
+            int? orderStatus = null)
+        {
+            return View(BuildOrderModel(orderSearchValue, orderStatus));
+        }
+
+        public IActionResult Products(
             string productSearchValue = "",
             int productPage = 1)
         {
-            return View(BuildDashboardModel(orderSearchValue, orderStatus, productSearchValue, productPage));
+            return View(BuildProductModel(productSearchValue, productPage));
+        }
+
+        public IActionResult Customers()
+        {
+            return View(BuildCustomerModel());
         }
 
         [HttpPost]

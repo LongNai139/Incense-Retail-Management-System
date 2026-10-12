@@ -99,4 +99,29 @@ namespace SV22T1080045.Shop.Models.ViewModels.Staff
         public string Role { get; set; } = "Staff";
         public string AvatarInitials { get; set; } = "ST";
     }
+
+    public class StaffOrderViewModel
+    {
+        public string OrderSearchValue { get; set; } = "";
+        public int? OrderStatus { get; set; }
+        public DateTime WorkDate { get; set; }
+        public List<StaffOrderRowViewModel> Orders { get; set; } = new();
+    }
+
+    public class StaffProductViewModel
+    {
+        public string ProductSearchValue { get; set; } = "";
+        public int ProductPage { get; set; } = 1;
+        public int ProductPageSize { get; set; } = 12;
+        public int ProductTotalItems { get; set; }
+        public int ProductTotalPages { get; set; } = 1;
+        public int ProductStartItem { get; set; }
+        public int ProductEndItem { get; set; }
+        public List<StaffProductRowViewModel> Products { get; set; } = new();
+    }
+
+    public class StaffCustomerViewModel
+    {
+        public List<StaffCustomerRowViewModel> Customers { get; set; } = new();
+    }
 }

@@ -1,0 +1,21 @@
+@model SV22T1080045.Shop.Admin.ViewComponents.StaffNavigationViewModel
+
+<aside class="management-sidebar">
+    <div class="management-profile">
+        <div class="profile-avatar">
+            <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="profile-info">
+            <div class="profile-name">@Model.UserInfo?.DisplayName</div>
+            <div class="profile-role">@Model.UserInfo?.RoleDisplay</div>
+        </div>
+    </div>
+    <nav class="management-nav" aria-label="Điều hướng nhân viên">
+        @foreach (var module in Model.Modules)
+        {
+            <a href="@module.Url" class="@(module.IsActive ? "active" : "")">
+                <i class="fa-solid @module.Icon"></i> @module.Name
+            </a>
+        }
+    </nav>
+</aside>

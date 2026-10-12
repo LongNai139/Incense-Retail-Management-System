@@ -1,0 +1,86 @@
+@model SV22T1080045.Shop.Models.ViewModels.Staff.StaffProductViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Sản phẩm";
+    Layout = "_StaffLayout";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal value) => value.ToString("N0", vi) + "đ";
+    string ProductStatusClass(int quantity) => quantity <= 0 ? "staff-status-failed" : quantity < 5 ? "staff-status-pending" : "staff-status-done";
+    string ProductStatusText(int quantity) => quantity <= 0 ? "Hết hàng" : quantity < 5 ? "Sắp hết" : "Đủ hàng";
+}
+
+<section class="staff-section">
+    <div class="staff-section-head">
+        <div>
+            <span class="staff-kicker">Tồn kho cơ bản</span>
+            <h2>Sản phẩm</h2>
+        </div>
+        <div class="staff-note">Staff chỉ được xem số lượng tồn để tư vấn và báo quản lý nhập hàng; không được cập nhật mặt hàng.</div>
+    </div>
+
+    <form class="staff-filter" asp-controller="Staff" asp-action="Products" method="get">
+        <input type="search" name="productSearchValue" value="@Model.ProductSearchValue" placeholder="Tìm sản phẩm, danh mục, xuất xứ" />
+        <button class="staff-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Tìm</button>
+        <a class="staff-btn" asp-controller="Staff" asp-action="Products"><i class="fa-solid fa-xmark"></i> Xóa lọc</a>
+    </form>
+
+    <div class="staff-table-wrap">
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Danh mục</th>
+                    <th>Giá bán</th>
+                    <th>Tồn kho</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Products.Any())
+                {
+                    foreach (var product in Model.Products)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@product.ProductName</strong>
+                                <span>@product.Origin · Đã bán @product.SoldCount</span>
+                            </td>
+                            <td>@product.CategoryName</td>
+                            <td>@Money(product.PriceAfterDiscount)</td>
+                            <td><strong>@product.Quantity @product.UnitName</strong></td>
+                            <td><span class="staff-status @ProductStatusClass(product.Quantity)">@ProductStatusText(product.Quantity)</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5">Không tìm thấy sản phẩm phù hợp.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="staff-pagination">
+        <span>Hiển thị @Model.ProductStartItem-@Model.ProductEndItem / @Model.ProductTotalItems sản phẩm</span>
+        <div>
+            @if (Model.ProductPage > 1)
+            {
+                <a class="staff-btn" asp-controller="Staff" asp-action="Products" asp-route-productSearchValue="@Model.ProductSearchValue" asp-route-productPage="@(Model.ProductPage - 1)"><i class="fa-solid fa-chevron-left"></i> Trước</a>
+            }
+            else
+            {
+                <span class="staff-btn disabled"><i class="fa-solid fa-chevron-left"></i> Trước</span>
+            }
+            <span class="staff-page-count">Trang @Model.ProductPage / @Model.ProductTotalPages</span>
+            @if (Model.ProductPage < Model.ProductTotalPages)
+            {
+                <a class="staff-btn" asp-controller="Staff" asp-action="Products" asp-route-productSearchValue="@Model.ProductSearchValue" asp-route-productPage="@(Model.ProductPage + 1)">Sau <i class="fa-solid fa-chevron-right"></i></a>
+            }
+            else
+            {
+                <span class="staff-btn disabled">Sau <i class="fa-solid fa-chevron-right"></i></span>
+            }
+        </div>
+    </div>
+</section>
