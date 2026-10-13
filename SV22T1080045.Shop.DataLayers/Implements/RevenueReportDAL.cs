@@ -48,11 +48,13 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                         SELECT COALESCE(SUM(po.TotalAmount), 0)
                         FROM Orders po
                         WHERE po.IsDeleted = 0
+                          AND po.Status = 4
                           AND po.OrderDate >= @PreviousStart
                           AND po.OrderDate < @PreviousEnd
                     ) AS PreviousRevenue
                 FROM Orders o
                 WHERE o.IsDeleted = 0
+                  AND o.Status = 4
                   AND o.OrderDate >= @Start
                   AND o.OrderDate < @End", args);
 
@@ -67,6 +69,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 INNER JOIN Orders o ON d.OrderId = o.Id
                 INNER JOIN Products p ON d.ProductId = p.Id
                 WHERE o.IsDeleted = 0
+                  AND o.Status = 4
                   AND o.OrderDate >= @Start
                   AND o.OrderDate < @End
                 GROUP BY d.ProductId, p.ProductName
@@ -82,6 +85,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 FROM Orders o
                 LEFT JOIN Customers c ON o.CustomerId = c.Id
                 WHERE o.IsDeleted = 0
+                  AND o.Status = 4
                   AND o.OrderDate >= @Start
                   AND o.OrderDate < @End
                 GROUP BY

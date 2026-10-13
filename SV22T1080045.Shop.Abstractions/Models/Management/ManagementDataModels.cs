@@ -53,6 +53,7 @@ namespace SV22T1080045.Shop.Abstractions.Models.Management
         public int Status { get; set; }
         public string CustomerName { get; set; } = "";
         public string CustomerPhone { get; set; } = "";
+        public string? CustomerEmail { get; set; } = "";
         public string ShippingAddress { get; set; } = "";
         public bool IsGuest { get; set; }
     }

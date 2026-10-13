@@ -270,15 +270,17 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             if (order == null)
                 return null;
 
-            var details = _context.OrderDetails
-                .Join(_context.Products, d => d.ProductId, p => p.Id, (d, p) => new { d, p })
-                .Where(x => x.d.OrderId == orderId)
-                .Select(x => new ManagementOrderDetailLineData
+            // LEFT JOIN Products: sản phẩm đã bị xóa vẫn giữ lại dòng trong chi tiết đơn
+            var details = (from d in _context.OrderDetails
+                           join p in _context.Products on d.ProductId equals p.Id into productGroup
+                           from p in productGroup.DefaultIfEmpty()
+                           where d.OrderId == orderId
+                           select new ManagementOrderDetailLineData
                 {
-                    ProductName = x.p.ProductName,
-                    Quantity = x.d.Quantity,
-                    UnitPrice = x.d.UnitPrice,
-                    LineTotal = x.d.Quantity * x.d.UnitPrice
+                               ProductName = p != null ? p.ProductName : "Sản phẩm không còn tồn tại",
+                               Quantity = d.Quantity,
+                               UnitPrice = d.UnitPrice,
+                               LineTotal = d.Quantity * d.UnitPrice
                 })
                 .ToList();
 

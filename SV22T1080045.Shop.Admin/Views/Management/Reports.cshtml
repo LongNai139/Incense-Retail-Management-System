@@ -94,7 +94,9 @@
                 <span class="status-badge status-ready">Doanh thu theo tháng</span>
             </div>
             <div class="chart-container" style="padding: 16px;">
-                <canvas id="revenueReportChart" height="220"></canvas>
+                <div style="height: 280px;">
+                    <canvas id="revenueReportChart"></canvas>
+                </div>
             </div>
             <div class="chart-guide" style="margin-top: 16px;">
                 <strong>Kết luận nhanh:</strong>
@@ -108,78 +110,21 @@
                 }
             </div>
         </div>
-
-        <div class="admin-panel">
-            <div class="panel-title">Tỷ lệ sản phẩm bán chạy</div>
-            <div class="donut-chart-container">
-                <div class="donut-chart">
-                    @{
-                        var topProducts = Model.ProductSalesReports.OrderByDescending(p => p.Revenue).Take(5).ToList();
-                        var totalProductRevenue = topProducts.Sum(p => p.Revenue);
-                        var colors = new[] { "#c9a961", "#8a6d28", "#d4b86a", "#a67c3d", "#b98b36", "#52745b" };
-                        var colorIndex = 0;
-                    }
-                    @if (topProducts.Any())
-                    {
-                        var conicGradient = "";
-                        var currentPercentage = 0.0m;
-
-                        foreach (var product in topProducts)
-                        {
-                            var percentage = totalProductRevenue > 0 ? (product.Revenue / totalProductRevenue) * 100 : 0;
-                            var color = colors[colorIndex % colors.Length];
-                            var nextPercentage = currentPercentage + percentage;
-
-                            conicGradient += $"{color} {currentPercentage}% {nextPercentage}%, ";
-                            currentPercentage = nextPercentage;
-                            colorIndex++;
-                        }
-
-                        conicGradient = conicGradient.TrimEnd(',', ' ');
-
-                        <div class="donut-segment" style="background: conic-gradient(@conicGradient);"></div>
-                        <div class="donut-hole"></div>
-                        <div class="donut-text">@FormatMoney(totalProductRevenue)</div>
-                    }
-                    else
-                    {
-                        <div class="donut-empty">Chưa có dữ liệu</div>
-                    }
-                </div>
-                <div class="donut-legend">
-                    @if (topProducts.Any())
-                    {
-                        colorIndex = 0;
-                        foreach (var product in topProducts)
-                        {
-                            var percentage = totalProductRevenue > 0 ? (product.Revenue / totalProductRevenue) * 100 : 0;
-                            var color = colors[colorIndex % colors.Length];
-
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: @color;"></div>
-                                <div class="legend-text">@product.ProductName</div>
-                                <div class="legend-value">@percentage.ToString("0.1")%</div>
-                            </div>
-
-                            colorIndex++;
-                        }
-                    }
-                </div>
-            </div>
-        </div>
     </div>
 </section>
 
 @section Scripts {
-    <script src="~/themes/bower_components/chart.js/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
-        // Revenue Report Chart with Chart.js
-        const reportCtx = document.getElementById('revenueReportChart');
-        if (reportCtx) {
+        (function () {
             const reportLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportRevenuePoints.OrderBy(p => p.Label).Select(p => p.Label)));
             const reportData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportRevenuePoints.OrderBy(p => p.Label).Select(p => p.Revenue)));
-
-            new Chart(reportCtx, {
+            const canvas = document.getElementById('revenueReportChart');
+            if (!canvas || typeof Chart === 'undefined') {
+                console.error('Chart.js chưa được tải hoặc canvas không tồn tại');
+                return;
+            }
+            new Chart(canvas.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: reportLabels,
@@ -249,6 +194,6 @@
                     }
                 }
             });
-        }
+        })();
     </script>
 }

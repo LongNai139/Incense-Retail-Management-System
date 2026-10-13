@@ -225,7 +225,7 @@ namespace SV22T1080045.Shop.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             ViewBag.StorefrontLogoutUrl = $"{GetStorefrontUrl()}/Account/LogoutBridge";
-            ViewBag.StorefrontLoginUrl = $"{GetStorefrontUrl()}/Account/Login";
+            ViewBag.StorefrontLoginUrl = Url.Action(nameof(Login), "Account"); // /Account/Login trên 7127
             return View("StorefrontLogoutBridge");
         }
 

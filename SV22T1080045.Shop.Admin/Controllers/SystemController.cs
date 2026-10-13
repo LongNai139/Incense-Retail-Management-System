@@ -35,7 +35,7 @@ public class SystemController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult SaveAccount(SystemAccountFormViewModel form)
+    public IActionResult SaveAccount([Bind(Prefix = "AccountForm")] SystemAccountFormViewModel form)
     {
         if (!ModelState.IsValid)
         {
