@@ -36,8 +36,34 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 .FirstOrDefault(c => !c.IsDeleted && c.Phone == normalizedPhone && c.Password == password);
         }
 
+        public List<Customer> ListForPermissionAssignment()
+        {
+            return _context.Customers
+                .AsNoTracking()
+                .Where(c => !c.IsDeleted)
+                .OrderBy(c => c.CustomerName)
+                .Select(c => new Customer
+                {
+                    Id = c.Id,
+                    CustomerName = c.CustomerName,
+                    Phone = c.Phone,
+                    Role = c.Role,
+                    RoleId = c.RoleId
+                })
+                .ToList();
+        }
+
         public int Add(Customer customer)
         {
+            // Tự động gán RoleId nếu Role được set nhưng RoleId chưa có
+            if (!string.IsNullOrWhiteSpace(customer.Role) && customer.RoleId == null)
+            {
+                customer.RoleId = _context.Roles
+                    .Where(r => r.Name == customer.Role)
+                    .Select(r => (int?)r.Id)
+                    .FirstOrDefault();
+            }
+
             _context.Customers.Add(customer);
             _context.SaveChanges();
             return customer.Id;

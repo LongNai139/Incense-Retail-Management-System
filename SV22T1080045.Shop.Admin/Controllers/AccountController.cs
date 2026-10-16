@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.Admin.Extensions.Authorizations;
 using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Common.Model.Users;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models;
@@ -14,6 +16,8 @@ namespace SV22T1080045.Shop.Controllers
     public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
+        private readonly IPermissionService _permissionService;
+        private readonly IRoleDAL _roleDAL;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AccountController> _logger;
         private const int MaxLoginFailCount = 5;
@@ -21,9 +25,19 @@ namespace SV22T1080045.Shop.Controllers
         private const string LoginLockKeyPrefix = "login_lock_";
         private const string LoginFailKeyPrefix = "login_fail_";
 
-        public AccountController(IAccountService accountService, IConfiguration configuration, ILogger<AccountController> logger)
+        // Cảnh báo khi claim permissions quá lớn (cookie bị chia nhỏ khi vượt ~4KB)
+        private const int PermissionClaimWarnLength = 2500;
+
+        public AccountController(
+            IAccountService accountService,
+            IPermissionService permissionService,
+            IRoleDAL roleDAL,
+            IConfiguration configuration,
+            ILogger<AccountController> logger)
         {
             _accountService = accountService;
+            _permissionService = permissionService;
+            _roleDAL = roleDAL;
             _configuration = configuration;
             _logger = logger;
         }
@@ -31,8 +45,16 @@ namespace SV22T1080045.Shop.Controllers
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
+            if (User.Identity?.IsAuthenticated == true)
+                return Redirect("/");
+
             if (User.IsInRole(CustomerRoles.Admin))
                 return RedirectToAction("Index", "Management");
+
+            if (User.HasAnyPermission(PermissionConstants.ViewOrder, PermissionConstants.ViewProduct,
+                    PermissionConstants.ViewCustomer, PermissionConstants.ViewInventory, PermissionConstants.ViewDebt,
+                    PermissionConstants.ViewReport, PermissionConstants.ViewRevenue, PermissionConstants.ManageSystem))
+                return Redirect("/");
 
             if (User.IsInRole(CustomerRoles.Staff))
                 return RedirectToAction("Index", "Staff");
@@ -62,6 +84,15 @@ namespace SV22T1080045.Shop.Controllers
             if (User.IsInRole(CustomerRoles.Admin))
                 return RedirectToAction("Index", "Management");
 
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                ViewBag.Title = "Không có quyền truy cập";
+                ViewBag.Message = "Tài khoản hiện tại chưa được cấp quyền vào khu vực làm việc.";
+                ViewBag.WorkspaceUrl = Url.Action(nameof(Profile), "Account");
+                ViewBag.WorkspaceLabel = "Về hồ sơ";
+                return View();
+            }
+
             return RedirectToAction(nameof(Login));
         }
 
@@ -88,7 +119,7 @@ namespace SV22T1080045.Shop.Controllers
             if (string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase))
                 return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Management"));
 
-            return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Staff"));
+            return RedirectToLocal(returnUrl, () => Redirect("/"));
         }
 
         [HttpPost]
@@ -149,7 +180,7 @@ namespace SV22T1080045.Shop.Controllers
                 if (string.Equals(customer.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase))
                     return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Management"));
 
-                return RedirectToLocal(returnUrl, () => RedirectToAction("Index", "Staff"));
+                return RedirectToLocal(returnUrl, () => Redirect("/"));
             }
 
             var failKey = $"{LoginFailKeyPrefix}{model.Phone}";
@@ -240,6 +271,20 @@ namespace SV22T1080045.Shop.Controllers
                 new Claim(ClaimTypes.Role, customer.Role)
             };
 
+            // Lưu permissions (từ Role + quyền riêng của user) vào claims
+            var permissionCodes = _permissionService.GetUserPermissionCodes(customer.Id);
+            if (permissionCodes.Count > 0)
+            {
+                var permissionClaim = AuthorizationExtensions.CreatePermissionClaim(permissionCodes);
+                if (permissionClaim.Value.Length > PermissionClaimWarnLength)
+                {
+                    _logger.LogWarning(
+                        "Permission claim is large ({Length} chars, {Count} permissions) for customer {CustomerId}",
+                        permissionClaim.Value.Length, permissionCodes.Count, customer.Id);
+                }
+                claims.Add(permissionClaim);
+            }
+
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
@@ -264,10 +309,12 @@ namespace SV22T1080045.Shop.Controllers
             return (_configuration["AppHosts:StorefrontUrl"] ?? "https://localhost:7126").TrimEnd('/');
         }
 
-        private static bool IsBackofficeRole(string? role)
+        private bool IsBackofficeRole(string? role)
         {
-            return string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase);
+            var roleName = role?.Trim();
+            var roleDefinition = string.IsNullOrWhiteSpace(roleName) ? null : _roleDAL.GetByName(roleName);
+            return roleDefinition != null &&
+                !string.Equals(roleDefinition.Name, CustomerRoles.Customer, StringComparison.OrdinalIgnoreCase);
         }
 
         private IActionResult RedirectToLocal(string? returnUrl, Func<IActionResult> fallback)

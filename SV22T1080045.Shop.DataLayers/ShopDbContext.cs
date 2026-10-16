@@ -26,6 +26,13 @@ namespace SV22T1080045.Shop.DataLayers
         public DbSet<StockTransaction> StockTransactions { get; set; }
         public DbSet<CustomerDebt> CustomerDebts { get; set; }
 
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<RoleGroup> RoleGroups { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
+
         // 2. Cấu hình thêm (Ví dụ: Tự tạo tài khoản Admin mặc định)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -156,6 +163,101 @@ namespace SV22T1080045.Shop.DataLayers
                 e.HasIndex(x => x.DueDate);
                 e.HasIndex(x => x.Status);
             });
+            modelBuilder.Entity<Role>(e =>
+            {
+                e.ToTable("Roles");
+                e.Property(x => x.Name).HasMaxLength(50).IsRequired();
+                e.Property(x => x.DisplayName).HasMaxLength(100).IsRequired();
+                e.Property(x => x.Description).HasMaxLength(500);
+
+                e.HasIndex(x => x.Name).IsUnique();
+            });
+
+            // Permissions
+            modelBuilder.Entity<Permission>(e =>
+            {
+                e.ToTable("Permissions");
+                e.Property(x => x.Code).HasMaxLength(100).IsRequired();
+                e.Property(x => x.DisplayName).HasMaxLength(100).IsRequired();
+                e.Property(x => x.Description).HasMaxLength(500);
+                e.Property(x => x.Module).HasMaxLength(50);
+
+                e.HasIndex(x => x.Code).IsUnique();
+                e.HasIndex(x => x.Module);
+            });
+
+            // RolePermissions (Many-to-Many)
+            modelBuilder.Entity<RolePermission>(e =>
+            {
+                e.ToTable("RolePermissions");
+                e.HasKey(x => new { x.RoleId, x.PermissionId });
+
+                e.HasOne(x => x.Role)
+                 .WithMany(x => x.RolePermissions)
+                 .HasForeignKey(x => x.RoleId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.Permission)
+                 .WithMany(x => x.RolePermissions)
+                 .HasForeignKey(x => x.PermissionId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(x => x.PermissionId);
+            });
+
+            // Groups
+            modelBuilder.Entity<Group>(e =>
+            {
+                e.ToTable("Groups");
+                e.Property(x => x.Name).HasMaxLength(100).IsRequired();
+                e.Property(x => x.Description).HasMaxLength(500);
+
+                e.HasIndex(x => x.Name).IsUnique();
+            });
+
+            // RoleGroups (Many-to-Many)
+            modelBuilder.Entity<RoleGroup>(e =>
+            {
+                e.ToTable("RoleGroups");
+                e.HasKey(x => new { x.GroupId, x.RoleId });
+
+                e.HasOne(x => x.Group)
+                 .WithMany(x => x.RoleGroups)
+                 .HasForeignKey(x => x.GroupId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.Role)
+                 .WithMany(x => x.RoleGroups)
+                 .HasForeignKey(x => x.RoleId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // UserPermissions
+            modelBuilder.Entity<UserPermission>(e =>
+            {
+                e.ToTable("UserPermissions");
+                e.HasKey(x => new { x.UserId, x.PermissionId });
+
+                e.HasOne(x => x.User)
+                 .WithMany(x => x.UserPermissions)
+                 .HasForeignKey(x => x.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.Permission)
+                 .WithMany(x => x.UserPermissions)
+                 .HasForeignKey(x => x.PermissionId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(x => x.PermissionId);
+                e.HasIndex(x => x.ExpiresAt);
+            });
+
+            // Update Customer to support new FKs
+            modelBuilder.Entity<Customer>()
+                .HasIndex(x => x.RoleId);
+
+            modelBuilder.Entity<Customer>()
+                .HasIndex(x => x.GroupId);
         }
     }
 }

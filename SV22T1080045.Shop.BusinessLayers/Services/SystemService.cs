@@ -9,11 +9,15 @@ public class SystemService : ISystemService
 {
     private readonly ISystemDAL _systemDAL;
     private readonly IPasswordHasherService _passwordHasherService;
+    private readonly IPermissionService _permissionService;
+    private readonly IRoleDAL _roleDAL;
 
-    public SystemService(ISystemDAL systemDAL, IPasswordHasherService passwordHasherService)
+    public SystemService(ISystemDAL systemDAL, IPasswordHasherService passwordHasherService, IPermissionService permissionService, IRoleDAL roleDAL)
     {
         _systemDAL = systemDAL;
         _passwordHasherService = passwordHasherService;
+        _permissionService = permissionService;
+        _roleDAL = roleDAL;
     }
 
     public List<SystemAccountData> ListBackofficeAccounts(string? searchValue, string? roleFilter) =>
@@ -27,6 +31,10 @@ public class SystemService : ISystemService
         var name = input.CustomerName?.Trim() ?? "";
         var phone = input.Phone?.Trim() ?? "";
         var role = NormalizeBackofficeRole(input.Role);
+        if (role == null)
+            return Fail("Vai trò không hợp lệ hoặc không thể gán cho tài khoản quản trị.");
+        if (string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase) && !IsAdmin(actorId))
+            return Fail("Chỉ Admin hiện tại mới được gán vai trò Admin.");
 
         if (string.IsNullOrWhiteSpace(name))
             return Fail("Vui lòng nhập họ tên.");
@@ -54,6 +62,9 @@ public class SystemService : ISystemService
                 IsDeleted = false
             };
 
+            // Tự động gán RoleId tương ứng với Role string
+            // (Sẽ được DAL gán khi thêm vào DB, nhưng có thể query ở đây nếu cần)
+
             var id = _systemDAL.AddAccount(account);
             return new SystemAccountSaveResult
             {
@@ -68,7 +79,10 @@ public class SystemService : ISystemService
             return Fail("Không tìm thấy tài khoản.");
 
         if (!IsBackofficeRole(existing.Role))
-            return Fail("Chỉ có thể chỉnh sửa tài khoản Admin hoặc Staff.");
+            return Fail("Không thể chỉnh sửa tài khoản với vai trò Customer.");
+
+        if (input.Id == actorId && !string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase))
+            return Fail("Không thể tự hạ quyền của chính mình.");
 
         var phoneOwner = _systemDAL.GetByPhone(phone);
         if (phoneOwner != null && phoneOwner.Id != input.Id)
@@ -81,6 +95,7 @@ public class SystemService : ISystemService
             return Fail("Không thể đổi vai trò của Admin cuối cùng.");
         }
 
+        var roleChanged = !string.Equals(existing.Role, role, StringComparison.OrdinalIgnoreCase);
         existing.CustomerName = name;
         existing.Phone = phone;
         existing.Email = NormalizeOptional(input.Email);
@@ -88,6 +103,9 @@ public class SystemService : ISystemService
         existing.Role = role;
 
         var updated = _systemDAL.UpdateAccount(existing);
+        if (updated && roleChanged)
+            _permissionService.InvalidateUser(existing.Id);
+
         return new SystemAccountSaveResult
         {
             Success = updated,
@@ -106,7 +124,7 @@ public class SystemService : ISystemService
             return Fail("Không tìm thấy tài khoản.");
 
         if (!IsBackofficeRole(existing.Role))
-            return Fail("Chỉ có thể đặt lại mật khẩu tài khoản Admin hoặc Staff.");
+            return Fail("Không thể đặt lại mật khẩu tài khoản với vai trò Customer.");
 
         existing.Password = _passwordHasherService.Hash(newPassword.Trim());
         var updated = _systemDAL.UpdateAccount(existing);
@@ -129,7 +147,7 @@ public class SystemService : ISystemService
             return Fail("Không tìm thấy tài khoản.");
 
         if (!IsBackofficeRole(existing.Role))
-            return Fail("Chỉ có thể quản lý tài khoản Admin hoặc Staff.");
+            return Fail("Không thể quản lý trạng thái tài khoản với vai trò Customer.");
 
         if (!isActive &&
             existing.Role == CustomerRoles.Admin &&
@@ -154,6 +172,8 @@ public class SystemService : ISystemService
         var normalizedRole = NormalizeAssignableRole(role);
         if (normalizedRole == null)
             return RoleFail("Vai trò không hợp lệ.");
+        if (string.Equals(normalizedRole, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase) && !IsAdmin(actorId))
+            return RoleFail("Chỉ Admin hiện tại mới được gán vai trò Admin.");
 
         var existing = _systemDAL.GetAccountById(accountId);
         if (existing == null)
@@ -170,6 +190,13 @@ public class SystemService : ISystemService
         }
 
         var updated = _systemDAL.UpdateRole(accountId, normalizedRole);
+
+        // Invalidate cache permission của user bị thay đổi role
+        if (updated)
+        {
+            _permissionService.InvalidateUser(accountId);
+        }
+
         return new SystemRoleUpdateResult
         {
             Success = updated,
@@ -177,27 +204,27 @@ public class SystemService : ISystemService
         };
     }
 
-    private static string NormalizeBackofficeRole(string? role)
+    private string? NormalizeBackofficeRole(string? role)
     {
-        return string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase)
-            ? CustomerRoles.Admin
-            : CustomerRoles.Staff;
+        var value = role?.Trim();
+        var matched = value == null ? null : _roleDAL.GetByName(value);
+        return matched == null || string.Equals(matched.Name, CustomerRoles.Customer, StringComparison.OrdinalIgnoreCase)
+            ? null
+            : matched.Name;
     }
 
-    private static string? NormalizeAssignableRole(string? role)
+    private string? NormalizeAssignableRole(string? role)
     {
-        if (string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase))
-            return CustomerRoles.Admin;
-
-        if (string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase))
-            return CustomerRoles.Staff;
-
-        return null;
+        return NormalizeBackofficeRole(role);
     }
 
-    private static bool IsBackofficeRole(string? role) =>
-        string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase);
+    private bool IsBackofficeRole(string? role) => NormalizeBackofficeRole(role) != null;
+
+    private bool IsAdmin(int userId)
+    {
+        var actor = _systemDAL.GetAccountById(userId);
+        return actor != null && string.Equals(actor.Role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase);
+    }
 
     private static string? NormalizeOptional(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

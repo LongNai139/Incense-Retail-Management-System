@@ -8,15 +8,21 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
     {
         private readonly ICustomerDAL _customerDAL;
         private readonly IPasswordHasherService _passwordHasherService;
+        private readonly IRoleDAL _roleDAL;
 
-        public StartupSeedService(ICustomerDAL customerDAL, IPasswordHasherService passwordHasherService)
+        public StartupSeedService(ICustomerDAL customerDAL, IPasswordHasherService passwordHasherService, IRoleDAL roleDAL)
         {
             _customerDAL = customerDAL;
             _passwordHasherService = passwordHasherService;
+            _roleDAL = roleDAL;
         }
 
         public void SeedStaffAccounts()
         {
+            // Lấy RoleId cho Staff
+            var staffRole = _roleDAL.GetByName(CustomerRoles.Staff);
+            int? staffRoleId = staffRole?.Id;
+
             var staffAccounts = new[]
             {
                 new Customer
@@ -25,6 +31,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                     Phone = "0911000001",
                     Password = _passwordHasherService.Hash("123"),
                     Role = CustomerRoles.Staff,
+                    RoleId = staffRoleId,
                     Address = "Cua hang Huong Tram",
                     Email = "staff01@tramhuong.local",
                     CreatedTime = DateTime.Now,
@@ -36,6 +43,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                     Phone = "0911000002",
                     Password = _passwordHasherService.Hash("123"),
                     Role = CustomerRoles.Staff,
+                    RoleId = staffRoleId,
                     Address = "Cua hang Huong Tram",
                     Email = "staff02@tramhuong.local",
                     CreatedTime = DateTime.Now,

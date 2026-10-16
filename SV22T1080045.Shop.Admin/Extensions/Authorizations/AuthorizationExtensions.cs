@@ -7,33 +7,31 @@ namespace SV22T1080045.Shop.Admin.Extensions.Authorizations
 {
     /// <summary>
     /// Extension methods cho authorization
-    /// Dùng để check permission từ ClaimsPrincipal
+    /// Đọc permission từ claims (được ghi lúc đăng nhập từ database)
     /// </summary>
     public static class AuthorizationExtensions
     {
+        /// <summary>
+        /// Loại claim chứa danh sách mã quyền, các mã cách nhau bằng dấu phẩy.
+        /// Gộp thành một claim để cookie không bị phình to.
+        /// </summary>
+        public const string PermissionClaimType = "permissions";
+
+        private const char PermissionSeparator = ',';
+
         /// <summary>
         /// Kiểm tra user có permission cụ thể không
         /// </summary>
         public static bool HasPermission(this ClaimsPrincipal user, string permission)
         {
-            if (!user.Identity?.IsAuthenticated == true)
-                return false;
-
-            var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
-            if (string.IsNullOrEmpty(userRole))
+            if (!IsAuthenticated(user) || string.IsNullOrWhiteSpace(permission))
                 return false;
 
             // Admin có tất cả quyền
-            if (userRole == CustomerRoles.Admin)
+            if (IsAdmin(user))
                 return true;
 
-            // Kiểm tra permission theo role
-            if (CustomerRoles.RolePermissions.TryGetValue(userRole, out var rolePermissions))
-            {
-                return rolePermissions.Contains(permission);
-            }
-
-            return false;
+            return GetPermissions(user).Contains(permission.Trim(), StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -41,24 +39,16 @@ namespace SV22T1080045.Shop.Admin.Extensions.Authorizations
         /// </summary>
         public static bool HasAnyPermission(this ClaimsPrincipal user, params string[] permissions)
         {
-            if (!user.Identity?.IsAuthenticated == true)
-                return false;
-
-            var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
-            if (string.IsNullOrEmpty(userRole))
+            if (!IsAuthenticated(user))
                 return false;
 
             // Admin có tất cả quyền
-            if (userRole == CustomerRoles.Admin)
+            if (IsAdmin(user))
                 return true;
 
-            // Kiểm tra permission theo role
-            if (CustomerRoles.RolePermissions.TryGetValue(userRole, out var rolePermissions))
-            {
-                return permissions.Any(p => rolePermissions.Contains(p));
-            }
-
-            return false;
+            var owned = GetPermissions(user);
+            return permissions.Any(p => !string.IsNullOrWhiteSpace(p)
+                && owned.Contains(p.Trim(), StringComparer.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -66,44 +56,47 @@ namespace SV22T1080045.Shop.Admin.Extensions.Authorizations
         /// </summary>
         public static bool HasAllPermissions(this ClaimsPrincipal user, params string[] permissions)
         {
-            if (!user.Identity?.IsAuthenticated == true)
-                return false;
-
-            var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
-            if (string.IsNullOrEmpty(userRole))
+            if (!IsAuthenticated(user))
                 return false;
 
             // Admin có tất cả quyền
-            if (userRole == CustomerRoles.Admin)
+            if (IsAdmin(user))
                 return true;
 
-            // Kiểm tra permission theo role
-            if (CustomerRoles.RolePermissions.TryGetValue(userRole, out var rolePermissions))
-            {
-                return permissions.All(p => rolePermissions.Contains(p));
-            }
-
-            return false;
+            var owned = GetPermissions(user);
+            return permissions.All(p => !string.IsNullOrWhiteSpace(p)
+                && owned.Contains(p.Trim(), StringComparer.OrdinalIgnoreCase));
         }
 
         /// <summary>
-        /// Lấy danh sách permissions của user hiện tại
+        /// Lấy danh sách permissions của user hiện tại (đọc từ claims)
         /// </summary>
         public static string[] GetPermissions(this ClaimsPrincipal user)
         {
-            if (!user.Identity?.IsAuthenticated == true)
+            if (!IsAuthenticated(user))
                 return Array.Empty<string>();
 
-            var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
-            if (string.IsNullOrEmpty(userRole))
-                return Array.Empty<string>();
-
-            if (CustomerRoles.RolePermissions.TryGetValue(userRole, out var rolePermissions))
-            {
-                return rolePermissions.ToArray();
-            }
-
-            return Array.Empty<string>();
+            return user.FindAll(PermissionClaimType)
+                .SelectMany(c => c.Value.Split(PermissionSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
         }
+
+        /// <summary>
+        /// Tạo claim permissions từ danh sách mã quyền (dùng khi đăng nhập).
+        /// </summary>
+        public static Claim CreatePermissionClaim(IEnumerable<string> permissionCodes)
+        {
+            var value = string.Join(PermissionSeparator, permissionCodes.OrderBy(c => c, StringComparer.Ordinal));
+            return new Claim(PermissionClaimType, value);
+        }
+
+        private static bool IsAuthenticated(ClaimsPrincipal? user)
+            => user?.Identity?.IsAuthenticated == true;
+
+        // Không dùng user.IsInRole để tránh đệ quy khi user là CustomClaimsPrincipal
+        private static bool IsAdmin(ClaimsPrincipal user)
+            => user.FindAll(ClaimTypes.Role)
+                .Any(c => string.Equals(c.Value, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase));
     }
 }

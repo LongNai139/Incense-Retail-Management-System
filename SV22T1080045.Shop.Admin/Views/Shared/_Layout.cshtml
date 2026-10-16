@@ -1,14 +1,24 @@
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@using SV22T1080045.Shop.Admin.Extensions.Authorizations
+@using SV22T1080045.Shop.DomainModels
 @{
-    var isDarkSection = ViewContext.RouteData.Values["controller"]?.ToString() is "Management" or "System" or "Staff";
-    var isManagementSection = ViewContext.RouteData.Values["controller"]?.ToString() == "Management";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isStaffSection = currentController == "Staff";
+    var isDarkSection = currentController is "Management" or "System" or "Staff";
+    var isManagementSection = currentController == "Management";
     var searchValue = ViewBag.SearchValue as string ?? string.Empty;
     var storefrontUrl = (Configuration["AppHosts:StorefrontUrl"] ?? "https://localhost:7126").TrimEnd('/');
     var isAdmin = User.IsInRole(SV22T1080045.Shop.DomainModels.CustomerRoles.Admin);
-    var isStaff = User.IsInRole(SV22T1080045.Shop.DomainModels.CustomerRoles.Staff);
-    var workspaceHome = isAdmin
+    var hasManagementHome = User.HasAnyPermission(PermissionConstants.ViewReport, PermissionConstants.ViewRevenue, PermissionConstants.ManageSystem);
+    var hasStaffHome = User.HasAnyPermission(PermissionConstants.ViewOrder, PermissionConstants.ViewProduct, PermissionConstants.ViewCustomer);
+    var workspaceHome = isAdmin || hasManagementHome
         ? Url.Action("Index", "Management")!
-        : Url.Action("Index", "Staff")!;
+        : User.HasAnyPermission(PermissionConstants.ViewOrder) ? Url.Action("Orders", "Staff")!
+        : User.HasAnyPermission(PermissionConstants.ViewProduct) ? Url.Action("Products", "Staff")!
+        : User.HasAnyPermission(PermissionConstants.ViewCustomer) ? Url.Action("Customers", "Staff")!
+        : User.HasAnyPermission(PermissionConstants.ViewInventory) ? Url.Action("StockTransactions", "Warehouse")!
+        : User.HasAnyPermission(PermissionConstants.ViewDebt) ? Url.Action("CustomerDebts", "Warehouse")!
+        : Url.Action("Profile", "Account")!;
 }
 
 <!DOCTYPE html>
@@ -73,25 +83,22 @@
                                 <a role="menuitem" asp-controller="Account" asp-action="Profile">
                                     <i class="fa-solid fa-id-card"></i> Hồ sơ
                                 </a>
-                                @if (isStaff || isAdmin)
-                                {
-                                    <a role="menuitem" asp-controller="Staff" asp-action="Index">
-                                        <i class="fa-solid fa-headset"></i> Staff
-                                    </a>
-                                }
-                                @if (isAdmin)
+                                @if (isAdmin || hasManagementHome)
                                 {
                                     <a role="menuitem" asp-controller="Management" asp-action="Index">
                                         <i class="fa-solid fa-chart-line"></i> Quản lý
                                     </a>
+                                }
+                                @if (User.HasAnyPermission(PermissionConstants.ManagePermission, PermissionConstants.ViewUser, PermissionConstants.ManageSystem))
+                                {
                                     <a role="menuitem" asp-controller="System" asp-action="Index">
                                         <i class="fa-solid fa-gear"></i> Hệ thống
                                     </a>
                                 }
-                                else if (isStaff)
+                                else if (hasStaffHome || User.HasAnyPermission(PermissionConstants.ViewInventory, PermissionConstants.ViewDebt))
                                 {
-                                    <a role="menuitem" asp-controller="Staff" asp-action="Index">
-                                        <i class="fa-solid fa-headset"></i> Staff Workspace
+                                    <a role="menuitem" href="@workspaceHome">
+                                        <i class="fa-solid fa-headset"></i> Không gian làm việc
                                     </a>
                                 }
                                 <div class="nav-dropdown-divider" role="separator"></div>

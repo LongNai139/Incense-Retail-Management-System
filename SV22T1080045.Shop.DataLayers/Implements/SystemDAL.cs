@@ -51,6 +51,12 @@ public class SystemDAL : ISystemDAL
 
     public int AddAccount(Customer customer)
     {
+        // Tự động gán RoleId tương ứng với Role string
+        customer.RoleId = _context.Roles
+            .Where(r => r.Name == customer.Role)
+            .Select(r => (int?)r.Id)
+            .FirstOrDefault();
+
         _context.Customers.Add(customer);
         _context.SaveChanges();
         return customer.Id;
@@ -68,6 +74,12 @@ public class SystemDAL : ISystemDAL
         existing.Address = customer.Address;
         existing.Role = customer.Role;
 
+        // Cập nhật RoleId tương ứng với Role string
+        existing.RoleId = _context.Roles
+            .Where(r => r.Name == customer.Role)
+            .Select(r => (int?)r.Id)
+            .FirstOrDefault();
+
         if (!string.IsNullOrWhiteSpace(customer.Password))
             existing.Password = customer.Password;
 
@@ -82,6 +94,13 @@ public class SystemDAL : ISystemDAL
             return false;
 
         existing.Role = role;
+
+        // Cập nhật RoleId tương ứng với Role string
+        existing.RoleId = _context.Roles
+            .Where(r => r.Name == role)
+            .Select(r => (int?)r.Id)
+            .FirstOrDefault();
+
         _context.SaveChanges();
         return true;
     }

@@ -14,15 +14,19 @@ namespace SV22T1080045.Shop.DomainModels
         public const string CreateUser = "create_user";              // Tạo user mới
         public const string EditUser = "edit_user";                  // Sửa user
         public const string DeleteUser = "delete_user";              // Xóa user
+        public const string ResetPassword = "reset_password";        // Reset mật khẩu user
         public const string ViewLogs = "view_logs";                  // Xem logs hoạt động
 
         // === QUẢN LÝ ĐƠN HÀNG (ORDERS) ===
         public const string ViewOrder = "view_order";                // Xem danh sách đơn hàng
+        public const string ViewOrderDetails = "view_order_details";  // Xem chi tiết đơn hàng
         public const string AddOrder = "add_order";                  // Tạo đơn hàng mới
         public const string EditOrder = "edit_order";                 // Sửa đơn hàng
         public const string DeleteOrder = "delete_order";            // Xóa đơn hàng
         public const string ApproveOrder = "approve_order";          // Duyệt/Xác nhận đơn hàng
-        public const string ViewOrderDetails = "view_order_details";  // Xem chi tiết đơn hàng
+        public const string CancelOrder = "cancel_order";            // Hủy đơn hàng
+        public const string UpdateOrderStatus = "update_order_status"; // Cập nhật trạng thái đơn hàng
+        public const string ExportOrder = "export_order";            // Xuất danh sách đơn hàng
 
         // === QUẢN LÝ SẢN PHẨM (PRODUCTS) ===
         public const string ViewProduct = "view_product";            // Xem danh sách sản phẩm
@@ -30,17 +34,21 @@ namespace SV22T1080045.Shop.DomainModels
         public const string EditProduct = "edit_product";             // Sửa sản phẩm
         public const string DeleteProduct = "delete_product";        // Xóa sản phẩm
         public const string ManageCategory = "manage_category";      // Quản lý danh mục sản phẩm
+        public const string ManageUnit = "manage_unit";              // Quản lý đơn vị tính
 
         // === QUẢN LÝ KHÁCH HÀNG (CUSTOMERS) ===
         public const string ViewCustomer = "view_customer";          // Xem danh sách khách hàng
         public const string AddCustomer = "add_customer";            // Thêm khách hàng
         public const string EditCustomer = "edit_customer";          // Sửa khách hàng
         public const string DeleteCustomer = "delete_customer";      // Xóa khách hàng
+        public const string ViewCustomerHistory = "view_customer_history"; // Xem lịch sử mua hàng
 
         // === QUẢN LÝ KHO HÀNG (INVENTORY) ===
         public const string ViewInventory = "view_inventory";        // Xem tồn kho
         public const string ImportInventory = "import_inventory";    // Nhập hàng vào kho
         public const string ExportInventory = "export_inventory";    // Xuất hàng khỏi kho
+        public const string AdjustInventory = "adjust_inventory";    // Điều chỉnh tồn kho
+        public const string ViewStockAlert = "view_stock_alert";      // Xem cảnh báo tồn kho
 
         // === QUẢN LÝ NHÀ CUNG CẤP (SUPPLIERS) ===
         public const string ViewSupplier = "view_supplier";          // Xem danh sách nhà cung cấp
@@ -53,14 +61,23 @@ namespace SV22T1080045.Shop.DomainModels
         public const string ViewRevenue = "view_revenue";            // Xem doanh thu
         public const string ViewProfit = "view_profit";              // Xem lợi nhuận
         public const string ExportReport = "export_report";          // Xuất báo cáo
+        public const string ViewDashboard = "view_dashboard";        // Xem dashboard
 
         // === CÔNG NỢ (DEBT) ===
         public const string ViewDebt = "view_debt";                  // Xem công nợ
         public const string CollectPayment = "collect_payment";      // Thu tiền công nợ
+        public const string ManageDebt = "manage_debt";              // Quản lý công nợ
 
         // === QUẢN LÝ GIẢM GIÁ (DISCOUNTS) ===
         public const string ManageVoucher = "manage_voucher";        // Quản lý mã giảm giá
         public const string CreateVoucher = "create_voucher";        // Tạo mã giảm giá
+        public const string EditVoucher = "edit_voucher";            // Sửa mã giảm giá
         public const string DeleteVoucher = "delete_voucher";        // Xóa mã giảm giá
+        public const string ActivateVoucher = "activate_voucher";    // Kích hoạt/vô hiệu hóa voucher
+
+        // === THANH TOÁN (PAYMENTS) ===
+        public const string ViewPayment = "view_payment";            // Xem thanh toán
+        public const string ProcessPayment = "process_payment";      // Xử lý thanh toán
+        public const string RefundPayment = "refund_payment";        // Hoàn tiền
     }
 }

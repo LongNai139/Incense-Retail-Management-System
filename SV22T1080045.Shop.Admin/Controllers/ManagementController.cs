@@ -10,6 +10,7 @@ using SV22T1080045.Shop.Models.ViewModels.Management;
 using SV22T1080045.Shop.Models.ViewModels.Product;
 using System.Security.Claims;
 using SV22T1080045.Shop.BusinessLayers;
+using SV22T1080045.Shop.Admin.Extensions.Authorizations;
 
 namespace SV22T1080045.Shop.Controllers
 {
@@ -45,11 +46,9 @@ namespace SV22T1080045.Shop.Controllers
             string revenuePeriod = "day",
             DateTime? revenueDate = null)
         {
-            // Debug: Check if user is authenticated and has Admin role
+
             if (!User.HasAnyPermission(PermissionConstants.ViewReport, PermissionConstants.ViewRevenue, PermissionConstants.ManageSystem))
                 return Forbid();
-            _logger.LogInformation("User roles: {Roles}", userRoles);
-            _logger.LogInformation("IsInRole Admin: {IsInRole}", User.IsInRole(CustomerRoles.Admin));
 
             return View("Index", BuildDashboardModel(
                 revenuePeriod,
@@ -79,6 +78,7 @@ namespace SV22T1080045.Shop.Controllers
                 savedAction));
         }
 
+        [Permission(PermissionConstants.ViewOrder)]
         public IActionResult Orders(int orderPage = 1, int? selectedOrderId = null, int? status = null)
         {
             // Check if selectedOrderId is provided via query string
@@ -89,6 +89,7 @@ namespace SV22T1080045.Shop.Controllers
             return View("Orders", BuildOrderModel(orderPage, selectedOrderId, status));
         }
 
+        [Permission(PermissionConstants.ViewCustomer)]
         public IActionResult Customers(
             int? selectedCustomerId = null,
             bool showFullCustomerHistory = false)
@@ -96,6 +97,7 @@ namespace SV22T1080045.Shop.Controllers
             return View("Customers", BuildCustomerModel(selectedCustomerId, showFullCustomerHistory));
         }
 
+        [Permission(PermissionConstants.ManageVoucher, PermissionConstants.CreateVoucher, PermissionConstants.DeleteVoucher)]
         public IActionResult Discounts(
             ManagementVoucherInput? voucherForm = null,
             string? voucherMessage = null)
@@ -103,6 +105,7 @@ namespace SV22T1080045.Shop.Controllers
             return View("Discounts", BuildDiscountModel(voucherForm, voucherMessage));
         }
 
+        [Permission(PermissionConstants.ViewReport, PermissionConstants.ViewRevenue)]
         public IActionResult Reports(
             string reportPeriod = "month",
             DateTime? reportDate = null)
@@ -140,6 +143,7 @@ namespace SV22T1080045.Shop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.DeleteProduct)]
         public IActionResult DeleteProduct(int productId)
         {
             var result = _productService.DeleteProduct(productId);
@@ -159,6 +163,7 @@ namespace SV22T1080045.Shop.Controllers
         }
 
         [HttpGet]
+        [Permission(PermissionConstants.ViewProduct)]
         public IActionResult GetProduct(int id)
         {
             var product = _productService.GetProduct(id);
@@ -200,6 +205,7 @@ namespace SV22T1080045.Shop.Controllers
             });
         }
 
+        [Permission(PermissionConstants.ViewProduct)]
         public IActionResult ProductDetails(int id)
         {
             var product = _productService.GetProduct(id);
@@ -219,6 +225,7 @@ namespace SV22T1080045.Shop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.CreateVoucher, PermissionConstants.ManageVoucher)]
         public IActionResult SaveVoucher(ManagementVoucherInput model)
         {
             if (!ModelState.IsValid)
@@ -247,6 +254,7 @@ namespace SV22T1080045.Shop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManageVoucher)]
         public IActionResult ToggleVoucher(int id)
         {
             var result = _managementService.ToggleVoucher(id);
@@ -276,6 +284,7 @@ namespace SV22T1080045.Shop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.DeleteVoucher, PermissionConstants.ManageVoucher)]
         public IActionResult DeleteVoucher(int id)
         {
             var result = _managementService.DeleteVoucher(id);
@@ -296,6 +305,7 @@ namespace SV22T1080045.Shop.Controllers
         }
 
         [HttpGet]
+        [Permission(PermissionConstants.ExportReport)]
         public IActionResult ExportRevenueReport(string reportPeriod = "month", DateTime? reportDate = null)
         {
             var bytes = _revenueReportService.ExportRevenueReportCsv(reportPeriod, reportDate);
@@ -304,6 +314,7 @@ namespace SV22T1080045.Shop.Controllers
         }
 
         [HttpGet]
+        [Permission(PermissionConstants.ViewCustomer)]
         public IActionResult CustomerHistory(int selectedCustomerId, bool showFullCustomerHistory = false)
         {
             var customer = ToCustomerRows(_managementService.ListCustomers()).FirstOrDefault(c => c.Id == selectedCustomerId);
@@ -335,6 +346,7 @@ namespace SV22T1080045.Shop.Controllers
         }
 
         [HttpGet]
+        [Permission(PermissionConstants.ViewOrderDetails, PermissionConstants.ViewOrder)]
         public IActionResult OrderDetails(int orderId)
         {
             var data = _managementService.GetOrderDetails(orderId);
@@ -500,6 +512,14 @@ namespace SV22T1080045.Shop.Controllers
                 ReportRangeEnd = reportData.EndDate,
                 ReportSummary = ToManagementSummary(reportData.Summary),
                 ReportRevenuePoints = ToRevenuePoints(reportData.RevenuePoints),
+                OrderStatusBreakdown = new[] { 1, 2, 3, 4, -1 }
+                    .Select(status => new ReportOrderStatusViewModel
+                    {
+                        Status = status,
+                        Label = StatusText(status),
+                        Count = reportData.OrderRows.Count(order => order.Status == status)
+                    })
+                    .ToList(),
                 ProductSalesReports = ToProductSalesReports(reportData.ProductRows),
                 TopCustomers = ToCustomerRows(reportData.CustomerRows.Take(5)),
                 Categories = categories.Select(c => new ManagementCategoryOptionViewModel { Id = c.Id, CategoryName = c.CategoryName }).ToList()

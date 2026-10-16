@@ -29,6 +29,11 @@ namespace SV22T1080045.Shop.BusinessLayers
             services.AddSingleton<ISmsService, FakeSmsService>();
             services.AddScoped<IWarehouseService, WarehouseService>();
 
+            // Permission system
+            services.AddMemoryCache();
+            services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<IPermissionAdministrationService, PermissionAdministrationService>();
+
             return services;
         }
     }

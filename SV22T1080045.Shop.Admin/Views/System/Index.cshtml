@@ -15,7 +15,8 @@
     {
         "Admin" => "Quản trị viên",
         "Staff" => "Nhân viên",
-        _ => "Khách hàng"
+        "Customer" => "Khách hàng",
+        _ => Model.RoleOptions.FirstOrDefault(option => option.Name == role)?.DisplayName ?? role
     };
     var isEditing = Model.AccountForm.Id > 0;
 }
@@ -35,8 +36,14 @@
 
             <nav class="management-nav" aria-label="Điều hướng hệ thống">
                 <a href="#accounts" class="active"><i class="fa-solid fa-users"></i> Tài khoản</a>
-                <a href="#permissions"><i class="fa-solid fa-shield-halved"></i> Phân quyền</a>
-                <a asp-controller="Management" asp-action="Index"><i class="fa-solid fa-chart-line"></i> Quản lý cửa hàng</a>
+                @if (Model.CanManagePermissions)
+                {
+                    <a href="#permissions"><i class="fa-solid fa-shield-halved"></i> Phân quyền</a>
+                }
+                @if (Model.CanViewManagement)
+                {
+                    <a asp-controller="Management" asp-action="Index"><i class="fa-solid fa-chart-line"></i> Quản lý cửa hàng</a>
+                }
             </nav>
         </aside>
 
@@ -45,11 +52,17 @@
                 <div>
                     <div class="management-kicker">Hệ thống</div>
                     <h1>Quản lý tài khoản &amp; phân quyền</h1>
-                    <p>Tạo tài khoản Admin/Staff, đặt lại mật khẩu và gán vai trò cho người dùng. Chỉ tài khoản Admin mới truy cập module này.</p>
+                    <p>Quản lý tài khoản, vai trò và quyền nghiệp vụ. Các thay đổi quyền có hiệu lực sau lần đăng nhập tiếp theo.</p>
                 </div>
                 <div class="management-actions">
-                    <a class="admin-btn" asp-controller="Management" asp-action="Index"><i class="fa-solid fa-arrow-left"></i> Về quản lý</a>
-                    <a class="admin-btn primary" asp-action="Index" asp-fragment="accounts"><i class="fa-solid fa-user-plus"></i> Tài khoản mới</a>
+                    @if (Model.CanViewManagement)
+                    {
+                        <a class="admin-btn" asp-controller="Management" asp-action="Index"><i class="fa-solid fa-arrow-left"></i> Về quản lý</a>
+                    }
+                    @if (Model.CanCreateUsers)
+                    {
+                        <a class="admin-btn primary" asp-action="Index" asp-fragment="accounts"><i class="fa-solid fa-user-plus"></i> Tài khoản mới</a>
+                    }
                 </div>
             </section>
 
@@ -63,7 +76,7 @@
                 <div class="admin-section-head">
                     <div class="admin-section-heading-block">
                         <h2>Tài khoản quản trị</h2>
-                        <p class="admin-section-desc">Danh sách tài khoản Admin và Staff có thể đăng nhập khu vực quản trị (7127).</p>
+                        <p class="admin-section-desc">Danh sách tài khoản có vai trò quản trị, cùng thông tin đăng nhập khu vực quản trị (7127).</p>
                     </div>
                 </div>
 
@@ -73,18 +86,22 @@
                     <input class="admin-input" type="search" name="accountSearchValue" value="@Model.AccountSearchValue" placeholder="Tìm theo tên, SĐT, email..." />
                     <select class="admin-select" name="accountRoleFilter">
                         <option value="" selected="@Model.IsAccountFilterAll">Tất cả vai trò</option>
-                        <option value="@Model.AdminRole" selected="@Model.IsAccountFilterAdmin">@Model.AdminRoleLabel</option>
-                        <option value="@Model.StaffRole" selected="@Model.IsAccountFilterStaff">@Model.StaffRoleLabel</option>
+                        @foreach (var role in Model.RoleOptions)
+                        {
+                            <option value="@role.Name" selected="@(Model.AccountRoleFilter == role.Name)">@role.DisplayName</option>
+                        }
                     </select>
                     <button class="admin-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Lọc</button>
                     <a class="admin-btn" asp-action="Index" asp-fragment="accounts">Xóa lọc</a>
                 </form>
 
                 <div class="system-grid">
+                    @if ((isEditing && Model.CanEditUsers) || (!isEditing && Model.CanCreateUsers))
+                    {
                     <div class="system-panel">
                         <div class="system-panel-head">
                             <strong>@(isEditing ? "Chỉnh sửa tài khoản" : "Thêm tài khoản mới")</strong>
-                            @if (isEditing)
+                            @if (isEditing && Model.CanCreateUsers)
                             {
                                 <a class="admin-btn" asp-action="Index" asp-fragment="accounts">Tạo mới</a>
                             }
@@ -127,8 +144,10 @@
                             <label class="system-field">
                                 <span>Vai trò</span>
                                 <select class="admin-select" asp-for="AccountForm.Role">
-                                    <option value="@Model.StaffRole">@Model.StaffRoleLabel</option>
-                                    <option value="@Model.AdminRole">@Model.AdminRoleLabel</option>
+                                    @foreach (var role in Model.RoleOptions)
+                                    {
+                                        <option value="@role.Name">@role.DisplayName</option>
+                                    }
                                 </select>
                             </label>
 
@@ -146,7 +165,7 @@
                             </button>
                         </form>
 
-                        @if (isEditing)
+                        @if (isEditing && Model.CanResetPasswords)
                         {
                             <form method="post" asp-action="ResetPassword" class="system-reset-form">
                                 @Html.AntiForgeryToken()
@@ -159,6 +178,7 @@
                             </form>
                         }
                     </div>
+                    }
 
                     <div class="system-panel system-panel-wide">
                         <div class="table-wrap">
@@ -193,7 +213,10 @@
                                                 <td><span class="role-badge @RoleClass(account.Role)">@RoleLabel(account.Role)</span></td>
                                                 <td>@FormatDate(account.CreatedTime)</td>
                                                 <td>
-                                                    <a class="admin-btn" asp-action="Index" asp-route-editAccountId="@account.Id" asp-fragment="accounts">Sửa</a>
+                                                    @if (Model.CanEditUsers)
+                                                    {
+                                                        <a class="admin-btn" asp-action="Index" asp-route-editAccountId="@account.Id" asp-fragment="accounts">Sửa</a>
+                                                    }
                                                 </td>
                                             </tr>
                                         }
@@ -219,25 +242,183 @@
                     </div>
                 </div>
 
-                <div class="system-role-grid">
-                    @foreach (var role in Model.RoleDefinitions)
-                    {
-                        <article class="system-role-card">
-                            <div class="system-role-card-head">
-                                <span class="role-badge @RoleClass(role.Role)">@role.DisplayName</span>
-                                <strong>@role.AccountCount tài khoản</strong>
-                            </div>
-                            <p>@role.Description</p>
-                            <ul>
-                                @foreach (var permission in role.Permissions)
+                @if (Model.CanManagePermissions)
+                {
+                    <div class="system-grid system-admin-grid">
+                        <div class="system-panel">
+                            <div class="system-panel-head"><strong>Tạo vai trò</strong></div>
+                            <form method="post" asp-action="SaveRole" class="system-form">
+                                @Html.AntiForgeryToken()
+                                <label class="system-field"><span>Mã vai trò</span><input class="admin-input" name="Name" required maxlength="50" placeholder="Ví dụ: WarehouseStaff" /></label>
+                                <label class="system-field"><span>Tên hiển thị</span><input class="admin-input" name="DisplayName" required maxlength="100" /></label>
+                                <label class="system-field"><span>Mô tả</span><textarea class="admin-input" name="Description" maxlength="500" rows="2"></textarea></label>
+                                <button class="admin-btn success" type="submit">Tạo vai trò</button>
+                            </form>
+                        </div>
+                        <div class="system-panel system-panel-wide">
+                            <div class="system-panel-head"><strong>Vai trò hiện có</strong></div>
+                            <div class="system-role-admin-list">
+                                @foreach (var role in Model.PermissionRoles)
                                 {
-                                    <li>@permission</li>
+                                    <div class="system-role-admin-row">
+                                        <form method="post" asp-action="SaveRole" class="system-role-edit-form">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="Id" value="@role.Id" />
+                                            <label class="system-field"><span>Mã</span><input class="admin-input" name="Name" value="@role.Name" readonly required maxlength="50" /></label>
+                                            <label class="system-field"><span>Tên hiển thị</span><input class="admin-input" name="DisplayName" value="@role.DisplayName" required maxlength="100" /></label>
+                                            <label class="system-field"><span>Mô tả</span><input class="admin-input" name="Description" value="@role.Description" maxlength="500" /></label>
+                                            <span class="item-meta">@role.UserCount tài khoản @(role.IsSystem ? "· hệ thống" : "")</span>
+                                            <button class="admin-btn" type="submit">Lưu</button>
+                                        </form>
+                                        @if (!role.IsSystem)
+                                        {
+                                            <form method="post" asp-action="DeleteRole" onsubmit="return confirm('Xóa vai trò này?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="roleId" value="@role.Id" />
+                                                <button class="admin-btn" type="submit">Xóa</button>
+                                            </form>
+                                        }
+                                    </div>
                                 }
-                            </ul>
-                        </article>
-                    }
-                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="system-panel system-permission-panel">
+                        <div class="system-panel-head"><strong>Gán quyền cho vai trò</strong></div>
+                        <form class="system-filter-row" method="get" asp-action="Index">
+                            <input type="hidden" name="accountSearchValue" value="@Model.AccountSearchValue" />
+                            <input type="hidden" name="accountRoleFilter" value="@Model.AccountRoleFilter" />
+                            <select class="admin-select" name="permissionRoleId" onchange="this.form.submit()">
+                                @foreach (var role in Model.PermissionRoles)
+                                {
+                                    <option value="@role.Id" selected="@(Model.SelectedPermissionRoleId == role.Id)">@role.DisplayName (@role.Name)</option>
+                                }
+                            </select>
+                            <noscript><button class="admin-btn" type="submit">Chọn</button></noscript>
+                        </form>
+                        @if (Model.PermissionRoles.FirstOrDefault(role => role.Id == Model.SelectedPermissionRoleId)?.Name == Model.AdminRole)
+                        {
+                            <p class="admin-section-desc">Admin luôn có toàn quyền theo cấu hình hệ thống. Không thể thu hẹp quyền Admin ở đây.</p>
+                        }
+                        else if (Model.SelectedPermissionRoleId.HasValue)
+                        {
+                            <form method="post" asp-action="SaveRolePermissions">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="roleId" value="@Model.SelectedPermissionRoleId" />
+                                <div class="system-permission-groups">
+                                    @foreach (var module in Model.PermissionRows.GroupBy(permission => permission.Module ?? "Khác"))
+                                    {
+                                        <fieldset class="system-permission-module">
+                                            <legend>@module.Key</legend>
+                                            @foreach (var permission in module)
+                                            {
+                                                <label class="system-permission-option">
+                                                    <input type="checkbox" name="permissionIds" value="@permission.Id" checked="@permission.IsSelected" />
+                                                    <span><strong>@permission.DisplayName</strong><code>@permission.Code</code><small>@permission.Description</small></span>
+                                                </label>
+                                            }
+                                        </fieldset>
+                                    }
+                                </div>
+                                <button class="admin-btn primary" type="submit">Lưu quyền vai trò</button>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="system-panel system-user-permission-panel">
+                        <div class="system-panel-head"><strong>Quyền riêng cho tài khoản</strong></div>
+                        <form class="system-filter-row" method="get" asp-action="Index">
+                            <select class="admin-select" name="permissionUserId" onchange="this.form.submit()">
+                                @foreach (var user in Model.PermissionUsers)
+                                {
+                                    <option value="@user.Id" selected="@(Model.SelectedPermissionUserId == user.Id)">@user.Label (@RoleLabel(user.Role))</option>
+                                }
+                            </select>
+                            <noscript><button class="admin-btn" type="submit">Chọn</button></noscript>
+                        </form>
+                        @if (Model.PermissionUsers.FirstOrDefault(user => user.Id == Model.SelectedPermissionUserId)?.Role == Model.AdminRole)
+                        {
+                            <p class="admin-section-desc">Admin luôn có toàn quyền theo cấu hình hệ thống, nên không có quyền riêng để ghi đè.</p>
+                        }
+                        else if (Model.SelectedPermissionUserId.HasValue)
+                        {
+                            <form method="post" asp-action="SaveUserPermissions">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@Model.SelectedPermissionUserId" />
+                                <div class="table-wrap">
+                                    <table class="admin-table">
+                                        <thead><tr><th>Quyền</th><th>Quyền riêng</th><th>Hết hạn</th></tr></thead>
+                                        <tbody>
+                                            @for (var index = 0; index < Model.PermissionRows.Count; index++)
+                                            {
+                                                var permission = Model.PermissionRows[index];
+                                                <tr>
+                                                    <td><strong>@permission.DisplayName</strong><div class="item-meta"><code>@permission.Code</code> · @permission.Module</div></td>
+                                                    <td>
+                                                        <input type="hidden" name="permissions[@index].PermissionId" value="@permission.Id" />
+                                                        <select class="admin-select" name="permissions[@index].Mode">
+                                                            <option value="Inherit" selected="@(permission.UserMode == "Inherit")">Theo vai trò</option>
+                                                            <option value="Grant" selected="@(permission.UserMode == "Grant")">Cấp riêng</option>
+                                                            <option value="Deny" selected="@(permission.UserMode == "Deny")">Thu hồi riêng</option>
+                                                        </select>
+                                                    </td>
+                                                    <td><input class="admin-input" type="datetime-local" name="permissions[@index].ExpiresAt" value="@(permission.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm"))" /></td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button class="admin-btn primary" type="submit">Lưu quyền tài khoản</button>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="system-grid system-admin-grid" id="permission-catalog">
+                        <div class="system-panel">
+                            <div class="system-panel-head"><strong>Thêm quyền mới</strong></div>
+                            <form method="post" asp-action="SavePermission" class="system-form">
+                                @Html.AntiForgeryToken()
+                                <label class="system-field"><span>Mã quyền</span><input class="admin-input" name="Code" required maxlength="100" placeholder="view_example" /></label>
+                                <label class="system-field"><span>Tên hiển thị</span><input class="admin-input" name="DisplayName" required maxlength="100" /></label>
+                                <label class="system-field"><span>Module</span><input class="admin-input" name="Module" maxlength="50" /></label>
+                                <label class="system-field"><span>Mô tả</span><textarea class="admin-input" name="Description" maxlength="500" rows="2"></textarea></label>
+                                <button class="admin-btn success" type="submit">Thêm quyền</button>
+                            </form>
+                        </div>
+                        <div class="system-panel system-panel-wide">
+                            <div class="system-panel-head"><strong>Danh mục quyền nghiệp vụ</strong></div>
+                            <p class="admin-section-desc">Quyền mới chỉ có tác dụng khi được gắn với một trang hoặc thao tác trong ứng dụng.</p>
+                            <div class="system-permission-catalog">
+                                @foreach (var permission in Model.PermissionRows)
+                                {
+                                    <div class="system-permission-catalog-row">
+                                        <form method="post" asp-action="SavePermission" class="system-permission-edit-form">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="Id" value="@permission.Id" />
+                                            <label class="system-field"><span>Mã</span><input class="admin-input" name="Code" value="@permission.Code" readonly required maxlength="100" /></label>
+                                            <label class="system-field"><span>Tên hiển thị</span><input class="admin-input" name="DisplayName" value="@permission.DisplayName" required maxlength="100" /></label>
+                                            <label class="system-field"><span>Module</span><input class="admin-input" name="Module" value="@permission.Module" maxlength="50" /></label>
+                                            <label class="system-field"><span>Mô tả</span><input class="admin-input" name="Description" value="@permission.Description" maxlength="500" /></label>
+                                            <button class="admin-btn" type="submit">Lưu</button>
+                                        </form>
+                                        @if (!permission.IsApplicationPermission)
+                                        {
+                                            <form method="post" asp-action="DeletePermission" onsubmit="return confirm('Xóa quyền này?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="permissionId" value="@permission.Id" />
+                                                <button class="admin-btn" type="submit">Xóa</button>
+                                            </form>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (Model.CanManagePermissions)
+                {
                 <form class="system-filter-row" method="get" asp-action="Index">
                     <input type="hidden" name="accountSearchValue" value="@Model.AccountSearchValue" />
                     <input type="hidden" name="accountRoleFilter" value="@Model.AccountRoleFilter" />
@@ -245,8 +426,10 @@
                     <input class="admin-input" type="search" name="roleSearchValue" value="@Model.RoleSearchValue" placeholder="Tìm tài khoản để gán quyền..." />
                     <select class="admin-select" name="roleFilter">
                         <option value="" selected="@Model.IsFilterAll">Tất cả vai trò</option>
-                        <option value="@Model.AdminRole" selected="@Model.IsFilterAdmin">@Model.AdminRoleLabel</option>
-                        <option value="@Model.StaffRole" selected="@Model.IsFilterStaff">@Model.StaffRoleLabel</option>
+                        @foreach (var role in Model.RoleOptions)
+                        {
+                            <option value="@role.Name" selected="@(Model.RoleFilter == role.Name)">@role.DisplayName</option>
+                        }
                     </select>
                     <button class="admin-btn primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Lọc</button>
                 </form>
@@ -281,8 +464,10 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="accountId" value="@account.Id" />
                                                 <select class="admin-select" name="role">
-                                                    <option value="@Model.AdminRole" selected="@account.IsAdminRole">@Model.AdminRoleLabel</option>
-                                                    <option value="@Model.StaffRole" selected="@account.IsStaffRole">@Model.StaffRoleLabel</option>
+                                                    @foreach (var role in Model.RoleOptions)
+                                                    {
+                                                        <option value="@role.Name" selected="@(account.Role == role.Name)">@role.DisplayName</option>
+                                                    }
                                                 </select>
                                                 <button class="admin-btn success" type="submit">Cập nhật</button>
                                             </form>
@@ -299,6 +484,7 @@
                         </tbody>
                     </table>
                 </div>
+                }
             </section>
         </main>
     </div>
@@ -318,11 +504,6 @@
                 });
             });
 
-            // Debug form submission
-            document.querySelector('.system-form')?.addEventListener('submit', function(e) {
-                console.log('Form submitting...');
-                console.log('Form data:', new FormData(this));
-            });
         })();
     </script>
 }

@@ -20,5 +20,16 @@ namespace SV22T1080045.Shop.DomainModels
 
         // Vai trò: "Admin" hoặc "Customer" (mặc định là Customer)
         public string Role { get; set; } = "Customer";
+        public int? RoleId { get; set; }
+
+        public int? GroupId { get; set; }
+
+        [ForeignKey(nameof(RoleId))]
+        public virtual Role? RoleEntity { get; set; }
+
+        [ForeignKey(nameof(GroupId))]
+        public virtual Group? Group { get; set; }
+
+        public virtual ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
     }
 }

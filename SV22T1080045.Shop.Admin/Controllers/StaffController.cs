@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.Admin.Extensions.Authorizations;
 using SV22T1080045.Shop.Abstractions.Models.Staff;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
@@ -8,7 +9,7 @@ using System.Security.Claims;
 
 namespace SV22T1080045.Shop.Controllers
 {
-    [Authorize(Roles = $"{CustomerRoles.Staff},{CustomerRoles.Admin}")]
+    [Authorize]
     public class StaffController : Controller
     {
         private const int ProductPageSize = 12;
@@ -19,11 +20,13 @@ namespace SV22T1080045.Shop.Controllers
             _staffService = staffService;
         }
 
+        [Permission(PermissionConstants.ViewOrder, PermissionConstants.ViewProduct, PermissionConstants.ViewCustomer)]
         public IActionResult Index()
         {
             return View(BuildDashboardModel("", null, "", 1));
         }
 
+        [Permission(PermissionConstants.ViewOrder)]
         public IActionResult Orders(
             string orderSearchValue = "",
             int? orderStatus = null)
@@ -31,6 +34,7 @@ namespace SV22T1080045.Shop.Controllers
             return View(BuildOrderModel(orderSearchValue, orderStatus));
         }
 
+        [Permission(PermissionConstants.ViewProduct)]
         public IActionResult Products(
             string productSearchValue = "",
             int productPage = 1)
@@ -38,6 +42,7 @@ namespace SV22T1080045.Shop.Controllers
             return View(BuildProductModel(productSearchValue, productPage));
         }
 
+        [Permission(PermissionConstants.ViewCustomer)]
         public IActionResult Customers()
         {
             return View(BuildCustomerModel());
@@ -45,6 +50,7 @@ namespace SV22T1080045.Shop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.UpdateOrderStatus)]
         public IActionResult UpdateOrderStatus(int orderId, int status)
         {
             var result = _staffService.UpdateOrderStatusWithInventoryCheck(orderId, status);
@@ -144,18 +150,17 @@ namespace SV22T1080045.Shop.Controllers
             };
         }
 
+        private const int TodayOrderLimit = 1000;
+        private const int RecentCustomerLimit = 20;
+
         private StaffOrderViewModel BuildOrderModel(
             string orderSearchValue,
             int? orderStatus)
         {
-            var data = _staffService.GetDashboardData();
             var today = DateTime.Today;
-            var tomorrow = today.AddDays(1);
-            var orders = ToOrderRows(data.Orders);
-            var todayOrders = orders
-                .Where(o => o.OrderDate >= today && o.OrderDate < tomorrow)
-                .ToList();
-            var filteredOrders = todayOrders.AsEnumerable();
+            // Chỉ tải đơn hôm nay (lọc trong SQL), không tải sản phẩm/khách như trước.
+            var orders = ToOrderRows(_staffService.GetTodayOrders(TodayOrderLimit));
+            var filteredOrders = orders.AsEnumerable();
             var orderKeyword = Normalize(orderSearchValue);
 
             if (!string.IsNullOrWhiteSpace(orderKeyword))
@@ -182,49 +187,29 @@ namespace SV22T1080045.Shop.Controllers
             string productSearchValue,
             int productPage)
         {
-            var data = _staffService.GetDashboardData();
-            var allProducts = ToProductRows(data.Products);
-            var productKeyword = Normalize(productSearchValue);
-            var products = string.IsNullOrWhiteSpace(productKeyword)
-                ? allProducts
-                : allProducts.Where(p =>
-                    p.ProductName.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    p.CategoryName.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    (p.Origin?.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ?? false))
-                    .ToList();
-
-            var orderedProducts = products
-                .OrderBy(p => p.Quantity <= 0 ? 0 : p.Quantity < 5 ? 1 : 2)
-                .ThenBy(p => p.Quantity)
-                .ThenBy(p => p.ProductName)
-                .ToList();
-            var productTotalItems = orderedProducts.Count;
-            var productTotalPages = Math.Max(1, (int)Math.Ceiling(productTotalItems / (double)ProductPageSize));
-            var currentProductPage = Math.Clamp(productPage, 1, productTotalPages);
-            var pagedProducts = orderedProducts
-                .Skip((currentProductPage - 1) * ProductPageSize)
-                .Take(ProductPageSize)
-                .ToList();
+            // Tìm kiếm + sắp xếp + phân trang chạy trong SQL; chỉ lấy đúng 1 trang.
+            var result = _staffService.QueryProducts(productSearchValue, productPage, ProductPageSize);
+            var totalItems = result.TotalCount;
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)ProductPageSize));
 
             return new StaffProductViewModel
             {
                 ProductSearchValue = productSearchValue?.Trim() ?? "",
-                ProductPage = currentProductPage,
+                ProductPage = result.Page,
                 ProductPageSize = ProductPageSize,
-                ProductTotalItems = productTotalItems,
-                ProductTotalPages = productTotalPages,
-                ProductStartItem = productTotalItems == 0 ? 0 : ((currentProductPage - 1) * ProductPageSize) + 1,
-                ProductEndItem = Math.Min(currentProductPage * ProductPageSize, productTotalItems),
-                Products = pagedProducts
+                ProductTotalItems = totalItems,
+                ProductTotalPages = totalPages,
+                ProductStartItem = totalItems == 0 ? 0 : ((result.Page - 1) * ProductPageSize) + 1,
+                ProductEndItem = Math.Min(result.Page * ProductPageSize, totalItems),
+                Products = ToProductRows(result.Items)
             };
         }
 
         private StaffCustomerViewModel BuildCustomerModel()
         {
-            var data = _staffService.GetDashboardData();
             return new StaffCustomerViewModel
             {
-                Customers = ToCustomerRows(data.Customers)
+                Customers = ToCustomerRows(_staffService.GetRecentCustomers(RecentCustomerLimit))
             };
         }
 
@@ -381,11 +366,11 @@ namespace SV22T1080045.Shop.Controllers
 
         public static string StatusText(int status) => status switch
         {
-            1 => "Cho xu ly",
-            2 => "Dang chuan bi",
-            3 => "Dang giao",
-            4 => "Hoan thanh",
-            -1 => "Giao that bai",
+            1 => "Chờ xử lý",
+            2 => "Đang chuẩn bị",
+            3 => "Đang giao",
+            4 => "Hoàn thành",
+            -1 => "Hủy đơn",
             _ => "Khac"
         };
 
@@ -412,7 +397,7 @@ namespace SV22T1080045.Shop.Controllers
         private static string MaskEmail(string? email)
         {
             if (string.IsNullOrWhiteSpace(email))
-                return "Chua co";
+                return "Chưa có";
 
             var parts = email.Split('@');
             if (parts.Length != 2)

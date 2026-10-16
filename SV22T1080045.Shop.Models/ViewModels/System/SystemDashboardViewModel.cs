@@ -12,8 +12,20 @@ public class SystemDashboardViewModel
     public SystemAccountFormViewModel AccountForm { get; set; } = new();
     public List<SystemAccountRowViewModel> BackofficeAccounts { get; set; } = new();
     public List<SystemAccountRowViewModel> RoleAccounts { get; set; } = new();
-    public List<SystemRoleDefinitionViewModel> RoleDefinitions { get; set; } = new();
+    public List<SystemRoleAdminRowViewModel> PermissionRoles { get; set; } = new();
+    public List<SystemPermissionRowViewModel> PermissionRows { get; set; } = new();
+    public List<SystemUserOptionViewModel> PermissionUsers { get; set; } = new();
+    public List<SystemRoleOptionViewModel> RoleOptions { get; set; } = new();
+    public int? SelectedPermissionRoleId { get; set; }
+    public int? SelectedPermissionUserId { get; set; }
+    public SystemRoleFormViewModel RoleForm { get; set; } = new();
+    public SystemPermissionFormViewModel PermissionForm { get; set; } = new();
     public int CurrentUserId { get; set; }
+    public bool CanManagePermissions { get; set; }
+    public bool CanViewManagement { get; set; }
+    public bool CanCreateUsers { get; set; }
+    public bool CanEditUsers { get; set; }
+    public bool CanResetPasswords { get; set; }
     
     // Role constants for view
     public string AdminRole { get; set; } = "Admin";
@@ -73,11 +85,62 @@ public class SystemAccountRowViewModel
     public bool IsStaffRole => Role == "Staff";
 }
 
-public class SystemRoleDefinitionViewModel
+public class SystemRoleAdminRowViewModel
 {
-    public string Role { get; set; } = "";
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
     public string DisplayName { get; set; } = "";
-    public string Description { get; set; } = "";
-    public List<string> Permissions { get; set; } = new();
-    public int AccountCount { get; set; }
+    public string? Description { get; set; }
+    public bool IsSystem { get; set; }
+    public int UserCount { get; set; }
+}
+
+public class SystemPermissionRowViewModel
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string? Description { get; set; }
+    public string? Module { get; set; }
+    public bool IsSelected { get; set; }
+    public string UserMode { get; set; } = "Inherit";
+    public DateTime? ExpiresAt { get; set; }
+    public bool IsApplicationPermission { get; set; }
+}
+
+public class SystemUserOptionViewModel
+{
+    public int Id { get; set; }
+    public string Label { get; set; } = "";
+    public string Role { get; set; } = "";
+}
+
+public class SystemRoleOptionViewModel
+{
+    public string Name { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+}
+
+public class SystemRoleFormViewModel
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string? Description { get; set; }
+}
+
+public class SystemPermissionFormViewModel
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string? Description { get; set; }
+    public string? Module { get; set; }
+}
+
+public class SystemUserPermissionInputViewModel
+{
+    public int PermissionId { get; set; }
+    public string Mode { get; set; } = "Inherit";
+    public DateTime? ExpiresAt { get; set; }
 }

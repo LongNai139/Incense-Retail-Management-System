@@ -4,6 +4,7 @@ using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DataLayers;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Admin.Extensions.FileLogger;
+using SV22T1080045.Shop.Admin.Extensions.Authorizations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +23,10 @@ builder.Logging.AddProvider(new FileLoggerProvider(Directory.GetCurrentDirectory
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 
+
 builder.Services.AddScoped<CustomClaimsPrincipal>();
 
 var connectionString = builder.Configuration.GetConnectionString("ShopConnectionString")!;
-Console.WriteLine($"[DEBUG] ConnectionString = '{connectionString}'");
 
 builder.Services.AddSession(options =>
 {
@@ -73,13 +74,23 @@ var storefrontUrl = app.Configuration["AppHosts:StorefrontUrl"] ?? "https://loca
 
 app.MapGet("/", (HttpContext context) =>
 {
-    if (context.User.IsInRole(CustomerRoles.Admin))
+    var user = context.User;
+    if (user.IsInRole(CustomerRoles.Admin) ||
+        user.HasAnyPermission(PermissionConstants.ViewReport, PermissionConstants.ViewRevenue, PermissionConstants.ManageSystem))
         return Results.Redirect("/Management");
 
-    if (context.User.IsInRole(CustomerRoles.Staff))
-        return Results.Redirect("/Staff");
+    if (user.HasAnyPermission(PermissionConstants.ViewOrder))
+        return Results.Redirect("/Staff/Orders");
+    if (user.HasAnyPermission(PermissionConstants.ViewProduct))
+        return Results.Redirect("/Staff/Products");
+    if (user.HasAnyPermission(PermissionConstants.ViewCustomer))
+        return Results.Redirect("/Staff/Customers");
+    if (user.HasAnyPermission(PermissionConstants.ViewInventory))
+        return Results.Redirect("/Warehouse/StockTransactions");
+    if (user.HasAnyPermission(PermissionConstants.ViewDebt))
+        return Results.Redirect("/Warehouse/CustomerDebts");
 
-    return Results.Redirect("/Account/Login");
+    return Results.Redirect(user.Identity?.IsAuthenticated == true ? "/Account/AccessDenied" : "/Account/Login");
 });
 
 app.MapGet("/Home", () => Results.Redirect(storefrontUrl.TrimEnd('/')));

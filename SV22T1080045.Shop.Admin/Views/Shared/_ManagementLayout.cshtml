@@ -67,8 +67,20 @@
                 }
                 @if (HasPermission(PermissionConstants.ViewInventory))
                 {
+                    <a class="@(currentPage == "StockTransactions" ? "active" : "")" asp-controller="Warehouse" asp-action="StockTransactions">
+                        <i class="fa-solid fa-warehouse"></i> Giao dịch kho
+                    </a>
+                }
+                @if (HasPermission(PermissionConstants.ViewInventory) && HasPermission(PermissionConstants.ViewDebt))
+                {
                     <a class="@(currentPage == "Index" && currentController == "Warehouse" ? "active" : "")" asp-controller="Warehouse" asp-action="Index">
-                        <i class="fa-solid fa-warehouse"></i> Quản lý kho
+                        <i class="fa-solid fa-chart-pie"></i> Tổng quan kho
+                    </a>
+                }
+                @if (HasPermission(PermissionConstants.ViewDebt))
+                {
+                    <a class="@(currentPage == "CustomerDebts" ? "active" : "")" asp-controller="Warehouse" asp-action="CustomerDebts">
+                        <i class="fa-solid fa-money-bill-transfer"></i> Công nợ
                     </a>
                 }
                 @if (HasPermission(PermissionConstants.ViewReport))

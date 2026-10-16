@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.Admin.Extensions.Authorizations;
 using SV22T1080045.Shop.Abstractions.Models.System;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
@@ -8,35 +9,46 @@ using System.Security.Claims;
 
 namespace SV22T1080045.Shop.Controllers;
 
-[Authorize(Roles = CustomerRoles.ManageSystem)]
+[Authorize]
 public class SystemController : Controller
 {
     private readonly ISystemService _systemService;
+    private readonly IPermissionAdministrationService _permissionAdministrationService;
 
-    public SystemController(ISystemService systemService)
+    public SystemController(ISystemService systemService, IPermissionAdministrationService permissionAdministrationService)
     {
         _systemService = systemService;
+        _permissionAdministrationService = permissionAdministrationService;
     }
 
+    [Permission(PermissionConstants.ManageSystem, PermissionConstants.ManagePermission, PermissionConstants.ViewUser)]
     public IActionResult Index(
         string accountSearchValue = "",
         string accountRoleFilter = "",
         string roleSearchValue = "",
         string roleFilter = "",
-        int? editAccountId = null)
+        int? editAccountId = null,
+        int? permissionRoleId = null,
+        int? permissionUserId = null)
     {
         return View(BuildDashboardModel(
             accountSearchValue,
             accountRoleFilter,
             roleSearchValue,
             roleFilter,
-            editAccountId));
+            editAccountId,
+            permissionRoleId,
+            permissionUserId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult SaveAccount([Bind(Prefix = "AccountForm")] SystemAccountFormViewModel form)
     {
+        var requiredPermission = form.Id > 0 ? PermissionConstants.EditUser : PermissionConstants.CreateUser;
+        if (!User.HasAnyPermission(requiredPermission, PermissionConstants.ManageSystem))
+            return Forbid();
+
         if (!ModelState.IsValid)
         {
             return RedirectToAction(nameof(Index), null, new { editAccountId = form.Id }, "accounts");
@@ -63,6 +75,7 @@ public class SystemController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ResetPassword, PermissionConstants.ManageSystem)]
     public IActionResult ResetPassword(int accountId, string newPassword)
     {
         var result = _systemService.ResetPassword(accountId, newPassword, GetCurrentUserId());
@@ -73,6 +86,7 @@ public class SystemController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
     public IActionResult UpdateRole(int accountId, string role)
     {
         var result = _systemService.UpdateAccountRole(accountId, role, GetCurrentUserId());
@@ -81,12 +95,123 @@ public class SystemController : Controller
         return RedirectToAction(nameof(Index), null, null, "permissions");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+    public IActionResult SaveRolePermissions(int roleId, List<int>? permissionIds)
+    {
+        var success = _permissionAdministrationService.SaveRolePermissions(
+            roleId, permissionIds ?? new List<int>(), GetCurrentUserId(), out var message);
+        TempData["SystemMessage"] = message;
+        TempData["SystemMessageSuccess"] = success;
+        return RedirectToAction(nameof(Index), null, new { permissionRoleId = roleId }, "permissions");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+    public IActionResult SaveUserPermissions(int userId, List<SystemUserPermissionInputViewModel>? permissions)
+    {
+        var overrides = new List<UserPermission>();
+        foreach (var item in permissions ?? new List<SystemUserPermissionInputViewModel>())
+        {
+            bool isGranted;
+            switch (item.Mode)
+            {
+                case "Grant":
+                    isGranted = true;
+                    break;
+                case "Deny":
+                    isGranted = false;
+                    break;
+                case "Inherit":
+                    continue;
+                default:
+                    TempData["SystemMessage"] = "Có lựa chọn quyền riêng không hợp lệ.";
+                    TempData["SystemMessageSuccess"] = false;
+                    return RedirectToAction(nameof(Index), null, new { permissionUserId = userId }, "permissions");
+            }
+
+            overrides.Add(new UserPermission
+            {
+                PermissionId = item.PermissionId,
+                IsGranted = isGranted,
+                ExpiresAt = item.ExpiresAt
+            });
+        }
+
+        var success = _permissionAdministrationService.SaveUserOverrides(
+            userId, overrides, GetCurrentUserId(), out var message);
+        TempData["SystemMessage"] = message;
+        TempData["SystemMessageSuccess"] = success;
+        return RedirectToAction(nameof(Index), null, new { permissionUserId = userId }, "permissions");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+    public IActionResult SaveRole(SystemRoleFormViewModel form)
+    {
+        var success = _permissionAdministrationService.SaveRole(new Role
+        {
+            Id = form.Id,
+            Name = form.Name,
+            DisplayName = form.DisplayName,
+            Description = form.Description
+        }, out var message);
+        TempData["SystemMessage"] = message;
+        TempData["SystemMessageSuccess"] = success;
+        return RedirectToAction(nameof(Index), null, null, "permissions");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+    public IActionResult DeleteRole(int roleId)
+    {
+        var success = _permissionAdministrationService.DeleteRole(roleId, out var message);
+        TempData["SystemMessage"] = message;
+        TempData["SystemMessageSuccess"] = success;
+        return RedirectToAction(nameof(Index), null, null, "permissions");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+    public IActionResult SavePermission(SystemPermissionFormViewModel form)
+    {
+        var success = _permissionAdministrationService.SavePermission(new Permission
+        {
+            Id = form.Id,
+            Code = form.Code,
+            DisplayName = form.DisplayName,
+            Description = form.Description,
+            Module = form.Module
+        }, out var message);
+        TempData["SystemMessage"] = message;
+        TempData["SystemMessageSuccess"] = success;
+        return RedirectToAction(nameof(Index), null, null, "permission-catalog");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+    public IActionResult DeletePermission(int permissionId)
+    {
+        var success = _permissionAdministrationService.DeletePermission(permissionId, out var message);
+        TempData["SystemMessage"] = message;
+        TempData["SystemMessageSuccess"] = success;
+        return RedirectToAction(nameof(Index), null, null, "permission-catalog");
+    }
+
     private SystemDashboardViewModel BuildDashboardModel(
         string accountSearchValue,
         string accountRoleFilter,
         string roleSearchValue,
         string roleFilter,
-        int? editAccountId)
+        int? editAccountId,
+        int? permissionRoleId,
+        int? permissionUserId)
     {
         var currentUserId = GetCurrentUserId();
         var backofficeAccounts = _systemService
@@ -99,9 +224,25 @@ public class SystemController : Controller
             .Select(a => ToRow(a, currentUserId))
             .ToList();
 
-        var roleCounts = roleAccounts
-            .GroupBy(a => a.Role)
-            .ToDictionary(g => g.Key, g => g.Count());
+        var roles = _permissionAdministrationService.ListRoles();
+        var selectedRoleId = permissionRoleId is > 0 && roles.Any(role => role.Id == permissionRoleId)
+            ? permissionRoleId.Value
+            : roles.FirstOrDefault(role => role.Name == CustomerRoles.Staff)?.Id
+              ?? roles.FirstOrDefault()?.Id
+              ?? 0;
+        var users = _permissionAdministrationService.ListUsers();
+        var selectedUserId = permissionUserId is > 0 && users.Any(user => user.Id == permissionUserId)
+            ? permissionUserId.Value
+            : users.FirstOrDefault(user => user.Id == currentUserId)?.Id
+              ?? users.FirstOrDefault()?.Id
+              ?? 0;
+        var permissions = _permissionAdministrationService.ListPermissions();
+        var rolePermissionIds = selectedRoleId > 0
+            ? _permissionAdministrationService.GetRolePermissionIds(selectedRoleId)
+            : new HashSet<int>();
+        var userOverrides = selectedUserId > 0
+            ? _permissionAdministrationService.GetUserOverrides(selectedUserId)
+            : new Dictionary<int, UserPermission>();
 
         return new SystemDashboardViewModel
         {
@@ -113,17 +254,54 @@ public class SystemController : Controller
             AccountForm = BuildAccountForm(editAccountId, backofficeAccounts),
             BackofficeAccounts = backofficeAccounts,
             RoleAccounts = roleAccounts,
-            RoleDefinitions = BackofficePermissions.Definitions
-                .Select(def => new SystemRoleDefinitionViewModel
+            PermissionRoles = roles.Select(role => new SystemRoleAdminRowViewModel
+            {
+                Id = role.Id,
+                Name = role.Name,
+                DisplayName = role.DisplayName,
+                Description = role.Description,
+                IsSystem = role.IsSystem,
+                UserCount = users.Count(user => user.RoleId == role.Id || user.Role == role.Name)
+            }).ToList(),
+            PermissionRows = permissions.Select(permission =>
+            {
+                userOverrides.TryGetValue(permission.Id, out var userOverride);
+                var expired = userOverride?.ExpiresAt.HasValue == true && userOverride.ExpiresAt <= DateTime.Now;
+                return new SystemPermissionRowViewModel
                 {
-                    Role = def.Role,
-                    DisplayName = def.DisplayName,
-                    Description = def.Description,
-                    Permissions = def.Permissions.ToList(),
-                    AccountCount = roleCounts.TryGetValue(def.Role, out var count) ? count : 0
-                })
+                    Id = permission.Id,
+                    Code = permission.Code,
+                    DisplayName = permission.DisplayName,
+                    Description = permission.Description,
+                    Module = permission.Module,
+                    IsSelected = rolePermissionIds.Contains(permission.Id),
+                    UserMode = userOverride == null || expired ? "Inherit" : userOverride.IsGranted ? "Grant" : "Deny",
+                    ExpiresAt = expired ? null : userOverride?.ExpiresAt,
+                    IsApplicationPermission = typeof(PermissionConstants).GetFields()
+                        .Any(field => field.IsLiteral && field.FieldType == typeof(string) &&
+                            string.Equals((string?)field.GetRawConstantValue(), permission.Code, StringComparison.OrdinalIgnoreCase))
+                };
+            }).ToList(),
+            PermissionUsers = users.Select(user => new SystemUserOptionViewModel
+                {
+                Id = user.Id,
+                Label = $"{user.CustomerName} — {user.Phone}",
+                Role = user.Role
+            }).ToList(),
+            RoleOptions = roles
+                .Where(role => !string.Equals(role.Name, CustomerRoles.Customer, StringComparison.OrdinalIgnoreCase))
+                .Select(role => new SystemRoleOptionViewModel { Name = role.Name, DisplayName = role.DisplayName })
                 .ToList(),
+            SelectedPermissionRoleId = selectedRoleId,
+            SelectedPermissionUserId = selectedUserId,
+            RoleForm = new SystemRoleFormViewModel(),
+            PermissionForm = new SystemPermissionFormViewModel(),
             CurrentUserId = currentUserId,
+            CanManagePermissions = User.HasAnyPermission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem),
+            CanViewManagement = User.HasAnyPermission(PermissionConstants.ViewReport, PermissionConstants.ViewRevenue, PermissionConstants.ManageSystem),
+            CanCreateUsers = User.HasAnyPermission(PermissionConstants.CreateUser, PermissionConstants.ManageSystem),
+            CanEditUsers = User.HasAnyPermission(PermissionConstants.EditUser, PermissionConstants.ManageSystem),
+            CanResetPasswords = User.HasAnyPermission(PermissionConstants.ResetPassword, PermissionConstants.ManageSystem),
             AdminRole = CustomerRoles.Admin,
             StaffRole = CustomerRoles.Staff,
             AdminRoleLabel = "Quản trị viên",
