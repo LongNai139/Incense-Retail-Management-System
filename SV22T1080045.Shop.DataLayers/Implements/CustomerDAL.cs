@@ -17,6 +17,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
         {
             return _context.Customers
                 .AsNoTracking()
+                .Include(c => c.RoleEntity)
+                .Include(c => c.Group)
                 .FirstOrDefault(c => !c.IsDeleted && c.Id == id);
         }
 
@@ -25,6 +27,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             var normalizedPhone = phone.Trim();
             return _context.Customers
                 .AsNoTracking()
+                .Include(c => c.RoleEntity)
+                .Include(c => c.Group)
                 .FirstOrDefault(c => !c.IsDeleted && c.Phone == normalizedPhone);
         }
 
@@ -33,6 +37,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             var normalizedPhone = phone.Trim();
             return _context.Customers
                 .AsNoTracking()
+                .Include(c => c.RoleEntity)
+                .Include(c => c.Group)
                 .FirstOrDefault(c => !c.IsDeleted && c.Phone == normalizedPhone && c.Password == password);
         }
 
@@ -79,6 +85,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             existing.CustomerName = customer.CustomerName;
             existing.Email = customer.Email;
             existing.Address = customer.Address;
+            existing.RoleId = customer.RoleId;
+            existing.GroupId = customer.GroupId;
 
             _context.SaveChanges();
             return true;

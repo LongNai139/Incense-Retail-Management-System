@@ -1,6 +1,7 @@
 using SV22T1080045.Shop.Abstractions.Contracts.Products;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Abstractions.Models;
+using SV22T1080045.Shop.Abstractions.Models.Management;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.Common.Helpers;
 using SV22T1080045.Shop.DomainModels;
@@ -31,8 +32,44 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             if (query.PriceMin.HasValue && query.PriceMax.HasValue && query.PriceMin > query.PriceMax)
                 (query.PriceMin, query.PriceMax) = (query.PriceMax, query.PriceMin);
 
-            return _productDal.Query(query);
+            var result = _productDal.Query(query);
+            var totalPages = Math.Max(1, (int)Math.Ceiling(result.TotalCount / (double)query.PageSize));
+            if (query.Page > totalPages)
+            {
+                query.Page = totalPages;
+                result = _productDal.Query(query);
+            }
+            return result;
         }
+
+        public ProductDashboardData GetManagementDashboardData()
+        {
+            var bestSellers = _productDal.Query(new ProductQuery { SortBy = "bestseller", Page = 1, PageSize = 5 }).Products;
+            var lowStockQuery = new ProductQuery { StockStatus = "low-stock", SortBy = "low-stock", Page = 1, PageSize = 5 };
+            var lowStock = _productDal.Query(lowStockQuery);
+            var outOfStock = _productDal.Query(new ProductQuery { StockStatus = "out-of-stock", Page = 1, PageSize = 1 });
+            var groups = bestSellers.GroupBy(product => product.CategoryId).Select(group => new ProductCategorySalesData
+            {
+                CategoryId = group.Key,
+                Quantity = group.Sum(product => product.SoldCount ?? 0),
+                Revenue = group.Sum(product => (product.SoldCount ?? 0) * product.PriceAfterDiscount)
+            }).OrderByDescending(item => item.Revenue).ToList();
+            var totalRevenue = groups.Sum(item => item.Revenue);
+            foreach (var item in groups)
+                item.RevenueShare = totalRevenue == 0 ? 0 : item.Revenue / totalRevenue * 100;
+
+            return new ProductDashboardData
+            {
+                BestSellers = bestSellers,
+                LowStockProducts = lowStock.Products,
+                OutOfStockCount = outOfStock.TotalCount,
+                CategoryRevenueTotal = totalRevenue,
+                CategorySales = groups
+            };
+        }
+
+        public int GetNewestPageForProduct(int productId, int pageSize)
+            => _productDal.GetNewestPageForProduct(productId, Math.Max(1, pageSize));
 
         public List<Product> ListProducts(string? searchValue = null, int take = 0, string sortBy = "newest")
             => _productDal.List(searchValue, take, sortBy);

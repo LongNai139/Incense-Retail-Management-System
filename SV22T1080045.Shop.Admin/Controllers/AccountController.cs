@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.Admin.Extensions.Authorizations;
 using SV22T1080045.Shop.BusinessLayers;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
-using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Common.Model.Users;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models;
@@ -17,7 +16,6 @@ namespace SV22T1080045.Shop.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IPermissionService _permissionService;
-        private readonly IRoleDAL _roleDAL;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AccountController> _logger;
         private const int MaxLoginFailCount = 5;
@@ -31,13 +29,11 @@ namespace SV22T1080045.Shop.Controllers
         public AccountController(
             IAccountService accountService,
             IPermissionService permissionService,
-            IRoleDAL roleDAL,
             IConfiguration configuration,
             ILogger<AccountController> logger)
         {
             _accountService = accountService;
             _permissionService = permissionService;
-            _roleDAL = roleDAL;
             _configuration = configuration;
             _logger = logger;
         }
@@ -111,7 +107,7 @@ namespace SV22T1080045.Shop.Controllers
         public async Task<IActionResult> BridgeLogin(UserSignInRequest model, string? returnUrl = null)
         {
             var customer = _accountService.Login(model.Phone, model.Password);
-            if (customer == null || !IsBackofficeRole(customer.Role))
+            if (customer == null || !_accountService.IsBackofficeRole(customer.Role))
                 return RedirectToAction(nameof(Login), new { returnUrl });
 
             await SignInCustomerAsync(customer);
@@ -161,7 +157,7 @@ namespace SV22T1080045.Shop.Controllers
             {
                 _logger.LogInformation("Customer found. ID: {CustomerId}, Role: {Role}", customer.Id, customer.Role);
 
-                if (!IsBackofficeRole(customer.Role))
+                if (!_accountService.IsBackofficeRole(customer.Role))
                 {
                     _logger.LogWarning("Role check failed. Role: {Role}", customer.Role);
                     ModelState.AddModelError("", $"Tài khoản khách hàng chỉ đăng nhập tại cửa hàng ({GetStorefrontUrl()}).");
@@ -307,14 +303,6 @@ namespace SV22T1080045.Shop.Controllers
         private string GetStorefrontUrl()
         {
             return (_configuration["AppHosts:StorefrontUrl"] ?? "https://localhost:7126").TrimEnd('/');
-        }
-
-        private bool IsBackofficeRole(string? role)
-        {
-            var roleName = role?.Trim();
-            var roleDefinition = string.IsNullOrWhiteSpace(roleName) ? null : _roleDAL.GetByName(roleName);
-            return roleDefinition != null &&
-                !string.Equals(roleDefinition.Name, CustomerRoles.Customer, StringComparison.OrdinalIgnoreCase);
         }
 
         private IActionResult RedirectToLocal(string? returnUrl, Func<IActionResult> fallback)

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SV22T1080045.Shop.Abstractions.Models.Management;
 using SV22T1080045.Shop.Abstractions.Models.Reports;
+using SV22T1080045.Shop.Abstractions.Models;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 using SV22T1080045.Shop.Models.Mappers;
@@ -136,7 +137,7 @@ namespace SV22T1080045.Shop.Controllers
                 return View("Products", BuildProductModel(model.Id > 0 ? model.Id : null, model));
             }
 
-            var productPage = FindProductPage(savedProductId);
+            var productPage = _productService.GetNewestPageForProduct(savedProductId, ProductPageSize);
             var productsUrl = Url.Action(nameof(Products), new { savedProductId, savedAction = saveAction, productPage }) ?? Url.Action(nameof(Products)) ?? "/";
             return Redirect(productsUrl);
         }
@@ -377,10 +378,7 @@ namespace SV22T1080045.Shop.Controllers
             string revenuePeriod = "day",
             DateTime? revenueDate = null)
         {
-            var allProducts = _productService.ListProducts(sortBy: "newest");
-            var bestSellers = allProducts.OrderByDescending(p => p.SoldCount ?? 0).Take(5).ToList();
-            var lowStockProducts = allProducts.Where(p => p.DisplayQuantity > 0 && p.DisplayQuantity <= p.DisplayLowStockThreshold).OrderBy(p => p.DisplayQuantity).Take(5).ToList();
-            var outOfStockCount = allProducts.Count(p => p.DisplayQuantity <= 0);
+            var dashboardData = _productService.GetManagementDashboardData();
             var categories = _categoryService.ListCategories();
 
             var selectedRevenueDate = (revenueDate ?? DateTime.Today).Date;
@@ -390,7 +388,20 @@ namespace SV22T1080045.Shop.Controllers
             return new ManagementDashboardViewModel
             {
                 Categories = categories.Select(c => new ManagementCategoryOptionViewModel { Id = c.Id, CategoryName = c.CategoryName }).ToList(),
-                AllProducts = ToManagementProducts(allProducts),
+                BestSellerProducts = ToManagementProducts(dashboardData.BestSellers),
+                LowStockProducts = ToManagementProducts(dashboardData.LowStockProducts),
+                OutOfStockCount = dashboardData.OutOfStockCount,
+                CategorySales = dashboardData.CategorySales.Select((item, index) => new CategorySalesSummaryViewModel
+                {
+                    CategoryId = item.CategoryId,
+                    CategoryName = categories.FirstOrDefault(c => c.Id == item.CategoryId)?.CategoryName ?? $"Danh mục {item.CategoryId}",
+                    Quantity = item.Quantity,
+                    Revenue = item.Revenue,
+                    RevenueShare = item.RevenueShare,
+                    Color = DashboardCategoryColor(index)
+                }).ToList(),
+                CategorySalesTotalRevenue = dashboardData.CategoryRevenueTotal,
+                BestRevenuePoint = ToRevenuePoints(revenueData.RevenuePoints).OrderByDescending(point => point.Revenue).FirstOrDefault(),
                 RevenuePeriod = revenueData.Period,
                 RevenueDate = selectedRevenueDate,
                 RevenueRangeStart = revenueData.StartDate,
@@ -414,14 +425,19 @@ namespace SV22T1080045.Shop.Controllers
         {
             var categories = _categoryService.ListCategories();
             var units = _unitService.ListUnits();
-            var allProducts = _productService.ListProducts(sortBy: "newest");
-            var filteredProducts = ApplyProductFilters(allProducts, searchValue, categoryId, productStatus).ToList();
-            var totalPages = Math.Max(1, (int)Math.Ceiling(filteredProducts.Count / (double)ProductPageSize));
-            var currentPage = Math.Clamp(productPage, 1, totalPages);
-            var products = filteredProducts
-                .Skip((currentPage - 1) * ProductPageSize)
-                .Take(ProductPageSize)
-                .ToList();
+            var productQuery = new ProductQuery
+            {
+                SearchValue = searchValue,
+                SearchManagementFields = true,
+                CategoryId = categoryId is > 0 ? categoryId : null,
+                StockStatus = productStatus,
+                SortBy = "newest",
+                Page = Math.Max(1, productPage),
+                PageSize = ProductPageSize
+            };
+            var productResult = _productService.ListProductsFiltered(productQuery);
+            var totalPages = Math.Max(1, (int)Math.Ceiling(productResult.TotalCount / (double)ProductPageSize));
+            var currentPage = productQuery.Page;
 
             productForm ??= BuildProductForm(editProductId, categories.FirstOrDefault()?.Id, units.FirstOrDefault()?.Id);
 
@@ -429,14 +445,14 @@ namespace SV22T1080045.Shop.Controllers
             {
                 Categories = ToCategoryOptions(categories),
                 Units = ToUnitOptions(units),
-                Products = ToManagementProducts(products),
+                Products = ToManagementProducts(productResult.Products),
                 ProductForm = productForm,
                 SearchValue = searchValue?.Trim() ?? "",
                 CategoryId = categoryId,
                 ProductStatus = productStatus?.Trim() ?? "",
                 ProductPage = currentPage,
                 ProductPageSize = ProductPageSize,
-                ProductTotalCount = filteredProducts.Count,
+                ProductTotalCount = productResult.TotalCount,
                 ProductTotalPages = totalPages,
                 LastSavedProductId = savedProductId,
                 LastSavedAction = savedAction
@@ -503,6 +519,10 @@ namespace SV22T1080045.Shop.Controllers
             var selectedReportDate = (reportDate ?? DateTime.Today).Date;
             var reportData = _revenueReportService.GetRevenueReport(reportPeriod, selectedReportDate);
             var categories = _categoryService.ListCategories();
+            var statusCounts = new[] { 1, 2, 3, 4, -1 }
+                .Select(status => new { Status = status, Count = reportData.OrderRows.Count(order => order.Status == status) })
+                .ToList();
+            var totalOrderCount = statusCounts.Sum(item => item.Count);
 
             return new ReportManagementViewModel
             {
@@ -512,12 +532,15 @@ namespace SV22T1080045.Shop.Controllers
                 ReportRangeEnd = reportData.EndDate,
                 ReportSummary = ToManagementSummary(reportData.Summary),
                 ReportRevenuePoints = ToRevenuePoints(reportData.RevenuePoints),
-                OrderStatusBreakdown = new[] { 1, 2, 3, 4, -1 }
-                    .Select(status => new ReportOrderStatusViewModel
+                TotalOrderCount = totalOrderCount,
+                OrderStatusBreakdown = statusCounts
+                    .Select(item => new ReportOrderStatusViewModel
                     {
-                        Status = status,
-                        Label = StatusText(status),
-                        Count = reportData.OrderRows.Count(order => order.Status == status)
+                        Status = item.Status,
+                        Label = StatusText(item.Status),
+                        Count = item.Count,
+                        SharePercent = totalOrderCount == 0 ? 0 : (decimal)item.Count / totalOrderCount * 100,
+                        Color = ReportStatusColor(item.Status)
                     })
                     .ToList(),
                 ProductSalesReports = ToProductSalesReports(reportData.ProductRows),
@@ -525,6 +548,11 @@ namespace SV22T1080045.Shop.Controllers
                 Categories = categories.Select(c => new ManagementCategoryOptionViewModel { Id = c.Id, CategoryName = c.CategoryName }).ToList()
             };
         }
+
+        private static string ReportStatusColor(int status) => status switch
+        {
+            1 => "#d8bd77", 2 => "#86a6a0", 3 => "#c89461", 4 => "#8ca875", -1 => "#a75f4d", _ => "#aa997b"
+        };
 
         private static List<OrderStatusGroupViewModel> BuildOrderStatusGroups(List<ManagementOrderViewModel> orders)
         {
@@ -693,44 +721,8 @@ namespace SV22T1080045.Shop.Controllers
             return string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static IEnumerable<SV22T1080045.Shop.DomainModels.Product> ApplyProductFilters(
-            IEnumerable<SV22T1080045.Shop.DomainModels.Product> products,
-            string searchValue,
-            int? categoryId,
-            string productStatus)
-        {
-            var query = products;
-            var keyword = searchValue?.Trim();
-
-            if (!string.IsNullOrWhiteSpace(keyword))
-            {
-                query = query.Where(p =>
-                    p.ProductName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                    (p.Origin?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (p.UsageTags?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (p.Category?.CategoryName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false));
-            }
-
-            if (categoryId.HasValue && categoryId.Value > 0)
-                query = query.Where(p => p.CategoryId == categoryId.Value);
-
-            query = productStatus switch
-            {
-                "selling" => query.Where(p => p.DisplayQuantity > p.DisplayLowStockThreshold),
-                "low-stock" => query.Where(p => p.DisplayQuantity > 0 && p.DisplayQuantity <= p.DisplayLowStockThreshold),
-                "out-of-stock" => query.Where(p => p.DisplayQuantity <= 0),
-                _ => query
-            };
-
-            return query;
-        }
-
-        private int FindProductPage(int productId)
-        {
-            var products = _productService.ListProducts(sortBy: "newest");
-            var index = products.FindIndex(p => p.Id == productId);
-            return index < 0 ? 1 : (index / ProductPageSize) + 1;
-        }
+        private static string DashboardCategoryColor(int index) =>
+            new[] { "#c9a961", "#8a6d28", "#d4b86a", "#a67c3d", "#b98b36", "#52745b" }[Math.Max(0, index) % 6];
 
         private ProductEditViewModel BuildProductForm(int? editProductId, int? defaultCategoryId, int? defaultUnitId)
         {

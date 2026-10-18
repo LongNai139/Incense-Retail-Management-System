@@ -26,6 +26,7 @@ namespace SV22T1080045.Shop.DataLayers
         public DbSet<StockTransaction> StockTransactions { get; set; }
         public DbSet<CustomerDebt> CustomerDebts { get; set; }
 
+
         public DbSet<Role> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
@@ -141,6 +142,7 @@ namespace SV22T1080045.Shop.DataLayers
                 e.Property(x => x.Reason).HasMaxLength(500);
 
                 e.HasIndex(x => x.ProductId);
+                e.HasIndex(x => x.RelatedOrderDetailId);
                 e.HasIndex(x => x.TransactionDate);
                 e.HasIndex(x => x.TransactionType);
             });
@@ -163,6 +165,12 @@ namespace SV22T1080045.Shop.DataLayers
                 e.HasIndex(x => x.DueDate);
                 e.HasIndex(x => x.Status);
             });
+
+            // ============================================================================
+            // Permission System Configuration
+            // ============================================================================
+
+            // Roles
             modelBuilder.Entity<Role>(e =>
             {
                 e.ToTable("Roles");

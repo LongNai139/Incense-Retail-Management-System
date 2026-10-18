@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Abstractions.Models.Management;
 using SV22T1080045.Shop.DomainModels;
@@ -247,25 +247,27 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public ManagementOrderDetailsData? GetOrderDetails(int orderId)
         {
-            var order = _context.Orders
-                .Join(_context.Customers, o => o.CustomerId, c => c.Id, (o, c) => new { o, c })
-                .Where(x => !x.o.IsDeleted && x.o.Id == orderId)
-                .Select(x => new ManagementOrderDetailHeaderData
-                {
-                    Id = x.o.Id,
-                    OrderDate = x.o.OrderDate,
-                    TotalAmount = x.o.TotalAmount,
-                    Status = x.o.Status,
-                    CustomerName = x.c != null && !string.IsNullOrWhiteSpace(x.c.CustomerName)
-                        ? x.c.CustomerName
-                        : (!string.IsNullOrWhiteSpace(x.o.ShippingName) ? x.o.ShippingName : "Guest"),
-                    CustomerPhone = x.c != null && !string.IsNullOrWhiteSpace(x.c.Phone)
-                        ? x.c.Phone
-                        : (!string.IsNullOrWhiteSpace(x.o.ShippingPhone) ? x.o.ShippingPhone : ""),
-                    ShippingAddress = x.o.ShippingAddress,
-                    IsGuest = x.c == null || x.o.CustomerId <= 0
-                })
-                .FirstOrDefault();
+            var order = (from o in _context.Orders
+                         join c in _context.Customers on o.CustomerId equals c.Id into customerGroup
+                         from c in customerGroup.DefaultIfEmpty()
+                         where !o.IsDeleted && o.Id == orderId
+                         select new ManagementOrderDetailHeaderData
+                         {
+                             Id = o.Id,
+                             OrderDate = o.OrderDate,
+                             TotalAmount = o.TotalAmount,
+                             Status = o.Status,
+                             CustomerName = c != null && !string.IsNullOrWhiteSpace(c.CustomerName)
+                                 ? c.CustomerName
+                                 : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
+                             CustomerPhone = c != null && !string.IsNullOrWhiteSpace(c.Phone)
+                                 ? c.Phone
+                                 : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
+                             CustomerEmail = c != null ? c.Email : null,
+                             ShippingAddress = o.ShippingAddress,
+                             IsGuest = c == null || o.CustomerId <= 0
+                         })
+                        .FirstOrDefault();
 
             if (order == null)
                 return null;
@@ -276,13 +278,13 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                            from p in productGroup.DefaultIfEmpty()
                            where d.OrderId == orderId
                            select new ManagementOrderDetailLineData
-                {
+                           {
                                ProductName = p != null ? p.ProductName : "Sản phẩm không còn tồn tại",
                                Quantity = d.Quantity,
                                UnitPrice = d.UnitPrice,
                                LineTotal = d.Quantity * d.UnitPrice
-                })
-                .ToList();
+                           })
+                          .ToList();
 
             return new ManagementOrderDetailsData
             {

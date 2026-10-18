@@ -13,7 +13,36 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             _staffDAL = staffDAL;
         }
 
-        public StaffDashboardData GetDashboardData() => _staffDAL.GetDashboardData();
+        public StaffDashboardData GetDashboardData()
+        {
+            var now = DateTime.Now;
+            var orderData = _staffDAL.GetOrderDashboardData(now);
+            var lowStockProducts = _staffDAL.GetLowStockProducts(5, out var lowStockCount);
+            return new StaffDashboardData
+            {
+                TodayOrders = _staffDAL.GetTodayOrders(4, status: 1, orderBefore: now.AddHours(-2)),
+                RecentOrders = orderData.RecentOrders,
+                PendingTooLongOrders = orderData.PendingTooLongOrders,
+                FailedDeliveryOrders = orderData.FailedDeliveryOrders,
+                LowStockProducts = lowStockProducts,
+                Customers = _staffDAL.GetRecentCustomers(20),
+                NewOrdersToday = orderData.NewOrdersToday,
+                ProcessingOrders = orderData.ProcessingOrders,
+                OrdersToDeliver = orderData.OrdersToDeliver,
+                LowStockCount = lowStockCount
+            };
+        }
+
+        public List<StaffOrderData> GetTodayOrders(int take, string? keyword = null, int? status = null, DateTime? orderBefore = null)
+            => _staffDAL.GetTodayOrders(Math.Clamp(take, 1, 500), keyword?.Trim(), status, orderBefore);
+
+        public StaffProductPageData QueryProducts(string? keyword, int page, int pageSize)
+        {
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            return _staffDAL.QueryProducts(keyword?.Trim(), Math.Max(1, page), pageSize);
+        }
+
+        public List<StaffCustomerData> GetRecentCustomers(int take) => _staffDAL.GetRecentCustomers(take);
 
         public StaffOperationResult UpdateOrderStatus(int orderId, int status)
         {
@@ -61,7 +90,10 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                         InventoryChecks = inventoryChecks
                     };
                 }
-                return new StaffOperationResult { Message = "Không tìm thấy đơn hàng cần cập nhật." };
+                return new StaffOperationResult
+                {
+                    Message = "Không cập nhật được đơn: không tìm thấy đơn hôm nay, hoặc trạng thái mới không hợp lệ (chỉ được chuyển tiếp, không quay lại bước trước)."
+                };
             }
 
             var resultMessage = $"Đã cập nhật {FormatOrderCode(orderId)} sang trạng thái {StatusText(status)}.";

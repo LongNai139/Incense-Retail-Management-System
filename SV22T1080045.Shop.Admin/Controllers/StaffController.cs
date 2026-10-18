@@ -65,71 +65,23 @@ namespace SV22T1080045.Shop.Controllers
             int productPage)
         {
             var data = _staffService.GetDashboardData();
-            var today = DateTime.Today;
-            var tomorrow = today.AddDays(1);
-            var orders = ToOrderRows(data.Orders);
-            var todayOrders = orders
-                .Where(o => o.OrderDate >= today && o.OrderDate < tomorrow)
-                .ToList();
-            var filteredOrders = todayOrders.AsEnumerable();
-            var orderKeyword = Normalize(orderSearchValue);
-
-            if (!string.IsNullOrWhiteSpace(orderKeyword))
-            {
-                filteredOrders = filteredOrders.Where(o =>
-                    o.OrderCode.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    o.CustomerName.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    o.CustomerPhone.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (orderStatus.HasValue)
-                filteredOrders = filteredOrders.Where(o => o.Status == orderStatus.Value);
-
-            var allProducts = ToProductRows(data.Products);
-            var productKeyword = Normalize(productSearchValue);
-            var products = string.IsNullOrWhiteSpace(productKeyword)
-                ? allProducts
-                : allProducts.Where(p =>
-                    p.ProductName.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    p.CategoryName.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    (p.Origin?.Contains(productKeyword, StringComparison.OrdinalIgnoreCase) ?? false))
-                    .ToList();
-
-            var orderedProducts = products
-                .OrderBy(p => p.Quantity <= 0 ? 0 : p.Quantity < 5 ? 1 : 2)
-                .ThenBy(p => p.Quantity)
-                .ThenBy(p => p.ProductName)
-                .ToList();
-            var productTotalItems = orderedProducts.Count;
+            var productResult = _staffService.QueryProducts(productSearchValue, productPage, ProductPageSize);
+            var todayOrders = ToOrderRows(_staffService.GetTodayOrders(30, orderSearchValue, orderStatus));
+            var pagedProducts = ToProductRows(productResult.Items);
+            var lowStock = ToProductRows(data.LowStockProducts);
+            var pendingTooLong = ToOrderRows(data.PendingTooLongOrders);
+            var failedDeliveries = ToOrderRows(data.FailedDeliveryOrders);
+            var currentProductPage = productResult.Page;
+            var productTotalItems = productResult.TotalCount;
             var productTotalPages = Math.Max(1, (int)Math.Ceiling(productTotalItems / (double)ProductPageSize));
-            var currentProductPage = Math.Clamp(productPage, 1, productTotalPages);
-            var pagedProducts = orderedProducts
-                .Skip((currentProductPage - 1) * ProductPageSize)
-                .Take(ProductPageSize)
-                .ToList();
-
-            var pendingTooLong = todayOrders
-                .Where(o => o.Status == 1 && o.OrderDate <= DateTime.Now.AddHours(-2))
-                .OrderBy(o => o.OrderDate)
-                .Take(5)
-                .ToList();
-            var failedDeliveries = todayOrders
-                .Where(o => o.Status == -1)
-                .OrderByDescending(o => o.OrderDate)
-                .Take(5)
-                .ToList();
-            var lowStock = allProducts
-                .Where(p => p.Quantity > 0 && p.Quantity < 5)
-                .OrderBy(p => p.Quantity)
-                .Take(5)
-                .ToList();
+            var today = DateTime.Today;
 
             return new StaffDashboardViewModel
             {
-                NewOrdersToday = todayOrders.Count(o => o.Status == 1),
-                ProcessingOrders = todayOrders.Count(o => o.Status is 1 or 2),
-                OrdersToDeliver = todayOrders.Count(o => o.Status == 3),
-                LowStockProducts = allProducts.Count(p => p.Quantity > 0 && p.Quantity < 5),
+                NewOrdersToday = data.NewOrdersToday,
+                ProcessingOrders = data.ProcessingOrders,
+                OrdersToDeliver = data.OrdersToDeliver,
+                LowStockProducts = data.LowStockCount,
                 OrderSearchValue = orderSearchValue?.Trim() ?? "",
                 OrderStatus = orderStatus,
                 WorkDate = today,
@@ -140,17 +92,16 @@ namespace SV22T1080045.Shop.Controllers
                 ProductTotalPages = productTotalPages,
                 ProductStartItem = productTotalItems == 0 ? 0 : ((currentProductPage - 1) * ProductPageSize) + 1,
                 ProductEndItem = Math.Min(currentProductPage * ProductPageSize, productTotalItems),
-                RecentOrders = todayOrders.OrderByDescending(o => o.OrderDate).Take(8).ToList(),
-                Orders = filteredOrders.OrderByDescending(o => o.OrderDate).Take(30).ToList(),
+                RecentOrders = ToOrderRows(data.RecentOrders),
+                Orders = todayOrders,
                 Products = pagedProducts,
                 Customers = ToCustomerRows(data.Customers),
                 Alerts = BuildAlerts(pendingTooLong, failedDeliveries, lowStock),
-                Notifications = BuildNotifications(todayOrders, lowStock),
+                Notifications = BuildNotifications(ToOrderRows(data.TodayOrders), lowStock),
                 Profile = BuildProfile()
             };
         }
 
-        private const int TodayOrderLimit = 1000;
         private const int RecentCustomerLimit = 20;
 
         private StaffOrderViewModel BuildOrderModel(
@@ -159,27 +110,14 @@ namespace SV22T1080045.Shop.Controllers
         {
             var today = DateTime.Today;
             // Chỉ tải đơn hôm nay (lọc trong SQL), không tải sản phẩm/khách như trước.
-            var orders = ToOrderRows(_staffService.GetTodayOrders(TodayOrderLimit));
-            var filteredOrders = orders.AsEnumerable();
-            var orderKeyword = Normalize(orderSearchValue);
-
-            if (!string.IsNullOrWhiteSpace(orderKeyword))
-            {
-                filteredOrders = filteredOrders.Where(o =>
-                    o.OrderCode.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    o.CustomerName.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    o.CustomerPhone.Contains(orderKeyword, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (orderStatus.HasValue)
-                filteredOrders = filteredOrders.Where(o => o.Status == orderStatus.Value);
+            var orders = ToOrderRows(_staffService.GetTodayOrders(500, orderSearchValue, orderStatus));
 
             return new StaffOrderViewModel
             {
                 OrderSearchValue = orderSearchValue?.Trim() ?? "",
                 OrderStatus = orderStatus,
                 WorkDate = today,
-                Orders = filteredOrders.OrderByDescending(o => o.OrderDate).Take(30).ToList()
+                Orders = orders
             };
         }
 
@@ -221,6 +159,8 @@ namespace SV22T1080045.Shop.Controllers
                 OrderDate = row.OrderDate,
                 TotalAmount = row.TotalAmount,
                 Status = row.Status,
+                StatusText = StatusText(row.Status),
+                StatusClass = StatusClass(row.Status),
                 CustomerName = row.CustomerName,
                 CustomerPhone = row.CustomerPhone,
                 ShippingAddress = row.ShippingAddress,
@@ -383,8 +323,6 @@ namespace SV22T1080045.Shop.Controllers
             -1 => "staff-status-failed",
             _ => "staff-status-neutral"
         };
-
-        private static string Normalize(string? value) => value?.Trim() ?? "";
 
         private static string MaskPhone(string? phone)
         {

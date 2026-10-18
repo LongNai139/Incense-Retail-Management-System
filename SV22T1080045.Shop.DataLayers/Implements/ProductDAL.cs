@@ -54,6 +54,21 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             };
         }
 
+        public int GetNewestPageForProduct(int productId, int pageSize)
+        {
+            var current = _context.Products.AsNoTracking()
+                .Where(product => product.Id == productId && !product.IsDeleted)
+                .Select(product => new { product.CreatedTime, product.Id })
+                .FirstOrDefault();
+            if (current == null)
+                return 1;
+
+            var precedingCount = _context.Products.AsNoTracking().Count(product => !product.IsDeleted &&
+                (product.CreatedTime > current.CreatedTime ||
+                 (product.CreatedTime == current.CreatedTime && product.Id > current.Id)));
+            return (precedingCount / Math.Max(1, pageSize)) + 1;
+        }
+
         public Product? GetById(int id)
         {
             return CreateBaseQuery()
@@ -193,7 +208,15 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             bool includeOrigin = true)
         {
             if (!string.IsNullOrWhiteSpace(filter.SearchValue))
-                query = query.Where(p => p.ProductName.Contains(filter.SearchValue.Trim()));
+            {
+                var keyword = filter.SearchValue.Trim();
+                query = filter.SearchManagementFields
+                    ? query.Where(p => p.ProductName.Contains(keyword) ||
+                        (p.Origin != null && p.Origin.Contains(keyword)) ||
+                        (p.UsageTags != null && p.UsageTags.Contains(keyword)) ||
+                        (p.Category != null && p.Category.CategoryName.Contains(keyword)))
+                    : query.Where(p => p.ProductName.Contains(keyword));
+            }
 
             if (includeCategory && filter.CategoryId.HasValue)
                 query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
@@ -232,6 +255,16 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             if (filter.MinRating.HasValue)
                 query = query.Where(p => (p.Rating ?? 0) >= filter.MinRating.Value);
 
+            query = filter.StockStatus switch
+            {
+                "selling" => query.Where(p => (p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0)) >
+                    (p.Inventory != null ? p.Inventory.LowStockThreshold : 5)),
+                "low-stock" => query.Where(p => (p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0)) > 0 &&
+                    (p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0)) <= (p.Inventory != null ? p.Inventory.LowStockThreshold : 5)),
+                "out-of-stock" => query.Where(p => (p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0)) <= 0),
+                _ => query
+            };
+
             return query;
         }
 
@@ -240,6 +273,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             return sortBy switch
             {
                 "bestseller" => query.OrderByDescending(p => p.SoldCount ?? 0).ThenByDescending(p => p.CreatedTime),
+                "low-stock" => query.OrderBy(p => p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0))
+                    .ThenBy(p => p.ProductName),
                 "newest" => query.OrderByDescending(p => p.CreatedTime),
                 "price-asc" => query.OrderBy(p =>
                     p.DiscountPercent > 0

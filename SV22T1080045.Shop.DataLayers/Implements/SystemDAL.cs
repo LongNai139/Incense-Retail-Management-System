@@ -16,7 +16,7 @@ public class SystemDAL : ISystemDAL
     public List<SystemAccountData> ListBackofficeAccounts(string? searchValue, string? roleFilter)
     {
         var query = _context.Customers
-            .Where(c => !c.IsDeleted && (c.Role == CustomerRoles.Admin || c.Role == CustomerRoles.Staff));
+            .Where(c => !c.IsDeleted && c.Role != CustomerRoles.Customer);
 
         query = ApplyFilters(query, searchValue, roleFilter);
 
@@ -29,7 +29,7 @@ public class SystemDAL : ISystemDAL
     public List<SystemAccountData> ListAccountsForRoleAssignment(string? searchValue, string? roleFilter)
     {
         var query = _context.Customers
-            .Where(c => !c.IsDeleted && (c.Role == CustomerRoles.Admin || c.Role == CustomerRoles.Staff));
+            .Where(c => !c.IsDeleted && c.Role != CustomerRoles.Customer);
         query = ApplyFilters(query, searchValue, roleFilter);
 
         return query

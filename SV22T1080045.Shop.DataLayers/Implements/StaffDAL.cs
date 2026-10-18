@@ -7,6 +7,8 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 {
     public class StaffDAL : IStaffDAL
     {
+        private const int RecentProductRowLimit = 300;
+
         private readonly ShopDbContext _context;
 
         public StaffDAL(ShopDbContext context)
@@ -14,30 +16,86 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             _context = context;
         }
 
-        public StaffDashboardData GetDashboardData()
+        public StaffOrderDashboardData GetOrderDashboardData(DateTime now)
         {
-            var orders = (from o in _context.Orders
+            var today = now.Date;
+            var tomorrow = today.AddDays(1);
+            var orders = _context.Orders.AsNoTracking()
+                .Where(order => !order.IsDeleted && order.OrderDate >= today && order.OrderDate < tomorrow);
+            return new StaffOrderDashboardData
+            {
+                NewOrdersToday = orders.Count(order => order.Status == 1),
+                ProcessingOrders = orders.Count(order => order.Status == 1 || order.Status == 2),
+                OrdersToDeliver = orders.Count(order => order.Status == 3),
+                RecentOrders = GetTodayOrders(8),
+                PendingTooLongOrders = GetTodayOrders(5, status: 1, orderBefore: now.AddHours(-2)),
+                FailedDeliveryOrders = GetTodayOrders(5, status: -1)
+            };
+        }
+
+        public List<StaffProductData> GetLowStockProducts(int take, out int totalCount)
+        {
+            var query = _context.Products.AsNoTracking().Where(p => !p.IsDeleted &&
+                (p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0)) > 0 &&
+                (p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0)) <=
+                    (p.Inventory != null ? p.Inventory.LowStockThreshold : 5));
+            totalCount = query.Count();
+            return query.OrderBy(p => p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0))
+                .ThenBy(p => p.ProductName).Take(Math.Clamp(take, 0, 100))
+                .Select(p => new StaffProductData
+                {
+                    Id = p.Id, ProductName = p.ProductName,
+                    CategoryName = p.Category != null ? p.Category.CategoryName : "Chua phan loai",
+                    UnitName = p.Unit != null ? p.Unit.UnitName : "",
+                    Quantity = p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0),
+                    SoldCount = p.SoldCount ?? 0, PriceAfterDiscount = p.PriceAfterDiscount, Origin = p.Origin
+                }).ToList();
+        }
+
+        /// <summary>Đơn của NGÀY HÔM NAY (lọc ngay trong SQL), mới nhất trước, kèm danh sách món.</summary>
+        public List<StaffOrderData> GetTodayOrders(int take, string? keyword = null, int? status = null, DateTime? orderBefore = null)
+        {
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+            var query = from o in _context.Orders
                           join c in _context.Customers on o.CustomerId equals c.Id into customerGroup
                           from c in customerGroup.DefaultIfEmpty()
-                          where !o.IsDeleted
-                          orderby o.OrderDate descending
-                          select new StaffOrderData
+                          where !o.IsDeleted && o.OrderDate >= today && o.OrderDate < tomorrow
+                          select new { Order = o, Customer = c };
+            if (status.HasValue)
+                query = query.Where(item => item.Order.Status == status.Value);
+            if (orderBefore.HasValue)
+                query = query.Where(item => item.Order.OrderDate <= orderBefore.Value);
+            var normalizedKeyword = keyword?.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedKeyword))
+            {
+                var orderCode = normalizedKeyword.StartsWith("#TH", StringComparison.OrdinalIgnoreCase)
+                    ? normalizedKeyword[3..].TrimStart('0') : normalizedKeyword;
+                var hasOrderId = int.TryParse(orderCode, out var orderId);
+                query = query.Where(item =>
+                    (hasOrderId && item.Order.Id == orderId) ||
+                    (item.Customer != null && ((item.Customer.CustomerName != null && item.Customer.CustomerName.Contains(normalizedKeyword)) ||
+                        (item.Customer.Phone != null && item.Customer.Phone.Contains(normalizedKeyword)))) ||
+                    (item.Order.ShippingName != null && item.Order.ShippingName.Contains(normalizedKeyword)) ||
+                    (item.Order.ShippingPhone != null && item.Order.ShippingPhone.Contains(normalizedKeyword)));
+            }
+            var orders = query.OrderByDescending(item => item.Order.OrderDate)
+                          .Take(Math.Clamp(take, 1, 500))
+                          .Select(item => new StaffOrderData
                           {
-                              Id = o.Id,
-                              OrderDate = o.OrderDate,
-                              TotalAmount = o.TotalAmount,
-                              Status = o.Status,
-                              CustomerName = c != null && !string.IsNullOrWhiteSpace(c.CustomerName)
-                                  ? c.CustomerName
-                                  : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
-                              CustomerPhone = c != null && !string.IsNullOrWhiteSpace(c.Phone)
-                                  ? c.Phone
-                                  : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
-                              ShippingAddress = o.ShippingAddress,
-                              IsGuest = c == null || o.CustomerId <= 0
-                          })
-                          .Take(120)
-                          .ToList();
+                              Id = item.Order.Id,
+                              OrderDate = item.Order.OrderDate,
+                              TotalAmount = item.Order.TotalAmount,
+                              Status = item.Order.Status,
+                              CustomerName = item.Customer != null && !string.IsNullOrWhiteSpace(item.Customer.CustomerName)
+                                  ? item.Customer.CustomerName
+                                  : (!string.IsNullOrWhiteSpace(item.Order.ShippingName) ? item.Order.ShippingName : "Guest"),
+                              CustomerPhone = item.Customer != null && !string.IsNullOrWhiteSpace(item.Customer.Phone)
+                                  ? item.Customer.Phone
+                                  : (!string.IsNullOrWhiteSpace(item.Order.ShippingPhone) ? item.Order.ShippingPhone : ""),
+                              ShippingAddress = item.Order.ShippingAddress,
+                              IsGuest = item.Customer == null || item.Order.CustomerId <= 0
+                          }).ToList();
 
             var orderIds = orders.Select(o => o.Id).ToArray();
             var items = orderIds.Length == 0
@@ -60,50 +118,90 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 order.ItemCount = order.Items.Sum(i => i.Quantity);
             }
 
-            var products = _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Unit)
-                .Where(p => !p.IsDeleted)
+            return orders;
+        }
+
+        /// <summary>
+        /// Một trang sản phẩm (tìm kiếm, sắp xếp, phân trang đều chạy trong SQL).
+        /// Trả về cả số trang thực tế sau khi kẹp (clamp) về khoảng hợp lệ.
+        /// </summary>
+        public StaffProductPageData QueryProducts(string? keyword, int page, int pageSize)
+        {
+            if (pageSize < 1)
+                pageSize = 12;
+
+            var query = _context.Products
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted);
+
+            var kw = keyword?.Trim();
+            if (!string.IsNullOrEmpty(kw))
+            {
+                query = query.Where(p =>
+                    p.ProductName.Contains(kw) ||
+                    (p.Category != null && p.Category.CategoryName.Contains(kw)) ||
+                    (p.Origin != null && p.Origin.Contains(kw)));
+            }
+
+            var totalCount = query.Count();
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
+            var currentPage = Math.Clamp(page, 1, totalPages);
+
+            var items = query
                 .Select(p => new StaffProductData
                 {
                     Id = p.Id,
                     ProductName = p.ProductName,
                     CategoryName = p.Category != null ? p.Category.CategoryName : "Chua phan loai",
                     UnitName = p.Unit != null ? p.Unit.UnitName : "",
-                    Quantity = p.Quantity ?? 0,
+                    Quantity = p.Inventory != null ? p.Inventory.Quantity : (p.Quantity ?? 0),
                     SoldCount = p.SoldCount ?? 0,
                     PriceAfterDiscount = p.PriceAfterDiscount,
                     Origin = p.Origin
                 })
+                .OrderBy(p => p.Quantity <= 0 ? 0 : p.Quantity < 5 ? 1 : 2)
+                .ThenBy(p => p.Quantity)
+                .ThenBy(p => p.ProductName)
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
+            return new StaffProductPageData { Items = items, TotalCount = totalCount, Page = currentPage, PageSize = pageSize };
+        }
+
+        /// <summary>Khách mua gần đây nhất, kèm tối đa 3 sản phẩm gần đây của mỗi người.</summary>
+        public List<StaffCustomerData> GetRecentCustomers(int take)
+        {
             var customers = (from c in _context.Customers
-                            join o in _context.Orders on c.Id equals o.CustomerId into orderGroup
-                            from o in orderGroup.DefaultIfEmpty()
-                            where !c.IsDeleted && c.Role != "Admin" && c.Role != "Staff"
-                            group o by new { c.Id, c.CustomerName, c.Phone, c.Email } into g
-                            select new StaffCustomerData
-                            {
-                                Id = g.Key.Id,
-                                CustomerName = g.Key.CustomerName,
-                                Phone = g.Key.Phone,
-                                Email = g.Key.Email,
-                                OrderCount = g.Count(x => x != null && !x.IsDeleted),
-                                LastOrderDate = g.Where(x => x != null && !x.IsDeleted).Max(x => (DateTime?)x.OrderDate)
-                            })
+                             join o in _context.Orders on c.Id equals o.CustomerId into orderGroup
+                             from o in orderGroup.DefaultIfEmpty()
+                             where !c.IsDeleted && c.Role != "Admin" && c.Role != "Staff"
+                             group o by new { c.Id, c.CustomerName, c.Phone, c.Email } into g
+                             select new StaffCustomerData
+                             {
+                                 Id = g.Key.Id,
+                                 CustomerName = g.Key.CustomerName,
+                                 Phone = g.Key.Phone,
+                                 Email = g.Key.Email,
+                                 OrderCount = g.Count(x => x != null && !x.IsDeleted),
+                                 LastOrderDate = g.Where(x => x != null && !x.IsDeleted).Max(x => (DateTime?)x.OrderDate)
+                             })
                             .OrderByDescending(c => c.LastOrderDate)
-                            .Take(20)
+                            .Take(take)
                             .ToList();
 
             var customerIds = customers.Select(c => c.Id).ToArray();
+
+            // Giới hạn số dòng đọc về (trước đây không giới hạn: khách mua nhiều sẽ kéo cả lịch sử).
             var recentProducts = customerIds.Length == 0
                 ? new List<(int CustomerId, string ProductName)>()
                 : (from o in _context.Orders
-                    join d in _context.OrderDetails on o.Id equals d.OrderId
-                    join p in _context.Products on d.ProductId equals p.Id
-                    where !o.IsDeleted && customerIds.Contains(o.CustomerId)
-                    orderby o.OrderDate descending
-                    select new { o.CustomerId, p.ProductName })
+                   join d in _context.OrderDetails on o.Id equals d.OrderId
+                   join p in _context.Products on d.ProductId equals p.Id
+                   where !o.IsDeleted && customerIds.Contains(o.CustomerId)
+                   orderby o.OrderDate descending
+                   select new { o.CustomerId, p.ProductName })
+                    .Take(RecentProductRowLimit)
                     .AsEnumerable()
                     .Select(x => (x.CustomerId, x.ProductName))
                     .ToList();
@@ -118,12 +216,7 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                     .ToList();
             }
 
-            return new StaffDashboardData
-            {
-                Orders = orders,
-                Products = products,
-                Customers = customers
-            };
+            return customers;
         }
 
         public bool UpdateOrderStatus(int orderId, int status)
@@ -151,6 +244,10 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                     && o.OrderDate < DateTime.Today.AddDays(1));
 
             if (order == null)
+                return (false, new List<InventoryCheckResult>());
+
+            // Chỉ cho chuyển tiếp. Nếu cho đi lùi (2 -> 1) rồi tiến lại (1 -> 2) thì kho bị trừ lần nữa.
+            if (status <= order.Status)
                 return (false, new List<InventoryCheckResult>());
 
             // Check inventory only when moving from "Chờ xử lý" (1) to any status > 1 (2, 3, 4)

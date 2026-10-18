@@ -594,6 +594,9 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RelatedOrderDetailId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime2");
 
@@ -632,6 +635,8 @@ namespace SV22T1080045.Shop.DataLayers.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("RelatedOrderDetailId");
 
                     b.HasIndex("TransactionDate");
 

@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SV22T1080045.Shop.Admin.Extensions.Authorizations;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 
 namespace SV22T1080045.Shop.Controllers
 {
-    [Authorize(Roles = $"{CustomerRoles.Staff},{CustomerRoles.Admin}")]
+    [Authorize]
     [Route("api/operational-alerts")]
     public class OperationalAlertsController : Controller
     {
@@ -17,6 +18,7 @@ namespace SV22T1080045.Shop.Controllers
         }
 
         [HttpGet("feed")]
+        [Permission(PermissionConstants.ViewStockAlert)]
         public IActionResult Feed([FromQuery] DateTime? since)
         {
             var feed = _operationalAlertService.GetFeed(since);

@@ -6,6 +6,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Interfaces
     {
         Customer? GetCustomerById(int id);
         Customer? Login(string phone, string password);
+        bool IsBackofficeRole(string? role);
         bool Register(Customer data);
         bool UpdateProfile(int id, string customerName, string? email, string? address);
         string GenerateOTP();

@@ -38,6 +38,14 @@ namespace SV22T1080045.Shop.DataLayers
             services.AddScoped<IFileStorageService, LocalFileStorageService>();
             services.AddScoped<IWarehouseDAL, WarehouseDAL>();
 
+
+            services.AddScoped<IRoleDAL, RoleDAL>();
+            services.AddScoped<IPermissionDAL, PermissionDAL>();
+            services.AddScoped<IRolePermissionDAL, RolePermissionDAL>();
+            services.AddScoped<IGroupDAL, GroupDAL>();
+            services.AddScoped<IRoleGroupDAL, RoleGroupDAL>();
+            services.AddScoped<IUserPermissionDAL, UserPermissionDAL>();
+
             return services;
         }
     }

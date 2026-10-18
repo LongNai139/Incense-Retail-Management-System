@@ -267,12 +267,6 @@ namespace SV22T1080045.Shop.Controllers
             return RedirectToAction("Login");
         }
 
-        private static bool IsBackofficeRole(string? role)
-        {
-            return string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase);
-        }
-
         private void PrepareRegisterView(RegisterViewModel model, string message)
         {
             ViewBag.AuthMode = "Register";
@@ -292,6 +286,12 @@ namespace SV22T1080045.Shop.Controllers
         private static string GetRegisterOtpVerifiedKey(string phone)
         {
             return $"otp_verified_register_{phone}";
+        }
+
+        private static bool IsBackofficeRole(string? role)
+        {
+            return string.Equals(role, CustomerRoles.Staff, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(role, CustomerRoles.Admin, StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task SignInCustomerAsync(Customer customer)

@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1080045.Shop.Admin.Extensions.Authorizations;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
+using SV22T1080045.Shop.Abstractions.Contracts.Warehouse;
 using SV22T1080045.Shop.DomainModels;
-using SV22T1080045.Shop.DomainModels.Warehouse;
 using SV22T1080045.Shop.Models.ViewModels.Management;
 using SV22T1080045.Shop.Models.ViewModels.Warehouse;
 
@@ -38,22 +37,12 @@ namespace SV22T1080045.Shop.Controllers
                 inventories = _warehouseService.ListStockInventories(currentPage, inventoryPageSize, out inventoryTotalCount);
             }
             var inventorySummary = _warehouseService.GetStockInventorySummary();
-            var alertInventories = _warehouseService.ListStockInventories(1, 5, out _)
-                .Where(item => item.IsLowStock)
-                .ToList();
-            var recentTransactions = _warehouseService.ListStockTransactions(0, DateTime.Today.AddDays(-30), DateTime.Today.AddDays(1).AddTicks(-1));
-            var exportsByProduct = recentTransactions
-                .Where(transaction => transaction.TransactionType == "Export")
-                .GroupBy(transaction => new { transaction.ProductId, transaction.ProductName })
-                .Select(group => new WarehouseTopExportViewModel
-                {
-                    ProductId = group.Key.ProductId,
-                    ProductName = group.Key.ProductName ?? $"Sản phẩm #{group.Key.ProductId}",
-                    Quantity = group.Sum(transaction => Math.Abs(transaction.Quantity))
-                })
-                .OrderByDescending(item => item.Quantity)
-                .Take(5)
-                .ToList();
+            var (lowStockItems, zeroStockItems) = _warehouseService.GetInventoryAlerts(5);
+            var fromDate = DateTime.Today.AddDays(-30);
+            var toDate = DateTime.Today.AddDays(1).AddTicks(-1);
+            var recentTransactions = _warehouseService.ListRecentStockTransactions(8, fromDate, toDate);
+            var topExports = _warehouseService.ListTopExportProducts(fromDate, toDate, 5);
+            var transactionSummary = _warehouseService.GetStockDashboardData(fromDate, toDate);
 
             return View(new WarehouseDashboardViewModel
             {
@@ -66,7 +55,16 @@ namespace SV22T1080045.Shop.Controllers
                     EstimatedValue = item.TotalValue,
                     LastUpdated = item.LastUpdated
                 }).ToList(),
-                AlertInventories = alertInventories.Select(item => new WarehouseInventoryRowViewModel
+                LowStockProducts = lowStockItems.Select(item => new WarehouseInventoryRowViewModel
+                {
+                    ProductId = item.ProductId,
+                    ProductName = item.ProductName ?? $"Sản phẩm #{item.ProductId}",
+                    CurrentQuantity = item.CurrentQuantity,
+                    LowStockThreshold = item.LowStockThreshold,
+                    EstimatedValue = item.TotalValue,
+                    LastUpdated = item.LastUpdated
+                }).ToList(),
+                OutOfStockProducts = zeroStockItems.Select(item => new WarehouseInventoryRowViewModel
                 {
                     ProductId = item.ProductId,
                     ProductName = item.ProductName ?? $"Sản phẩm #{item.ProductId}",
@@ -86,7 +84,12 @@ namespace SV22T1080045.Shop.Controllers
                     TransactionDate = transaction.TransactionDate,
                     CreatedBy = transaction.CreatedBy
                 }).ToList(),
-                TopExportProducts = exportsByProduct,
+                TopExportProducts = topExports.Select(item => new WarehouseTopExportViewModel
+                {
+                    ProductId = item.ProductId,
+                    ProductName = item.ProductName ?? $"Sản phẩm #{item.ProductId}",
+                    Quantity = item.Quantity
+                }).ToList(),
                 LowStockCount = inventorySummary.LowStockCount,
                 OutOfStockCount = inventorySummary.OutOfStockCount,
                 InventoryValue = inventorySummary.InventoryValue,
@@ -95,9 +98,9 @@ namespace SV22T1080045.Shop.Controllers
                 InventoryPageSize = inventoryPageSize,
                 InventoryTotalCount = inventoryTotalCount,
                 InventoryTotalPages = totalPages,
-                TransactionCountLast30Days = recentTransactions.Count,
-                ImportCountLast30Days = recentTransactions.Count(transaction => transaction.TransactionType is "Import" or "Restock" or "Reimport"),
-                ExportCountLast30Days = recentTransactions.Count(transaction => transaction.TransactionType == "Export"),
+                TransactionCountLast30Days = transactionSummary.TransactionCount,
+                ImportCountLast30Days = transactionSummary.ImportCount,
+                ExportCountLast30Days = transactionSummary.ExportCount,
                 CanImportInventory = User.HasAnyPermission(PermissionConstants.ImportInventory, PermissionConstants.ManageSystem),
                 CanExportInventory = User.HasAnyPermission(PermissionConstants.ExportInventory, PermissionConstants.ManageSystem)
             });
@@ -106,7 +109,7 @@ namespace SV22T1080045.Shop.Controllers
         [Permission(PermissionConstants.ViewInventory)]
         public IActionResult StockTransactions(int? productId = null, DateTime? fromDate = null, DateTime? toDate = null, string transactionType = "Import", int? reimportOrderId = null)
         {
-            var transactions = _warehouseService.ListStockTransactions(productId ?? 0, fromDate, toDate);
+            var transactions = _warehouseService.ListStockTransactions(productId ?? 0, fromDate, toDate, transactionType);
             var products = _productService.ListProducts();
 
             return View(new StockTransactionPageViewModel
@@ -129,7 +132,7 @@ namespace SV22T1080045.Shop.Controllers
                 ToDate = toDate,
                 TransactionType = transactionType,
                 ReimportOrderId = reimportOrderId,
-                ReimportOrders = _warehouseService.ListOrdersForReimport().Select(order => new SelectListItem
+                ReimportOrders = _warehouseService.ListOrdersForReimport().Select(order => new WarehouseOptionViewModel
                 {
                     Value = order.OrderId.ToString(),
                     Text = $"Đơn #{order.OrderId} · {order.OrderDate:dd/MM/yyyy} · {order.CustomerName}",
@@ -148,7 +151,7 @@ namespace SV22T1080045.Shop.Controllers
                         ImportPrice = line.ImportPrice
                     }).ToList()
                     : new List<ReimportOrderLineViewModel>(),
-                AvailableProducts = products.Select(p => new SelectListItem
+                AvailableProducts = products.Select(p => new WarehouseOptionViewModel
                 {
                     Value = p.Id.ToString(),
                     Text = $"{p.ProductName} (ID: {p.Id})"
@@ -201,7 +204,7 @@ namespace SV22T1080045.Shop.Controllers
                 return RedirectToAction(nameof(StockTransactions));
             }
 
-            var transactionId = _warehouseService.AddStockTransaction(new StockTransaction
+            var transactionId = _warehouseService.AddStockTransaction(new StockTransactionRequest
             {
                 ProductId = input.ProductId,
                 Quantity = input.Quantity,
@@ -227,19 +230,20 @@ namespace SV22T1080045.Shop.Controllers
         [Permission(PermissionConstants.ImportInventory, PermissionConstants.ManageSystem)]
         public IActionResult AddReimportStockTransaction(ReimportStockInputViewModel input)
         {
-            if (input.Quantity <= 0 || input.UnitPrice < 0)
+            if (input.Quantity <= 0)
             {
-                TempData["ErrorMessage"] = "Số lượng phải lớn hơn 0 và đơn giá không được âm.";
+                TempData["ErrorMessage"] = "Số lượng phải lớn hơn 0.";
                 return RedirectToAction(nameof(StockTransactions), new { reimportOrderId = input.OrderId });
             }
 
-            var succeeded = _warehouseService.AddReimportTransaction(new StockTransaction
+            var succeeded = _warehouseService.AddReimportTransaction(new ReimportStockRequest
             {
+                OrderId = input.OrderId,
+                OrderDetailId = input.OrderDetailId,
                 Quantity = input.Quantity,
-                UnitPrice = input.UnitPrice,
                 Reason = input.Reason?.Trim(),
                 TransactionDate = input.TransactionDate
-            }, input.OrderId, input.OrderDetailId, out var error);
+            }, out var error);
 
             TempData[succeeded ? "SuccessMessage" : "ErrorMessage"] = succeeded
                 ? "Đã ghi nhận tái nhập và cập nhật tồn kho."
@@ -252,7 +256,7 @@ namespace SV22T1080045.Shop.Controllers
         [Permission(PermissionConstants.ManageDebt, PermissionConstants.ManageSystem)]
         public IActionResult AddCustomerDebt(CustomerDebtInputViewModel input)
         {
-            var debt = new CustomerDebt
+            var debtId = _warehouseService.AddCustomerDebt(new CustomerDebtRequest
             {
                 CustomerId = input.CustomerId,
                 OrderCode = input.OrderCode,
@@ -261,11 +265,7 @@ namespace SV22T1080045.Shop.Controllers
                 PaymentReference = input.PaymentReference,
                 DueDate = input.DueDate,
                 Notes = input.Notes
-            };
-            debt.OrderId = null; // We're using OrderCode instead
-            debt.OrderAmount = debt.DebtAmount; // Set order amount equal to debt amount initially
-
-            var debtId = _warehouseService.AddCustomerDebt(debt);
+            });
             if (debtId > 0)
             {
                 TempData["SuccessMessage"] = "Đã thêm công nợ thành công.";

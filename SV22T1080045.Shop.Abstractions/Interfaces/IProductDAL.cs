@@ -9,6 +9,7 @@ namespace SV22T1080045.Shop.Abstractions.Interfaces
         List<Product> List(string? searchValue = null, int take = 0, string sortBy = "newest");
         List<Product> ListByCategory(int categoryId, int excludeProductId, int take = 0);
         ProductListResult Query(ProductQuery query);
+        int GetNewestPageForProduct(int productId, int pageSize);
 
         int Add(Product product);
         bool Update(Product product);

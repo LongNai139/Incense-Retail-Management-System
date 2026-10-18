@@ -1,5 +1,4 @@
-
-using SV22T1080045.Shop.Abstractions.Interfaces;
+﻿using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.BusinessLayers.Interfaces;
 using SV22T1080045.Shop.DomainModels;
 
@@ -9,11 +8,16 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
     {
         private readonly ICustomerDAL _customerDAL;
         private readonly IPasswordHasherService _passwordHasherService;
+        private readonly IRoleDAL _roleDAL;
 
-        public AccountService(ICustomerDAL customerDAL, IPasswordHasherService passwordHasherService)
+        public AccountService(
+            ICustomerDAL customerDAL,
+            IPasswordHasherService passwordHasherService,
+            IRoleDAL roleDAL)
         {
             _customerDAL = customerDAL;
             _passwordHasherService = passwordHasherService;
+            _roleDAL = roleDAL;
         }
 
         public Customer? GetCustomerById(int id)
@@ -28,6 +32,17 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                 return null;
 
             return _passwordHasherService.Verify(password, customer.Password) ? customer : null;
+        }
+
+        public bool IsBackofficeRole(string? role)
+        {
+            var roleName = role?.Trim();
+            if (string.IsNullOrWhiteSpace(roleName))
+                return false;
+
+            var roleDefinition = _roleDAL.GetByName(roleName);
+            return roleDefinition != null &&
+                !string.Equals(roleDefinition.Name, CustomerRoles.Customer, StringComparison.OrdinalIgnoreCase);
         }
 
         public bool Register(Customer data)
@@ -49,6 +64,10 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             {
                 return false;
             }
+
+            // Đồng bộ RoleId (bảng Roles) với cột Role dạng chuỗi trong giai đoạn chuyển tiếp
+            var role = _roleDAL.GetByName(data.Role);
+            data.RoleId = role?.Id;
 
             data.Password = _passwordHasherService.Hash(data.Password);
             return _customerDAL.Add(data) > 0;

@@ -3,6 +3,8 @@ namespace SV22T1080045.Shop.Abstractions.Models
     public class ProductQuery
     {
         public string? SearchValue { get; set; }
+        public bool SearchManagementFields { get; set; }
+        public string? StockStatus { get; set; }
         public int? CategoryId { get; set; }
         public decimal? PriceMin { get; set; }
         public decimal? PriceMax { get; set; }

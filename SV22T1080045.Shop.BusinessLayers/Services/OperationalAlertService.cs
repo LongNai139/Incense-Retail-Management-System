@@ -21,7 +21,13 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             var data = _staffService.GetDashboardData();
             var alerts = new List<OperationalAlertItem>();
 
-            foreach (var order in data.Orders)
+            var orders = data.RecentOrders
+                .Concat(data.PendingTooLongOrders)
+                .Concat(data.FailedDeliveryOrders)
+                .Concat(data.TodayOrders)
+                .DistinctBy(order => order.Id);
+
+            foreach (var order in orders)
             {
                 var orderCode = $"#TH{order.Id:D6}";
 
@@ -65,7 +71,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                 }
             }
 
-            foreach (var product in data.Products.Where(p => p.Quantity > 0 && p.Quantity < 5))
+            foreach (var product in data.LowStockProducts.Where(p => p.Quantity > 0 && p.Quantity < 5))
             {
                 alerts.Add(new OperationalAlertItem
                 {

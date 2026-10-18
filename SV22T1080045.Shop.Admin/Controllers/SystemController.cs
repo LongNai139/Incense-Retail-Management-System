@@ -95,114 +95,114 @@ public class SystemController : Controller
         return RedirectToAction(nameof(Index), null, null, "permissions");
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
-    public IActionResult SaveRolePermissions(int roleId, List<int>? permissionIds)
-    {
-        var success = _permissionAdministrationService.SaveRolePermissions(
-            roleId, permissionIds ?? new List<int>(), GetCurrentUserId(), out var message);
-        TempData["SystemMessage"] = message;
-        TempData["SystemMessageSuccess"] = success;
-        return RedirectToAction(nameof(Index), null, new { permissionRoleId = roleId }, "permissions");
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
-    public IActionResult SaveUserPermissions(int userId, List<SystemUserPermissionInputViewModel>? permissions)
-    {
-        var overrides = new List<UserPermission>();
-        foreach (var item in permissions ?? new List<SystemUserPermissionInputViewModel>())
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+        public IActionResult SaveRolePermissions(int roleId, List<int>? permissionIds)
         {
-            bool isGranted;
-            switch (item.Mode)
-            {
-                case "Grant":
-                    isGranted = true;
-                    break;
-                case "Deny":
-                    isGranted = false;
-                    break;
-                case "Inherit":
-                    continue;
-                default:
-                    TempData["SystemMessage"] = "Có lựa chọn quyền riêng không hợp lệ.";
-                    TempData["SystemMessageSuccess"] = false;
-                    return RedirectToAction(nameof(Index), null, new { permissionUserId = userId }, "permissions");
-            }
-
-            overrides.Add(new UserPermission
-            {
-                PermissionId = item.PermissionId,
-                IsGranted = isGranted,
-                ExpiresAt = item.ExpiresAt
-            });
+            var success = _permissionAdministrationService.SaveRolePermissions(
+                roleId, permissionIds ?? new List<int>(), GetCurrentUserId(), out var message);
+            TempData["SystemMessage"] = message;
+            TempData["SystemMessageSuccess"] = success;
+            return RedirectToAction(nameof(Index), null, new { permissionRoleId = roleId }, "permissions");
         }
 
-        var success = _permissionAdministrationService.SaveUserOverrides(
-            userId, overrides, GetCurrentUserId(), out var message);
-        TempData["SystemMessage"] = message;
-        TempData["SystemMessageSuccess"] = success;
-        return RedirectToAction(nameof(Index), null, new { permissionUserId = userId }, "permissions");
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
-    public IActionResult SaveRole(SystemRoleFormViewModel form)
-    {
-        var success = _permissionAdministrationService.SaveRole(new Role
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+        public IActionResult SaveUserPermissions(int userId, List<SystemUserPermissionInputViewModel>? permissions)
         {
-            Id = form.Id,
-            Name = form.Name,
-            DisplayName = form.DisplayName,
-            Description = form.Description
-        }, out var message);
-        TempData["SystemMessage"] = message;
-        TempData["SystemMessageSuccess"] = success;
-        return RedirectToAction(nameof(Index), null, null, "permissions");
-    }
+            var overrides = new List<UserPermission>();
+            foreach (var item in permissions ?? new List<SystemUserPermissionInputViewModel>())
+            {
+                bool isGranted;
+                switch (item.Mode)
+                {
+                    case "Grant":
+                        isGranted = true;
+                        break;
+                    case "Deny":
+                        isGranted = false;
+                        break;
+                    case "Inherit":
+                        continue;
+                    default:
+                        TempData["SystemMessage"] = "Có lựa chọn quyền riêng không hợp lệ.";
+                        TempData["SystemMessageSuccess"] = false;
+                        return RedirectToAction(nameof(Index), null, new { permissionUserId = userId }, "permissions");
+                }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
-    public IActionResult DeleteRole(int roleId)
-    {
-        var success = _permissionAdministrationService.DeleteRole(roleId, out var message);
-        TempData["SystemMessage"] = message;
-        TempData["SystemMessageSuccess"] = success;
-        return RedirectToAction(nameof(Index), null, null, "permissions");
-    }
+                overrides.Add(new UserPermission
+                {
+                    PermissionId = item.PermissionId,
+                    IsGranted = isGranted,
+                    ExpiresAt = item.ExpiresAt
+                });
+            }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
-    public IActionResult SavePermission(SystemPermissionFormViewModel form)
-    {
-        var success = _permissionAdministrationService.SavePermission(new Permission
+            var success = _permissionAdministrationService.SaveUserOverrides(
+                userId, overrides, GetCurrentUserId(), out var message);
+            TempData["SystemMessage"] = message;
+            TempData["SystemMessageSuccess"] = success;
+            return RedirectToAction(nameof(Index), null, new { permissionUserId = userId }, "permissions");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+        public IActionResult SaveRole(SystemRoleFormViewModel form)
         {
-            Id = form.Id,
-            Code = form.Code,
-            DisplayName = form.DisplayName,
-            Description = form.Description,
-            Module = form.Module
-        }, out var message);
-        TempData["SystemMessage"] = message;
-        TempData["SystemMessageSuccess"] = success;
-        return RedirectToAction(nameof(Index), null, null, "permission-catalog");
-    }
+            var success = _permissionAdministrationService.SaveRole(new Role
+            {
+                Id = form.Id,
+                Name = form.Name,
+                DisplayName = form.DisplayName,
+                Description = form.Description
+            }, out var message);
+            TempData["SystemMessage"] = message;
+            TempData["SystemMessageSuccess"] = success;
+            return RedirectToAction(nameof(Index), null, null, "permissions");
+        }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
-    public IActionResult DeletePermission(int permissionId)
-    {
-        var success = _permissionAdministrationService.DeletePermission(permissionId, out var message);
-        TempData["SystemMessage"] = message;
-        TempData["SystemMessageSuccess"] = success;
-        return RedirectToAction(nameof(Index), null, null, "permission-catalog");
-    }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+        public IActionResult DeleteRole(int roleId)
+        {
+            var success = _permissionAdministrationService.DeleteRole(roleId, out var message);
+            TempData["SystemMessage"] = message;
+            TempData["SystemMessageSuccess"] = success;
+            return RedirectToAction(nameof(Index), null, null, "permissions");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+        public IActionResult SavePermission(SystemPermissionFormViewModel form)
+        {
+            var success = _permissionAdministrationService.SavePermission(new Permission
+            {
+                Id = form.Id,
+                Code = form.Code,
+                DisplayName = form.DisplayName,
+                Description = form.Description,
+                Module = form.Module
+            }, out var message);
+            TempData["SystemMessage"] = message;
+            TempData["SystemMessageSuccess"] = success;
+            return RedirectToAction(nameof(Index), null, null, "permission-catalog");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManagePermission, PermissionConstants.ManageSystem)]
+        public IActionResult DeletePermission(int permissionId)
+        {
+            var success = _permissionAdministrationService.DeletePermission(permissionId, out var message);
+            TempData["SystemMessage"] = message;
+            TempData["SystemMessageSuccess"] = success;
+            return RedirectToAction(nameof(Index), null, null, "permission-catalog");
+        }
 
     private SystemDashboardViewModel BuildDashboardModel(
         string accountSearchValue,
@@ -283,7 +283,7 @@ public class SystemController : Controller
                 };
             }).ToList(),
             PermissionUsers = users.Select(user => new SystemUserOptionViewModel
-                {
+            {
                 Id = user.Id,
                 Label = $"{user.CustomerName} — {user.Phone}",
                 Role = user.Role

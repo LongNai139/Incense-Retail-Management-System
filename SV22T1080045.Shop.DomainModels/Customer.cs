@@ -19,11 +19,16 @@ namespace SV22T1080045.Shop.DomainModels
         public string? Password { get; set; }
 
         // Vai trò: "Admin" hoặc "Customer" (mặc định là Customer)
+        // [DEPRECATED] Sẽ được thay thế bằng RoleId sau migration hoàn tất
         public string Role { get; set; } = "Customer";
+
+        // [NEW] FK đến bảng Roles
         public int? RoleId { get; set; }
 
+        // [NEW] FK đến bảng Groups (optional)
         public int? GroupId { get; set; }
 
+        // Navigation properties
         [ForeignKey(nameof(RoleId))]
         public virtual Role? RoleEntity { get; set; }
 

@@ -2,9 +2,34 @@ namespace SV22T1080045.Shop.Abstractions.Models.Staff
 {
     public class StaffDashboardData
     {
-        public List<StaffOrderData> Orders { get; set; } = new();
-        public List<StaffProductData> Products { get; set; } = new();
+        public List<StaffOrderData> TodayOrders { get; set; } = new();
+        public List<StaffOrderData> RecentOrders { get; set; } = new();
+        public List<StaffOrderData> PendingTooLongOrders { get; set; } = new();
+        public List<StaffOrderData> FailedDeliveryOrders { get; set; } = new();
+        public List<StaffProductData> LowStockProducts { get; set; } = new();
         public List<StaffCustomerData> Customers { get; set; } = new();
+        public int NewOrdersToday { get; set; }
+        public int ProcessingOrders { get; set; }
+        public int OrdersToDeliver { get; set; }
+        public int LowStockCount { get; set; }
+    }
+
+    public class StaffOrderDashboardData
+    {
+        public int NewOrdersToday { get; set; }
+        public int ProcessingOrders { get; set; }
+        public int OrdersToDeliver { get; set; }
+        public List<StaffOrderData> RecentOrders { get; set; } = new();
+        public List<StaffOrderData> PendingTooLongOrders { get; set; } = new();
+        public List<StaffOrderData> FailedDeliveryOrders { get; set; } = new();
+    }
+
+    public class StaffProductPageData
+    {
+        public List<StaffProductData> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
     }
 
     public class StaffOrderData

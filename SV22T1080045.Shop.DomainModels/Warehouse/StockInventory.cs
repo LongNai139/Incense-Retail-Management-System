@@ -1,5 +1,14 @@
 namespace SV22T1080045.Shop.DomainModels.Warehouse
 {
+    public class StockInventorySummary
+    {
+        public int ProductCount { get; set; }
+        public int TotalQuantity { get; set; }
+        public int LowStockCount { get; set; }
+        public int OutOfStockCount { get; set; }
+        public decimal InventoryValue { get; set; }
+    }
+
     public class StockInventory
     {
         public int ProductId { get; set; }
