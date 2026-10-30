@@ -2,9 +2,8 @@
     Layout = "_ManagementLayout";
 }
 
-@model SV22T1080045.Shop.Controllers.StockTransactionViewModel
+@model SV22T1080045.Shop.Models.ViewModels.Warehouse.StockTransactionPageViewModel
 @using System.Globalization
-@using SV22T1080045.Shop.DomainModels.Warehouse
 
 @{
     ViewData["Title"] = "Giao dịch kho";
@@ -14,8 +13,9 @@
     {
         "Import" => "Nhập kho",
         "Export" => "Xuất kho",
-        "Restock" => "Tái nhập",
-        "Return" => "Trả hàng",
+        "Restock" => "Bổ sung tồn kho",
+        "Reimport" => "Tái nhập hàng trả",
+        "Return" => "Trả hàng (giao dịch cũ)",
         "Adjustment" => "Điều chỉnh",
         _ => type
     };
@@ -30,6 +30,111 @@
     <div class="management-actions">
         <a class="admin-btn primary" asp-action="Index"><i class="fa-solid fa-arrow-left"></i> Về tổng quan</a>
     </div>
+</section>
+
+<section class="admin-section">
+    <div class="admin-section-head">
+        <div>
+            <h2>Lọc giao dịch kho</h2>
+            <p class="admin-section-desc">Chọn loại, sản phẩm và khoảng thời gian cần tra cứu.</p>
+        </div>
+    </div>
+
+    <form asp-action="StockTransactions" method="get" class="time-filter-row" style="margin-bottom: 18px;">
+        <label for="transactionTypeFilter">Loại giao dịch</label>
+        <select class="admin-select" id="transactionTypeFilter" name="transactionType">
+            <option value="" selected="@(string.IsNullOrEmpty(Model.TransactionType) ? "selected" : null)">Tất cả</option>
+            <option value="Import" selected="@(Model.TransactionType == "Import" ? "selected" : null)">Nhập kho</option>
+            <option value="Export" selected="@(Model.TransactionType == "Export" ? "selected" : null)">Xuất kho</option>
+            <option value="Restock" selected="@(Model.TransactionType == "Restock" ? "selected" : null)">Bổ sung tồn kho</option>
+            <option value="Reimport" selected="@(Model.TransactionType == "Reimport" ? "selected" : null)">Tái nhập hàng trả</option>
+            <option value="Adjustment" selected="@(Model.TransactionType == "Adjustment" ? "selected" : null)">Điều chỉnh</option>
+        </select>
+        <label for="productIdFilter">Sản phẩm</label>
+        <select class="admin-select" id="productIdFilter" name="productId">
+            <option value="">Tất cả sản phẩm</option>
+            @foreach (var product in Model.AvailableProducts)
+            {
+                <option value="@product.Value" selected="@(Model.ProductId?.ToString() == product.Value ? "selected" : null)">@product.Text</option>
+            }
+        </select>
+        <label for="fromDateFilter">Từ ngày</label>
+        <input class="admin-input" id="fromDateFilter" type="date" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" min="2020-01-01" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        <label for="toDateFilter">Đến ngày</label>
+        <input class="admin-input" id="toDateFilter" type="date" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" min="2020-01-01" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        <button class="admin-btn" type="submit">Lọc giao dịch</button>
+    </form>
+
+    <form asp-action="StockTransactions" method="get" class="time-filter-row" style="margin-bottom: 18px;">
+        <label for="reimportOrderId">Đơn hàng đã hoàn thành</label>
+        <select class="admin-select" id="reimportOrderId" name="reimportOrderId" style="min-width: 320px;" required>
+            <option value="">Chọn đơn hàng</option>
+            @foreach (var order in Model.ReimportOrders)
+            {
+                <option value="@order.Value" selected="@(order.Selected ? "selected" : null)">@order.Text</option>
+            }
+        </select>
+        <button class="admin-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Xem hàng đã xuất</button>
+    </form>
+
+    @if (Model.ReimportOrderId.HasValue)
+    {
+        @if (Model.ReimportLines.Any())
+        {
+            <form asp-action="AddReimportStockTransaction" method="post" class="form-grid" id="reimport-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="OrderId" value="@Model.ReimportOrderId" />
+                <div class="admin-table-wrap" style="grid-column: 1 / -1;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Chọn</th><th>Sản phẩm</th><th>Đã xuất</th><th>Đã tái nhập</th><th>Còn được trả</th><th>Giá nhập</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var line in Model.ReimportLines)
+                            {
+                                <tr>
+                                    <td><input type="radio" name="OrderDetailId" value="@line.OrderDetailId" required data-max="@line.ReturnableQuantity" data-price="@line.ImportPrice.ToString(CultureInfo.InvariantCulture)" /></td>
+                                    <td>@line.ProductName</td>
+                                    <td>@line.ExportedQuantity</td>
+                                    <td>@line.ReturnedQuantity</td>
+                                    <td>@line.ReturnableQuantity</td>
+                                    <td>@FormatMoney(line.ImportPrice)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="field">
+                    <label for="reimport-quantity">Số lượng tái nhập</label>
+                    <input class="admin-input" id="reimport-quantity" name="Quantity" type="number" min="1" value="1" required disabled />
+                    <small id="reimport-remaining">Chọn dòng hàng để xem số lượng tối đa.</small>
+                </div>
+                <div class="field">
+                    <label for="reimport-price">Giá vốn mỗi sản phẩm</label>
+                    <input class="admin-input" id="reimport-price" name="UnitPrice" type="number" min="0" step="0.01" value="0" readonly />
+                </div>
+                <div class="field">
+                    <label for="reimport-date">Ngày tái nhập</label>
+                    <input class="admin-input" id="reimport-date" name="TransactionDate" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="field">
+                    <label for="reimport-reason">Lý do / ghi chú</label>
+                    <input class="admin-input" id="reimport-reason" name="Reason" maxlength="500" placeholder="Khách trả hàng, hàng lỗi..." />
+                </div>
+                <div class="field" style="display: flex; align-items: flex-end;">
+                    <button class="admin-btn primary" type="submit"><i class="fa-solid fa-rotate-left"></i> Ghi nhận tái nhập</button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <p>Đơn này không còn sản phẩm nào đủ điều kiện tái nhập.</p>
+        }
+    }
+    else
+    {
+        <p>Chọn đơn hàng đã hoàn thành để xem các mặt hàng và số lượng còn có thể tái nhập.</p>
+    }
 </section>
 
 <section class="admin-section">
@@ -59,6 +164,7 @@
                     <th>ID</th>
                     <th>Sản phẩm</th>
                     <th>Loại giao dịch</th>
+                    <th>Mã tham chiếu</th>
                     <th>Số lượng</th>
                     <th>Đơn giá</th>
                     <th>Tổng tiền</th>
@@ -75,6 +181,7 @@
                             <td>@transaction.Id</td>
                             <td>@(string.IsNullOrEmpty(transaction.ProductName) ? "ID: " + transaction.ProductId : transaction.ProductName)</td>
                             <td><span class="status-badge status-ready">@TransactionTypeText(transaction.TransactionType)</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(transaction.ReferenceNumber) ? "—" : transaction.ReferenceNumber)</td>
                             <td>@transaction.Quantity</td>
                             <td>@FormatMoney(transaction.UnitPrice)</td>
                             <td>@FormatMoney(transaction.TotalAmount)</td>
@@ -85,7 +192,7 @@
                 }
                 else
                 {
-                    <tr><td colspan="8">Chưa có giao dịch kho nào.</td></tr>
+                    <tr><td colspan="9">Chưa có giao dịch kho nào.</td></tr>
                 }
             </tbody>
         </table>
@@ -96,29 +203,28 @@
     <div class="admin-section-head">
         <div>
             <h2>Thêm giao dịch kho mới</h2>
-            <p class="admin-section-desc">Nhập thông tin giao dịch kho mới.</p>
+            <p class="admin-section-desc">Ghi nhận nhập hàng, xuất kho hoặc điều chỉnh tồn. Tái nhập hàng khách trả được ghi ở phần riêng phía trên.</p>
         </div>
     </div>
 
-    <form asp-action="AddStockTransaction" method="post" class="form-grid">
+    <form asp-action="AddStockTransaction" method="post" class="form-grid" id="transaction-form">
+        @Html.AntiForgeryToken()
         <div class="field">
             <label>Sản phẩm</label>
             <select class="admin-select" name="ProductId" required>
                 <option value="">Chọn sản phẩm</option>
                 @foreach (var product in Model.AvailableProducts)
                 {
-                    <option value="@product.Value">@product.Text</option>
+                    <option value="@product.Value" selected="@(Model.ProductId?.ToString() == product.Value ? "selected" : null)">@product.Text</option>
                 }
             </select>
         </div>
         <div class="field">
             <label>Loại giao dịch</label>
             <select class="admin-select" name="TransactionType">
-                <option value="Import">Nhập kho</option>
-                <option value="Export">Xuất kho</option>
-                <option value="Restock">Tái nhập</option>
-                <option value="Return">Trả hàng</option>
-                <option value="Adjustment">Điều chỉnh</option>
+                <option value="Import" selected="@(Model.TransactionType == "Import" ? "selected" : null)">Nhập kho</option>
+                <option value="Export" selected="@(Model.TransactionType == "Export" ? "selected" : null)">Xuất kho</option>
+                <option value="Adjustment" selected="@(Model.TransactionType == "Adjustment" ? "selected" : null)">Điều chỉnh</option>
             </select>
         </div>
         <div class="field">
@@ -146,3 +252,27 @@
         </div>
     </form>
 </section>
+
+<script>
+    (() => {
+        const radios = document.querySelectorAll('#reimport-form input[name="OrderDetailId"]');
+        const quantity = document.getElementById('reimport-quantity');
+        const price = document.getElementById('reimport-price');
+        const remaining = document.getElementById('reimport-remaining');
+        radios.forEach(radio => radio.addEventListener('change', () => {
+            quantity.disabled = false;
+            quantity.max = radio.dataset.max;
+            quantity.value = '1';
+            price.value = radio.dataset.price;
+            remaining.textContent = `Tối đa ${radio.dataset.max} sản phẩm cho dòng hàng này.`;
+        }));
+        document.getElementById('reimport-form')?.addEventListener('submit', event => {
+            if (Number(quantity.value) > Number(quantity.max)) {
+                event.preventDefault();
+                quantity.setCustomValidity(`Số lượng không được vượt quá ${quantity.max}.`);
+                quantity.reportValidity();
+                quantity.addEventListener('input', () => quantity.setCustomValidity(''), { once: true });
+            }
+        });
+    })();
+</script>

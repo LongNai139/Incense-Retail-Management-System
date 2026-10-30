@@ -2,108 +2,265 @@
     Layout = "_ManagementLayout";
 }
 
-@model SV22T1080045.Shop.Controllers.WarehouseDashboardViewModel
+@model SV22T1080045.Shop.Models.ViewModels.Warehouse.WarehouseDashboardViewModel
 @using System.Globalization
-@using SV22T1080045.Shop.DomainModels.Warehouse
 
 @{
-    ViewData["Title"] = "Quản lý kho";
-
-    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+    ViewData["Title"] = "Tổng quan kho";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var stockWarnings = Model.LowStockProducts;
+    var zeroStockItems = Model.OutOfStockProducts;
+    string FormatMoney(decimal value) => value.ToString("N0", culture) + "đ";
+    string FormatQuantity(int quantity, string type) => type switch
+    {
+        "Import" or "Restock" or "Reimport" => "+" + quantity.ToString("N0", culture),
+        "Export" or "Return" => "−" + Math.Abs(quantity).ToString("N0", culture),
+        _ => quantity > 0 ? "+" + quantity.ToString("N0", culture) : quantity.ToString("N0", culture)
+    };
+    string TransactionLabel(string type) => type switch
+    {
+        "Import" => "Nhập kho",
+        "Restock" => "Bổ sung tồn kho",
+        "Reimport" => "Tái nhập hàng trả",
+        "Export" => "Xuất kho",
+        "Return" => "Trả hàng",
+        "Adjustment" => "Điều chỉnh",
+        _ => type
+    };
+    string TransactionCode(SV22T1080045.Shop.Models.ViewModels.Warehouse.WarehouseTransactionRowViewModel transaction) => !string.IsNullOrWhiteSpace(transaction.ReferenceNumber)
+        ? transaction.ReferenceNumber!
+        : $"{(transaction.TransactionType is "Export" or "Return" ? "XK" : "NK")}{transaction.Id:D5}";
 }
 
-<section class="management-hero">
-    <div>
-        <div class="management-kicker">Precious Wood</div>
-        <h1>Quản lý kho</h1>
-        <p>Quản lý tồn kho, giao dịch kho và công nợ khách hàng.</p>
-    </div>
-    <div class="management-actions">
-        <a class="admin-btn primary" asp-action="StockTransactions"><i class="fa-solid fa-exchange-alt"></i> Giao dịch kho</a>
-        <a class="admin-btn" asp-action="CustomerDebts"><i class="fa-solid fa-file-invoice-dollar"></i> Công nợ</a>
-    </div>
-</section>
+@section Styles {
+    <link rel="stylesheet" href="~/css/warehouse-dashboard.css" asp-append-version="true" />
+}
 
-<section class="admin-section">
-    <div class="admin-section-head">
+<div class="warehouse-dashboard">
+    <header class="warehouse-heading">
         <div>
-            <h2>Tổng quan kho</h2>
-            <p class="admin-section-desc">Tình trạng tồn kho và công nợ khách hàng.</p>
+            <span class="warehouse-eyebrow">TRẦM HƯƠNG SHOP · VẬN HÀNH</span>
+            <h1>Tổng quan vận hành kho</h1>
+            <p>Theo dõi tồn kho, giao dịch và các mặt hàng cần bổ sung.</p>
         </div>
-    </div>
+        <a class="warehouse-heading-link" asp-action="StockTransactions"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử giao dịch</a>
+    </header>
 
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-icon stock"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <div class="kpi-label">Sản phẩm sắp hết</div>
-            <div class="kpi-value">@Model.LowStockCount</div>
-            <div class="kpi-note">sản phẩm cần nhập kho</div>
+    <section class="warehouse-quick-actions" aria-label="Thao tác nhanh">
+        <div class="warehouse-quick-title"><i class="fa-solid fa-bolt"></i><span>Thao tác nhanh</span></div>
+        <div class="warehouse-quick-buttons">
+            @if (Model.CanImportInventory)
+            {
+                <a class="warehouse-action-button import" asp-action="StockTransactions" asp-route-transactionType="Import" asp-fragment="transaction-form"><i class="fa-solid fa-arrow-down-to-line"></i> Tạo phiếu nhập kho</a>
+            }
+            @if (Model.CanExportInventory)
+            {
+                <a class="warehouse-action-button export" asp-action="StockTransactions" asp-route-transactionType="Export" asp-fragment="transaction-form"><i class="fa-solid fa-arrow-up-from-line"></i> Tạo phiếu xuất kho</a>
+            }
+            <a class="warehouse-action-button count" href="#inventory-check"><i class="fa-solid fa-clipboard-check"></i> Kiểm kê kho</a>
         </div>
-        <div class="kpi-card">
-            <div class="kpi-icon orders"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="kpi-label">Hết hàng</div>
-            <div class="kpi-value">@Model.OutOfStockCount</div>
-            <div class="kpi-note">sản phẩm hết tồn kho</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon revenue"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-            <div class="kpi-label">Tổng công nợ</div>
-            <div class="kpi-value">@FormatMoney(Model.TotalDebt)</div>
-            <div class="kpi-note">@Model.OverdueDebtCount công nợ quá hạn</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon customers"><i class="fa-solid fa-users"></i></div>
-            <div class="kpi-label">Tồn kho tổng</div>
-            <div class="kpi-value">@Model.StockInventories.Sum(i => i.CurrentQuantity)</div>
-            <div class="kpi-note">sản phẩm trong kho</div>
-        </div>
-    </div>
+    </section>
 
-    <div class="dashboard-grid">
-        <div class="admin-panel">
-            <div class="panel-title">Tồn kho thấp</div>
-            <div class="warning-list">
-                @if (Model.StockInventories.Where(i => i.IsLowStock).Any())
-                {
-                    foreach (var item in Model.StockInventories.Where(i => i.IsLowStock).Take(5))
+    <section class="warehouse-kpis" aria-label="Chỉ số kho">
+        <article class="warehouse-kpi">
+            <div class="warehouse-kpi-head"><span class="warehouse-kpi-icon gold"><i class="fa-solid fa-boxes-stacked"></i></span><span class="warehouse-kpi-context">Hiện tại</span></div>
+            <span class="warehouse-kpi-label">Tổng tồn kho</span>
+            <strong class="warehouse-kpi-value">@Model.TotalStockQuantity.ToString("N0", culture) <small>SP</small></strong>
+            <span class="warehouse-kpi-note">@Model.InventoryTotalCount mặt hàng trong danh mục kho</span>
+        </article>
+        <article class="warehouse-kpi">
+            <div class="warehouse-kpi-head"><span class="warehouse-kpi-icon warning"><i class="fa-solid fa-triangle-exclamation"></i></span><span class="warehouse-kpi-context">Cần chú ý</span></div>
+            <span class="warehouse-kpi-label">Cảnh báo tồn kho</span>
+            <strong class="warehouse-kpi-value">@Model.LowStockCount <small>sắp hết</small></strong>
+            <span class="warehouse-kpi-note"><b>@Model.OutOfStockCount</b> mặt hàng đã hết tồn</span>
+        </article>
+        <article class="warehouse-kpi">
+            <div class="warehouse-kpi-head"><span class="warehouse-kpi-icon blue"><i class="fa-solid fa-arrow-right-arrow-left"></i></span><span class="warehouse-kpi-context">30 ngày gần nhất</span></div>
+            <span class="warehouse-kpi-label">Giao dịch kho</span>
+            <strong class="warehouse-kpi-value">@Model.TransactionCountLast30Days <small>phiếu</small></strong>
+            <span class="warehouse-kpi-note"><b>@Model.ImportCountLast30Days</b> nhập <i>·</i> <b>@Model.ExportCountLast30Days</b> xuất</span>
+        </article>
+        <article class="warehouse-kpi">
+            <div class="warehouse-kpi-head"><span class="warehouse-kpi-icon green"><i class="fa-solid fa-sack-dollar"></i></span><span class="warehouse-kpi-context">Theo giá nhập</span></div>
+            <span class="warehouse-kpi-label">Ước tính giá trị kho</span>
+            <strong class="warehouse-kpi-value money">@FormatMoney(Model.InventoryValue)</strong>
+            <span class="warehouse-kpi-note">Số lượng tồn × giá nhập sản phẩm</span>
+        </article>
+    </section>
+
+    <section class="warehouse-main-grid" aria-label="Hoạt động và cảnh báo kho">
+        <article class="warehouse-panel warehouse-transactions-panel">
+            <div class="warehouse-panel-heading">
+                <div><span class="warehouse-eyebrow">CẬP NHẬT MỚI NHẤT</span><h2>Giao dịch kho gần đây</h2></div>
+                <a asp-action="StockTransactions">Xem tất cả <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="warehouse-table-wrap">
+                <table class="warehouse-table">
+                    <thead><tr><th>Mã phiếu</th><th>Loại</th><th>Sản phẩm</th><th class="numeric">Số lượng</th><th>Người thực hiện</th><th>Thời gian</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                        @if (Model.RecentTransactions.Count == 0)
+                        {
+                            <tr><td class="warehouse-empty" colspan="7">Chưa có giao dịch kho trong 30 ngày gần đây.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var transaction in Model.RecentTransactions)
+                            {
+                                var isInbound = transaction.TransactionType is "Import" or "Restock" or "Reimport";
+                                var isOutbound = transaction.TransactionType is "Export" or "Return";
+                                <tr>
+                                    <td class="warehouse-code">@TransactionCode(transaction)</td>
+                                    <td><span class="warehouse-type @(isInbound ? "inbound" : isOutbound ? "outbound" : "neutral")"><i class="fa-solid @(isInbound ? "fa-arrow-right-to-bracket" : isOutbound ? "fa-arrow-right-from-bracket" : "fa-sliders")"></i>@TransactionLabel(transaction.TransactionType)</span></td>
+                                    <td><span class="warehouse-product-name">@(string.IsNullOrWhiteSpace(transaction.ProductName) ? $"Sản phẩm #{transaction.ProductId}" : transaction.ProductName)</span></td>
+                                    <td class="numeric warehouse-quantity @(isInbound ? "positive" : "negative")">@FormatQuantity(transaction.Quantity, transaction.TransactionType) SP</td>
+                                    <td>@(transaction.CreatedBy.HasValue ? $"Nhân viên #{transaction.CreatedBy}" : "Hệ thống")</td>
+                                    <td class="warehouse-date">@transaction.TransactionDate.ToString("HH:mm dd/MM")</td>
+                                    <td><span class="warehouse-status"><i></i>Đã ghi nhận</span></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <div class="warehouse-side-panels">
+            <article class="warehouse-panel warehouse-warning-panel">
+                <div class="warehouse-panel-heading compact">
+                    <div><span class="warehouse-eyebrow">THEO NGƯỠNG TỒN KHO</span><h2><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo tồn kho thấp</h2></div>
+                    <span class="warehouse-count-badge">@Model.LowStockCount</span>
+                </div>
+                <div class="warehouse-alert-list">
+                    @if (stockWarnings.Count == 0 && zeroStockItems.Count == 0)
                     {
-                        <div class="warning-item">
-                            <div>
-                                <div class="item-name">@(string.IsNullOrEmpty(item.ProductName) ? "Sản phẩm ID: " + item.ProductId : item.ProductName)</div>
-                                <div class="item-meta">Ngưỡng: @item.LowStockThreshold</div>
-                            </div>
-                            <div class="warning-count">@item.CurrentQuantity</div>
+                        <div class="warehouse-side-empty"><i class="fa-solid fa-circle-check"></i> Tất cả mặt hàng đang đủ tồn kho.</div>
+                    }
+                    @foreach (var item in zeroStockItems)
+                    {
+                        <div class="warehouse-alert-item out-of-stock">
+                            <div><strong>@(item.ProductName ?? $"Sản phẩm #{item.ProductId}")</strong><span>Đã hết hàng · Ngưỡng @item.LowStockThreshold</span></div>
+                            @if (Model.CanImportInventory)
+                            {
+                                <a asp-action="StockTransactions" asp-route-productId="@item.ProductId" asp-route-transactionType="Import" asp-fragment="transaction-form">Nhập hàng</a>
+                            }
                         </div>
                     }
-                }
-                else
-                {
-                    <div class="item-meta">Không có sản phẩm nào sắp hết hàng.</div>
-                }
-            </div>
-        </div>
-
-        <div class="admin-panel">
-            <div class="panel-title">Công nợ quá hạn</div>
-            <div class="warning-list">
-                @if (Model.CustomerDebts.Where(d => d.IsOverdue).Any())
-                {
-                    foreach (var debt in Model.CustomerDebts.Where(d => d.IsOverdue).Take(5))
+                    @foreach (var item in stockWarnings)
                     {
-                        <div class="warning-item">
-                            <div>
-                                <div class="item-name">@(string.IsNullOrEmpty(debt.CustomerName) ? "Khách hàng ID: " + debt.CustomerId : debt.CustomerName)</div>
-                                <div class="item-meta">Quá hạn: @debt.DueDate.ToString("dd/MM/yyyy")</div>
-                            </div>
-                            <div class="warning-count">@FormatMoney(debt.RemainingAmount)</div>
+                        <div class="warehouse-alert-item">
+                            <div><strong>@(item.ProductName ?? $"Sản phẩm #{item.ProductId}")</strong><span>Còn @item.CurrentQuantity · Ngưỡng @item.LowStockThreshold</span></div>
+                            @if (Model.CanImportInventory)
+                            {
+                                <a asp-action="StockTransactions" asp-route-productId="@item.ProductId" asp-route-transactionType="Import" asp-fragment="transaction-form">Nhập hàng</a>
+                            }
                         </div>
                     }
-                }
-                else
+                </div>
+                @if (Model.LowStockCount > 0 || Model.OutOfStockCount > 0)
                 {
-                    <div class="item-meta">Không có công nợ quá hạn.</div>
+                    <a class="warehouse-panel-link" href="#inventory-check">Mở danh sách kiểm kê <i class="fa-solid fa-arrow-right"></i></a>
                 }
-            </div>
+            </article>
+
+            <article class="warehouse-panel warehouse-top-panel">
+                <div class="warehouse-panel-heading compact">
+                    <div><span class="warehouse-eyebrow">30 NGÀY GẦN NHẤT</span><h2><i class="fa-solid fa-chart-line"></i> Sản phẩm xuất nhiều</h2></div>
+                    <i class="fa-solid fa-ranking-star warehouse-heading-decoration"></i>
+                </div>
+                <div class="warehouse-top-list">
+                    @if (Model.TopExportProducts.Count == 0)
+                    {
+                        <div class="warehouse-side-empty">Chưa ghi nhận phiếu xuất kho trong 30 ngày.</div>
+                    }
+                    else
+                    {
+                        var rank = 0;
+                        foreach (var product in Model.TopExportProducts)
+                        {
+                            rank++;
+                            <div class="warehouse-top-item"><span class="warehouse-rank">@rank.ToString("00")</span><strong>@product.ProductName</strong><span>@product.Quantity.ToString("N0", culture) SP</span></div>
+                        }
+                    }
+                </div>
+            </article>
         </div>
-    </div>
-</section>
+    </section>
+
+    <section class="warehouse-panel warehouse-inventory-panel" id="inventory-check">
+        <div class="warehouse-panel-heading">
+            <div><span class="warehouse-eyebrow">ĐỐI CHIẾU TỒN THỰC TẾ</span><h2>Danh sách kiểm kê kho</h2><p>Kiểm tra số lượng hiện có và ngưỡng tồn của từng mặt hàng.</p></div>
+            <span class="warehouse-inventory-total">@Model.InventoryTotalCount mặt hàng</span>
+        </div>
+        <div class="warehouse-table-wrap">
+            <table class="warehouse-table warehouse-inventory-table">
+                <thead><tr><th>Sản phẩm</th><th class="numeric">Tồn hiện tại</th><th class="numeric">Ngưỡng tối thiểu</th><th>Giá trị tồn ước tính</th><th>Cập nhật gần nhất</th><th>Tình trạng</th><th></th></tr></thead>
+                <tbody>
+                    @if (Model.StockInventories.Count == 0)
+                    {
+                        <tr><td class="warehouse-empty" colspan="7">Chưa có dữ liệu tồn kho.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.StockInventories)
+                        {
+                            var itemValue = item.EstimatedValue;
+                            var statusClass = item.IsOutOfStock ? "empty" : item.IsLowStock ? "low" : "healthy";
+                            var statusText = item.IsOutOfStock ? "Hết hàng" : item.IsLowStock ? "Sắp hết" : "Đủ hàng";
+                            <tr>
+                                <td><span class="warehouse-product-name">@(item.ProductName ?? $"Sản phẩm #{item.ProductId}")</span><small class="warehouse-secondary-text">Mã SP @item.ProductId</small></td>
+                                <td class="numeric warehouse-stock-count">@item.CurrentQuantity.ToString("N0", culture)</td>
+                                <td class="numeric">@item.LowStockThreshold.ToString("N0", culture)</td>
+                                <td class="warehouse-stock-value">@FormatMoney(itemValue)</td>
+                                <td class="warehouse-date">@item.LastUpdated.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="warehouse-stock-status @statusClass"><i></i>@statusText</span></td>
+                                <td>
+                                    @if (Model.CanImportInventory)
+                                    {
+                                        <a class="warehouse-row-action" asp-action="StockTransactions" asp-route-productId="@item.ProductId" asp-route-transactionType="Import" asp-fragment="transaction-form" title="Tạo phiếu nhập cho sản phẩm này"><i class="fa-solid fa-plus"></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.InventoryTotalPages > 1)
+        {
+            <div class="pagination-container warehouse-pagination">
+                <div class="pagination-info">Trang @Model.InventoryPage / @Model.InventoryTotalPages · @Model.InventoryTotalCount mặt hàng</div>
+                <div class="pagination-controls">
+                    @if (Model.InventoryPage > 1)
+                    {
+                        <a class="admin-btn" asp-action="Index" asp-route-inventoryPage="@(Model.InventoryPage - 1)" asp-fragment="inventory-check"><i class="fa-solid fa-chevron-left"></i> Trước</a>
+                    }
+                    @{ var pageStart = Math.Max(1, Model.InventoryPage - 1); var pageEnd = Math.Min(Model.InventoryTotalPages, Model.InventoryPage + 1); }
+                    @if (pageStart > 1)
+                    {
+                        <a class="admin-btn" asp-action="Index" asp-route-inventoryPage="1" asp-fragment="inventory-check">1</a>
+                        @if (pageStart > 2)
+                        {
+                            <span class="pagination-ellipsis">...</span>
+                        }
+                    }
+                    @for (var numberToShow = pageStart; numberToShow <= pageEnd; numberToShow++)
+                    {
+                        <a class="admin-btn @(numberToShow == Model.InventoryPage ? "active" : "")" asp-action="Index" asp-route-inventoryPage="@numberToShow" asp-fragment="inventory-check">@numberToShow</a>
+                    }
+                    @if (pageEnd < Model.InventoryTotalPages)
+                    {
+                        @if (pageEnd < Model.InventoryTotalPages - 1)
+                        {
+                            <span class="pagination-ellipsis">...</span>
+                        }
+                        <a class="admin-btn" asp-action="Index" asp-route-inventoryPage="@Model.InventoryTotalPages" asp-fragment="inventory-check">@Model.InventoryTotalPages</a>
+                    }
+                    @if (Model.InventoryPage < Model.InventoryTotalPages)
+                    {
+                        <a class="admin-btn" asp-action="Index" asp-route-inventoryPage="@(Model.InventoryPage + 1)" asp-fragment="inventory-check">Sau <i class="fa-solid fa-chevron-right"></i></a>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+</div>
