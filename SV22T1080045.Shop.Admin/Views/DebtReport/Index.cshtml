@@ -1,0 +1,92 @@
+@{
+    Layout = "_ManagementLayout";
+}
+
+@model SV22T1080045.Shop.Abstractions.Models.DebtOverviewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Tổng quan công nợ";
+
+    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+}
+
+<div class="page-header">
+    <h2 class="page-title">Tổng quan công nợ</h2>
+</div>
+
+<div class="overview-cards">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Tổng khách hàng</h5>
+            <p class="card-text display-4">@Model.TotalCustomers</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Khách có nợ</h5>
+            <p class="card-text display-4">@Model.CustomersWithDebt</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Tổng nợ phát sinh</h5>
+            <p class="card-text display-4">@FormatMoney(Model.TotalDebt)</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Đã thanh toán</h5>
+            <p class="card-text display-4">@FormatMoney(Model.TotalPaid)</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Dư nợ hiện tại</h5>
+            <p class="card-text display-4">@FormatMoney(Model.TotalCurrentBalance)</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Nợ quá hạn</h5>
+            <p class="card-text display-4 text-danger">@FormatMoney(Model.TotalOverdue)</p>
+        </div>
+    </div>
+</div>
+
+<div class="action-buttons mt-4">
+    <a asp-action="Summary" class="btn btn-primary">Báo cáo tổng hợp</a>
+    <a asp-action="Aging" class="btn btn-info">Báo cáo tuổi nợ</a>
+    <a asp-controller="Warehouse" asp-action="CustomerDebts" class="btn btn-secondary">Quản lý công nợ</a>
+</div>
+
+<style>
+    .overview-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .card-title {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+    }
+    .display-4 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+</style>

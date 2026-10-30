@@ -27,7 +27,7 @@ namespace SV22T1080045.Shop.BusinessLayers
             services.AddScoped<IStartupSeedService, StartupSeedService>();
             services.AddScoped<ISystemService, SystemService>();
             services.AddSingleton<ISmsService, FakeSmsService>();
-            services.AddScoped<IWarehouseService, WarehouseService>();
+            services.AddScoped<ICustomerDebtReportService, CustomerDebtReportService>();
 
             // Permission system
             services.AddMemoryCache();
