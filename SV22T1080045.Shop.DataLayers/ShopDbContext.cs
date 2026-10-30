@@ -25,6 +25,7 @@ namespace SV22T1080045.Shop.DataLayers
         // Warehouse management tables
         public DbSet<StockTransaction> StockTransactions { get; set; }
         public DbSet<CustomerDebt> CustomerDebts { get; set; }
+        public DbSet<CustomerDebtTransaction> CustomerDebtTransactions { get; set; }
 
 
         public DbSet<Role> Roles { get; set; }
@@ -164,6 +165,25 @@ namespace SV22T1080045.Shop.DataLayers
                 e.HasIndex(x => x.CustomerId);
                 e.HasIndex(x => x.DueDate);
                 e.HasIndex(x => x.Status);
+                e.HasIndex(x => new { x.CustomerId, x.OrderId })
+                    .IsUnique()
+                    .HasFilter("[OrderId] IS NOT NULL");
+            });
+
+            // CustomerDebtTransactions
+            modelBuilder.Entity<CustomerDebtTransaction>(e =>
+            {
+                e.ToTable("CustomerDebtTransactions");
+                e.Property(x => x.TransactionType).HasMaxLength(20).IsRequired();
+                e.Property(x => x.Amount).HasPrecision(18, 2);
+                e.Property(x => x.BalanceAfter).HasPrecision(18, 2);
+                e.Property(x => x.Reference).HasMaxLength(100);
+                e.Property(x => x.Description).HasMaxLength(500);
+
+                e.HasIndex(x => x.CustomerDebtId);
+                e.HasIndex(x => x.OrderId);
+                e.HasIndex(x => x.TransactionDate);
+                e.HasIndex(x => x.CreatedTime);
             });
 
             // ============================================================================

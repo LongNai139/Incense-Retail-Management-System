@@ -37,13 +37,32 @@ namespace SV22T1080045.Shop.Abstractions.Models.Staff
         public int Id { get; set; }
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
+        public decimal FinalAmount { get; set; }
         public int Status { get; set; }
+        public int PaymentMethod { get; set; }
+        public int PaymentStatus { get; set; }
+        public string? PaymentTransactionNo { get; set; }
+        public DateTime? PaidAt { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal RemainingAmount { get; set; }
+        public int? CustomerDebtId { get; set; }
+        public List<StaffDebtTransactionData> DebtTransactions { get; set; } = new();
         public string CustomerName { get; set; } = "";
         public string CustomerPhone { get; set; } = "";
         public string ShippingAddress { get; set; } = "";
         public bool IsGuest { get; set; }
         public int ItemCount { get; set; }
         public List<StaffOrderItemData> Items { get; set; } = new();
+    }
+
+    public class StaffDebtTransactionData
+    {
+        public string TransactionType { get; set; } = "";
+        public decimal Amount { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public string? Reference { get; set; }
+        public string? Description { get; set; }
+        public DateTime TransactionDate { get; set; }
     }
 
     public class StaffOrderItemData

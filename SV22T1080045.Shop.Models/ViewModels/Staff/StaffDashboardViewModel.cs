@@ -37,11 +37,33 @@ namespace SV22T1080045.Shop.Models.ViewModels.Staff
         public string CustomerPhone { get; set; } = "";
         public string ShippingAddress { get; set; } = "";
         public decimal TotalAmount { get; set; }
+        public decimal FinalAmount { get; set; }
         public int Status { get; set; }
+        public int PaymentMethod { get; set; }
+        public int PaymentStatus { get; set; }
+        public string PaymentStatusText { get; set; } = "";
+        public string? PaymentTransactionNo { get; set; }
+        public DateTime? PaidAt { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal RemainingAmount { get; set; }
+        public int? CustomerDebtId { get; set; }
+        public List<StaffPaymentHistoryRowViewModel> PaymentHistory { get; set; } = new();
+        public string StatusText { get; set; } = "";
+        public string StatusClass { get; set; } = "";
         public DateTime OrderDate { get; set; }
         public int ItemCount { get; set; }
         public bool IsGuest { get; set; }
         public List<StaffOrderItemViewModel> Items { get; set; } = new();
+    }
+
+    public class StaffPaymentHistoryRowViewModel
+    {
+        public string TransactionType { get; set; } = "";
+        public decimal Amount { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public string? Reference { get; set; }
+        public string? Description { get; set; }
+        public DateTime TransactionDate { get; set; }
     }
 
     public class StaffOrderItemViewModel
@@ -105,6 +127,8 @@ namespace SV22T1080045.Shop.Models.ViewModels.Staff
         public string OrderSearchValue { get; set; } = "";
         public int? OrderStatus { get; set; }
         public DateTime WorkDate { get; set; }
+        public bool CanCollectPayment { get; set; }
+        public bool CanVerifyQrPayment { get; set; }
         public List<StaffOrderRowViewModel> Orders { get; set; } = new();
     }
 

@@ -131,6 +131,9 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             return _warehouseDAL.GetCustomerDebt(id);
         }
 
+        public CustomerDebt? GetCustomerDebtByOrderId(int orderId)
+            => _warehouseDAL.GetCustomerDebtByOrderId(orderId);
+
         public int AddCustomerDebt(CustomerDebtRequest request)
         {
             if (request.CustomerId <= 0 || request.DebtAmount <= 0 || request.PaidAmount < 0 || request.PaidAmount > request.DebtAmount)
@@ -170,19 +173,50 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
             return _warehouseDAL.DeleteCustomerDebt(id);
         }
 
-        public bool ProcessDebtPayment(int debtId, decimal paymentAmount)
+        public bool ProcessDebtPayment(int debtId, decimal paymentAmount, int? staffId = null, string? reference = null)
         {
-            var debt = _warehouseDAL.GetCustomerDebt(debtId);
-            if (debt == null)
+            if (paymentAmount <= 0)
                 return false;
-            
-            debt.PaidAmount += paymentAmount;
-            debt.PaidDate = debt.PaidAmount >= debt.DebtAmount ? DateTime.Now : debt.PaidDate;
-            debt.Status = debt.PaidAmount >= debt.DebtAmount ? "Paid" : 
-                          debt.PaidAmount > 0 ? "PartiallyPaid" : "Pending";
-            debt.UpdatedTime = DateTime.Now;
-            
-            return _warehouseDAL.UpdateCustomerDebt(debt);
+            reference = string.IsNullOrWhiteSpace(reference) ? $"PAY-{Guid.NewGuid():N}" : reference.Trim();
+            return _warehouseDAL.ProcessDebtPayment(debtId, paymentAmount, staffId, reference);
+        }
+
+        public bool CreateDebtFromOrder(int orderId, int customerId, decimal amount, int? staffId = null)
+        {
+            if (orderId <= 0 || customerId <= 0 || amount <= 0)
+                return false;
+
+            var now = DateTime.Now;
+            var debt = new CustomerDebt
+            {
+                CustomerId = customerId,
+                OrderId = orderId,
+                OrderCode = $"TH{orderId:D6}",
+                OrderAmount = amount,
+                DebtAmount = amount,
+                PaidAmount = 0,
+                DueDate = DateTime.Today.AddDays(30),
+                Status = "Pending",
+                Notes = "Tự động tạo từ đơn hàng COD",
+                CreatedTime = now,
+                IsDeleted = false
+            };
+
+            var initialDebit = new CustomerDebtTransaction
+            {
+                OrderId = orderId,
+                TransactionType = "DEBIT",
+                Amount = amount,
+                BalanceAfter = amount,
+                Reference = $"ORDER-{orderId}",
+                Description = "Phát sinh từ đơn hàng COD",
+                TransactionDate = now,
+                CreatedTime = now,
+                CreatedBy = staffId,
+                IsDeleted = false
+            };
+
+            return _warehouseDAL.CreateDebtFromOrder(debt, initialDebit);
         }
     }
 }

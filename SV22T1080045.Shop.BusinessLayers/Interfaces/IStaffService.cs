@@ -13,5 +13,6 @@ namespace SV22T1080045.Shop.BusinessLayers.Interfaces
 
         StaffOperationResult UpdateOrderStatus(int orderId, int status);
         StaffOperationResult UpdateOrderStatusWithInventoryCheck(int orderId, int status);
+        StaffOperationResult ProcessOrderPayment(int orderId, decimal paymentAmount, int? staffId, string reference);
     }
 }

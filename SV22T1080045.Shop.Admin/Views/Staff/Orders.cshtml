@@ -1,7 +1,7 @@
 @model SV22T1080045.Shop.Models.ViewModels.Staff.StaffOrderViewModel
 @using System.Globalization
 @using SV22T1080045.Shop.Controllers
-
+@using SV22T1080045.Shop.Models
 @{
     ViewData["Title"] = "Đơn hàng";
     Layout = "_StaffLayout";
@@ -21,7 +21,7 @@
             <span class="staff-kicker">Chức năng chính</span>
             <h2>Quản lý đơn hàng</h2>
         </div>
-        <div class="staff-note">Chỉ hiển thị đơn ngày @Model.WorkDate.ToString("dd/MM/yyyy", vi). Staff không thể xem ngày khác, xóa đơn hoặc chỉnh sửa tiền đơn hàng.</div>
+        <div class="staff-note">Hiển thị đơn ngày @Model.WorkDate.ToString("dd/MM/yyyy", vi) và đơn còn công nợ. Staff không thể xóa đơn hoặc chỉnh sửa tiền đơn hàng.</div>
     </div>
 
     <form class="staff-filter" asp-controller="Staff" asp-action="Orders" method="get">
@@ -43,14 +43,16 @@
         {
             foreach (var order in Model.Orders)
             {
+                var paymentReference = $"STAFF-{Guid.NewGuid():N}";
                 <article class="staff-order-card @(order.Status == 1 && order.OrderDate <= DateTime.Now.AddHours(-2) ? "urgent" : null)" id="order-@order.Id" data-order-code="@order.OrderCode">
                     <div class="staff-order-main">
                         <div>
                             <div class="staff-order-code">@order.OrderCode</div>
                             <div class="staff-order-meta">@order.CustomerName · @order.CustomerPhone · @DateTimeText(order.OrderDate)</div>
                         </div>
-                        <div class="staff-order-money">@Money(order.TotalAmount)</div>
+                        <div class="staff-order-money">@Money(order.FinalAmount)</div>
                         <span class="staff-status @StaffController.StatusClass(order.Status)">@StaffController.StatusText(order.Status)</span>
+                        <span class="staff-status staff-status-neutral">@order.PaymentStatusText</span>
                     </div>
 
                     <div class="staff-order-actions">
@@ -81,9 +83,68 @@
                             <div>
                                 <strong>Lịch sử trạng thái</strong>
                                 <span>Hiện tại: @StaffController.StatusText(order.Status)</span>
-                                <span>Cập nhật gần nhất theo dữ liệu đơn hàng.</span>
+                                <strong>Thanh toán</strong>
+                                <span>Phương thức: @OrderStatusLabels.GetPaymentMethodText(order.PaymentMethod)</span>
+                                <span>Phải thu: @Money(order.FinalAmount)</span>
+                                <span>Đã thu/xác minh: @Money(order.PaidAmount)</span>
+                                <span>@(order.CustomerDebtId.HasValue ? "Còn nợ" : "Còn phải thanh toán"): @Money(order.RemainingAmount)</span>
+                                @if (!string.IsNullOrWhiteSpace(order.PaymentTransactionNo))
+                                {
+                                    <span>Mã giao dịch: @order.PaymentTransactionNo</span>
+                                }
+                                @if (order.PaidAt.HasValue)
+                                {
+                                    <span>Ghi nhận lúc: @order.PaidAt.Value.ToString("dd/MM/yyyy HH:mm", vi)</span>
+                                }
+                                @if (order.PaymentMethod == 1 && order.Status == 4 && !order.CustomerDebtId.HasValue)
+                                {
+                                    <span>Chưa có khoản phải thu gắn với đơn này.</span>
+                                }
                             </div>
                         </div>
+                        @if (Model.CanCollectPayment && order.CustomerDebtId.HasValue && order.RemainingAmount > 0)
+                        {
+                            <form asp-controller="Staff" asp-action="RecordOrderPayment" method="post" class="staff-payment-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@order.Id" />
+                                <input type="hidden" name="paymentReference" value="@paymentReference" />
+                                <label>Số tiền thực thu
+                                    <input name="paymentAmount" type="number" min="0.01" max="@order.RemainingAmount" step="0.01" required />
+                                </label>
+                                <button class="staff-btn primary" type="submit"><i class="fa-solid fa-money-bill-transfer"></i> Ghi nhận khoản thu</button>
+                            </form>
+                        }
+                        @if (Model.CanVerifyQrPayment && order.PaymentMethod == 4 && order.PaymentStatus == 4)
+                        {
+                            <form asp-controller="Staff" asp-action="VerifyQrPayment" method="post" class="staff-payment-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@order.Id" />
+                                <label>Mã tham chiếu giao dịch đã đối chiếu
+                                    <input name="paymentReference" maxlength="100" required />
+                                </label>
+                                <button class="staff-btn primary" type="submit">Xác nhận đã nhận đủ tiền</button>
+                            </form>
+                        }
+                        @if (order.PaymentHistory.Count > 0)
+                        {
+                            <div class="staff-payment-history">
+                                <strong>Lịch sử công nợ và thu tiền</strong>
+                                <ul>
+                                    @foreach (var entry in order.PaymentHistory)
+                                    {
+                                        <li>
+                                            @entry.TransactionDate.ToString("dd/MM/yyyy HH:mm", vi) ·
+                                            @(entry.TransactionType == "DEBIT" ? "Phát sinh nợ" : "Đã thu")
+                                            @Money(entry.Amount) · còn @Money(entry.BalanceAfter)
+                                            @if (!string.IsNullOrWhiteSpace(entry.Reference))
+                                            {
+                                                <span>(@entry.Reference)</span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
                         <table class="staff-table compact">
                             <thead>
                                 <tr>
@@ -117,7 +178,7 @@
                                 <tr><td>@item.ProductName</td><td>@item.Quantity</td><td>@Money(item.LineTotal)</td></tr>
                             }
                         </table>
-                        <strong>Tổng: @Money(order.TotalAmount)</strong>
+                        <strong>Tổng: @Money(order.FinalAmount)</strong>
                     </div>
                     <div class="staff-print" id="delivery-@order.Id">
                         <h2>Phiếu giao hàng @order.OrderCode</h2>

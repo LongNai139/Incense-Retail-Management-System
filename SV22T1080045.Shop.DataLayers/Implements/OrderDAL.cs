@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.DomainModels;
+using SV22T1080045.Shop.DomainModels.Warehouse;
 
 namespace SV22T1080045.Shop.DataLayers.Implements
 {
@@ -54,8 +56,57 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             if (order == null)
                 return false;
 
+            if (status == 4 && order.Status != 4 && order.PaymentMethod == 1 && order.CustomerId > 0 &&
+                !_context.CustomerDebts.Any(d => d.OrderId == order.Id && !d.IsDeleted))
+            {
+                var amount = order.FinalAmount > 0
+                    ? order.FinalAmount
+                    : Math.Max(0, order.TotalAmount - order.DiscountAmount);
+                var now = DateTime.Now;
+                var debt = new CustomerDebt
+                {
+                    CustomerId = order.CustomerId,
+                    OrderId = order.Id,
+                    OrderCode = $"TH{order.Id:D6}",
+                    OrderAmount = amount,
+                    DebtAmount = amount,
+                    PaidAmount = 0,
+                    DueDate = DateTime.Today.AddDays(30),
+                    Status = "Pending",
+                    Notes = "Phát sinh khi giao thành công đơn COD",
+                    CreatedTime = now,
+                    IsDeleted = false
+                };
+                debt.Transactions.Add(new CustomerDebtTransaction
+                {
+                    OrderId = order.Id,
+                    TransactionType = "DEBIT",
+                    Amount = amount,
+                    BalanceAfter = amount,
+                    Reference = $"ORDER-{order.Id}",
+                    Description = "Phát sinh từ đơn hàng COD đã giao thành công",
+                    TransactionDate = now,
+                    CreatedTime = now,
+                    IsDeleted = false
+                });
+                _context.CustomerDebts.Add(debt);
+            }
+
             order.Status = status;
-            return _context.SaveChanges() > 0;
+            try
+            {
+                return _context.SaveChanges() > 0;
+            }
+            catch (DbUpdateException exception) when (IsDebtUniqueConstraintViolation(exception))
+            {
+                return false;
+            }
+        }
+
+        private static bool IsDebtUniqueConstraintViolation(DbUpdateException exception)
+        {
+            return exception.GetBaseException() is SqlException sqlException &&
+                   sqlException.Number is 2601 or 2627;
         }
 
         public bool UpdatePaymentResult(
@@ -66,17 +117,17 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             string? responseCode,
             DateTime? paidAt)
         {
-            var order = _context.Orders.FirstOrDefault(o => o.Id == orderID);
-            if (order == null)
+            if (paymentStatus is not (1 or 2))
                 return false;
 
-            order.PaymentStatus = paymentStatus;
-            order.PaymentTransactionNo = transactionNo;
-            order.PaymentBankCode = bankCode;
-            order.PaymentResponseCode = responseCode;
-            order.PaidAt = paidAt;
-
-            return _context.SaveChanges() > 0;
+            return _context.Orders
+                .Where(o => o.Id == orderID && (paymentStatus == 1 || o.PaymentStatus != 1))
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(o => o.PaymentStatus, paymentStatus)
+                    .SetProperty(o => o.PaymentTransactionNo, transactionNo)
+                    .SetProperty(o => o.PaymentBankCode, bankCode)
+                    .SetProperty(o => o.PaymentResponseCode, responseCode)
+                    .SetProperty(o => o.PaidAt, paidAt)) > 0;
         }
     }
 }

@@ -14,10 +14,12 @@ namespace SV22T1080045.Shop.Controllers
     {
         private const int ProductPageSize = 12;
         private readonly IStaffService _staffService;
+        private readonly IOrderService _orderService;
 
-        public StaffController(IStaffService staffService)
+        public StaffController(IStaffService staffService, IOrderService orderService)
         {
             _staffService = staffService;
+            _orderService = orderService;
         }
 
         [Permission(PermissionConstants.ViewOrder, PermissionConstants.ViewProduct, PermissionConstants.ViewCustomer)]
@@ -56,6 +58,32 @@ namespace SV22T1080045.Shop.Controllers
             var result = _staffService.UpdateOrderStatusWithInventoryCheck(orderId, status);
             TempData["StaffMessage"] = result.Message;
             return RedirectToAction(nameof(Index), null, null, "orders");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.CollectPayment, PermissionConstants.ManageSystem)]
+        public IActionResult RecordOrderPayment(int orderId, decimal paymentAmount, string paymentReference)
+        {
+            int? staffId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
+            var result = _staffService.ProcessOrderPayment(orderId, paymentAmount, staffId, paymentReference);
+            TempData["StaffMessage"] = result.Message;
+            return RedirectToAction(nameof(Orders), new { orderSearchValue = $"TH{orderId:D6}" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ProcessPayment, PermissionConstants.ManageSystem)]
+        public IActionResult VerifyQrPayment(int orderId, string paymentReference)
+        {
+            var order = _orderService.GetOrder(orderId);
+            var validReference = !string.IsNullOrWhiteSpace(paymentReference) && paymentReference.Trim().Length <= 100;
+            var result = order != null && order.PaymentMethod == 4 && order.PaymentStatus == 4 && validReference &&
+                _orderService.MarkPaymentResult(orderId, 1, paymentReference.Trim(), "STAFF-VERIFIED", "0", DateTime.Now);
+            TempData["StaffMessage"] = result
+                ? $"Đã xác nhận khoản chuyển khoản cho đơn #TH{orderId:D6}."
+                : "Chỉ xác nhận QR khi đã đối chiếu tiền thực nhận và đơn còn chờ xác minh.";
+            return RedirectToAction(nameof(Orders), new { orderSearchValue = $"TH{orderId:D6}" });
         }
 
         private StaffDashboardViewModel BuildDashboardModel(
@@ -117,7 +145,9 @@ namespace SV22T1080045.Shop.Controllers
                 OrderSearchValue = orderSearchValue?.Trim() ?? "",
                 OrderStatus = orderStatus,
                 WorkDate = today,
-                Orders = orders
+                Orders = orders,
+                CanCollectPayment = User.HasAnyPermission(PermissionConstants.CollectPayment, PermissionConstants.ManageSystem),
+                CanVerifyQrPayment = User.HasAnyPermission(PermissionConstants.ProcessPayment, PermissionConstants.ManageSystem)
             };
         }
 
@@ -158,9 +188,27 @@ namespace SV22T1080045.Shop.Controllers
                 Id = row.Id,
                 OrderDate = row.OrderDate,
                 TotalAmount = row.TotalAmount,
+                FinalAmount = row.FinalAmount,
                 Status = row.Status,
                 StatusText = StatusText(row.Status),
                 StatusClass = StatusClass(row.Status),
+                PaymentMethod = row.PaymentMethod,
+                PaymentStatus = row.PaymentStatus,
+                PaymentStatusText = SV22T1080045.Shop.Models.OrderStatusLabels.GetPaymentStatusText(row.PaymentStatus),
+                PaymentTransactionNo = row.PaymentTransactionNo,
+                PaidAt = row.PaidAt,
+                PaidAmount = row.PaidAmount,
+                RemainingAmount = row.RemainingAmount,
+                CustomerDebtId = row.CustomerDebtId,
+                PaymentHistory = row.DebtTransactions.Select(t => new StaffPaymentHistoryRowViewModel
+                {
+                    TransactionType = t.TransactionType,
+                    Amount = t.Amount,
+                    BalanceAfter = t.BalanceAfter,
+                    Reference = t.Reference,
+                    Description = t.Description,
+                    TransactionDate = t.TransactionDate
+                }).ToList(),
                 CustomerName = row.CustomerName,
                 CustomerPhone = row.CustomerPhone,
                 ShippingAddress = row.ShippingAddress,

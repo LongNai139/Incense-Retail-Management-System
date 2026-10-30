@@ -30,9 +30,11 @@ namespace SV22T1080045.Shop.BusinessLayers.Interfaces
         // Customer Debt methods
         List<CustomerDebt> ListCustomerDebts(int? customerId);
         CustomerDebt? GetCustomerDebt(int id);
+        CustomerDebt? GetCustomerDebtByOrderId(int orderId);
         int AddCustomerDebt(CustomerDebtRequest request);
         bool UpdateCustomerDebt(CustomerDebt debt);
         bool DeleteCustomerDebt(int id);
-        bool ProcessDebtPayment(int debtId, decimal paymentAmount);
+        bool ProcessDebtPayment(int debtId, decimal paymentAmount, int? staffId = null, string? reference = null);
+        bool CreateDebtFromOrder(int orderId, int customerId, decimal amount, int? staffId = null);
     }
 }

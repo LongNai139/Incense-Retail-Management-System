@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using SV22T1080045.Shop.Abstractions.Interfaces;
 using SV22T1080045.Shop.Abstractions.Models.Staff;
 using SV22T1080045.Shop.DomainModels;
@@ -60,7 +61,10 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             var query = from o in _context.Orders
                           join c in _context.Customers on o.CustomerId equals c.Id into customerGroup
                           from c in customerGroup.DefaultIfEmpty()
-                          where !o.IsDeleted && o.OrderDate >= today && o.OrderDate < tomorrow
+                          where !o.IsDeleted &&
+                              ((o.OrderDate >= today && o.OrderDate < tomorrow) ||
+                               _context.CustomerDebts.Any(d => d.OrderId == o.Id && !d.IsDeleted && d.PaidAmount < d.DebtAmount) ||
+                               (o.PaymentMethod == 4 && o.PaymentStatus == 4))
                           select new { Order = o, Customer = c };
             if (status.HasValue)
                 query = query.Where(item => item.Order.Status == status.Value);
@@ -86,7 +90,20 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                               Id = item.Order.Id,
                               OrderDate = item.Order.OrderDate,
                               TotalAmount = item.Order.TotalAmount,
+                              FinalAmount = item.Order.FinalAmount > 0
+                                  ? item.Order.FinalAmount
+                                  : Math.Max(0, item.Order.TotalAmount - item.Order.DiscountAmount),
                               Status = item.Order.Status,
+                              PaymentMethod = item.Order.PaymentMethod,
+                              PaymentStatus = item.Order.PaymentStatus,
+                              PaymentTransactionNo = item.Order.PaymentTransactionNo,
+                              PaidAt = item.Order.PaidAt,
+                              PaidAmount = item.Order.PaymentStatus == 1
+                                  ? (item.Order.FinalAmount > 0 ? item.Order.FinalAmount : Math.Max(0, item.Order.TotalAmount - item.Order.DiscountAmount))
+                                  : 0,
+                              RemainingAmount = item.Order.PaymentStatus == 1
+                                  ? 0
+                                  : (item.Order.FinalAmount > 0 ? item.Order.FinalAmount : Math.Max(0, item.Order.TotalAmount - item.Order.DiscountAmount)),
                               CustomerName = item.Customer != null && !string.IsNullOrWhiteSpace(item.Customer.CustomerName)
                                   ? item.Customer.CustomerName
                                   : (!string.IsNullOrWhiteSpace(item.Order.ShippingName) ? item.Order.ShippingName : "Guest"),
@@ -98,6 +115,57 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                           }).ToList();
 
             var orderIds = orders.Select(o => o.Id).ToArray();
+            if (orderIds.Length > 0)
+            {
+                var debts = _context.CustomerDebts.AsNoTracking()
+                    .Where(d => !d.IsDeleted && d.OrderId.HasValue && orderIds.Contains(d.OrderId.Value))
+                    .Select(d => new { d.Id, OrderId = d.OrderId!.Value, d.DebtAmount, d.PaidAmount })
+                    .ToList();
+                foreach (var order in orders)
+                {
+                    var debt = debts.FirstOrDefault(d => d.OrderId == order.Id);
+                    if (debt == null)
+                        continue;
+                    order.CustomerDebtId = debt.Id;
+                    order.PaidAmount = debt.PaidAmount;
+                    order.RemainingAmount = Math.Max(0, debt.DebtAmount - debt.PaidAmount);
+                    order.PaymentStatus = order.RemainingAmount <= 0 ? 1 : debt.PaidAmount > 0 ? 3 : 0;
+                }
+                var debtIds = debts.Select(d => d.Id).ToArray();
+                if (debtIds.Length > 0)
+                {
+                    var history = _context.CustomerDebtTransactions.AsNoTracking()
+                        .Where(t => !t.IsDeleted && debtIds.Contains(t.CustomerDebtId))
+                        .OrderByDescending(t => t.TransactionDate)
+                        .Select(t => new
+                        {
+                            t.CustomerDebtId,
+                            t.TransactionType,
+                            t.Amount,
+                            t.BalanceAfter,
+                            t.Reference,
+                            t.Description,
+                            t.TransactionDate
+                        })
+                        .ToList();
+                    foreach (var order in orders)
+                    {
+                        var debt = debts.FirstOrDefault(d => d.OrderId == order.Id);
+                        if (debt == null)
+                            continue;
+                        order.DebtTransactions = history.Where(t => t.CustomerDebtId == debt.Id)
+                            .Select(t => new StaffDebtTransactionData
+                            {
+                                TransactionType = t.TransactionType,
+                                Amount = t.Amount,
+                                BalanceAfter = t.BalanceAfter,
+                                Reference = t.Reference,
+                                Description = t.Description,
+                                TransactionDate = t.TransactionDate
+                            }).ToList();
+                    }
+                }
+            }
             var items = orderIds.Length == 0
                 ? new List<StaffOrderItemData>()
                 : _context.OrderDetails
@@ -297,9 +365,58 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 }
             }
 
+            // COD becomes a receivable only after successful delivery. The unique
+            // (CustomerId, OrderId) index protects against duplicate completion.
+            if (status == 4 && order.PaymentMethod == 1 && order.CustomerId > 0 &&
+                !_context.CustomerDebts.Any(d => d.OrderId == order.Id && !d.IsDeleted))
+            {
+                var debt = new SV22T1080045.Shop.DomainModels.Warehouse.CustomerDebt
+                {
+                    CustomerId = order.CustomerId,
+                    OrderId = order.Id,
+                    OrderCode = $"TH{order.Id:D6}",
+                    OrderAmount = order.FinalAmount > 0 ? order.FinalAmount : Math.Max(0, order.TotalAmount - order.DiscountAmount),
+                    DebtAmount = order.FinalAmount > 0 ? order.FinalAmount : Math.Max(0, order.TotalAmount - order.DiscountAmount),
+                    PaidAmount = 0,
+                    DueDate = DateTime.Today.AddDays(30),
+                    Status = "Pending",
+                    Notes = "Phát sinh khi giao thành công đơn COD",
+                    CreatedTime = DateTime.Now,
+                    IsDeleted = false
+                };
+                debt.Transactions.Add(new SV22T1080045.Shop.DomainModels.Warehouse.CustomerDebtTransaction
+                {
+                    OrderId = order.Id,
+                    TransactionType = "DEBIT",
+                    Amount = order.FinalAmount > 0 ? order.FinalAmount : Math.Max(0, order.TotalAmount - order.DiscountAmount),
+                    BalanceAfter = order.FinalAmount > 0 ? order.FinalAmount : Math.Max(0, order.TotalAmount - order.DiscountAmount),
+                    Reference = $"ORDER-{order.Id}",
+                    Description = "Phát sinh từ đơn hàng COD đã giao thành công",
+                    TransactionDate = DateTime.Now,
+                    CreatedTime = DateTime.Now,
+                    IsDeleted = false
+                });
+                _context.CustomerDebts.Add(debt);
+            }
+
             order.Status = status;
-            var saved = _context.SaveChanges() > 0;
-            return (saved, new List<InventoryCheckResult>());
+            try
+            {
+                var saved = _context.SaveChanges() > 0;
+                return (saved, new List<InventoryCheckResult>());
+            }
+            catch (DbUpdateException exception) when (IsDebtUniqueConstraintViolation(exception))
+            {
+                // A concurrent completion may have created the debt first. EF's
+                // SaveChanges transaction rolls back the order and inventory updates.
+                return (false, new List<InventoryCheckResult>());
+            }
+        }
+
+        private static bool IsDebtUniqueConstraintViolation(DbUpdateException exception)
+        {
+            return exception.GetBaseException() is SqlException sqlException &&
+                   sqlException.Number is 2601 or 2627;
         }
     }
 }

@@ -1,5 +1,8 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SV22T1080045.Shop.DomainModels.Warehouse
 {
+    [Table("CustomerDebts")]
     public class CustomerDebt
     {
         public int Id { get; set; }
@@ -27,5 +30,8 @@ namespace SV22T1080045.Shop.DomainModels.Warehouse
         public bool IsDeleted { get; set; }
         
         public bool IsOverdue => Status == "Pending" && DateTime.Today > DueDate;
+
+        // Navigation property for transactions
+        public virtual ICollection<CustomerDebtTransaction> Transactions { get; set; } = new List<CustomerDebtTransaction>();
     }
 }

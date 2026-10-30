@@ -2,9 +2,8 @@
     Layout = "_ManagementLayout";
 }
 
-@model SV22T1080045.Shop.Controllers.CustomerDebtViewModel
+@model SV22T1080045.Shop.Models.ViewModels.Warehouse.CustomerDebtPageViewModel
 @using System.Globalization
-@using SV22T1080045.Shop.DomainModels.Warehouse
 
 @{
     ViewData["Title"] = "Công nợ khách hàng";
@@ -25,6 +24,18 @@
         "Paid" => "status-done",
         "Overdue" => "status-cancel",
         _ => "status-ready"
+    };
+    string TransactionTypeText(string type) => type switch
+    {
+        "DEBIT" => "Tăng nợ",
+        "CREDIT" => "Giảm nợ",
+        _ => type
+    };
+    string TransactionTypeClass(string type) => type switch
+    {
+        "DEBIT" => "text-danger",
+        "CREDIT" => "text-success",
+        _ => ""
     };
 }
 
@@ -67,6 +78,7 @@
                 {
                     foreach (var debt in Model.Debts)
                     {
+                        var paymentReference = $"PAYUI-{Guid.NewGuid():N}";
                         <tr>
                             <td>@debt.Id</td>
                             <td>Khách ID: @debt.CustomerId</td>
@@ -79,9 +91,10 @@
                             <td>
                                 @if (debt.RemainingAmount > 0)
                                 {
-                                    <button class="admin-btn primary" type="button" data-pay-debt data-debt-id="@debt.Id" style="padding: 4px 8px; font-size: 11px;">
+                                    <button class="admin-btn primary" type="button" data-pay-debt data-debt-id="@debt.Id" data-payment-reference="@paymentReference" style="padding: 4px 8px; font-size: 11px;">
                                         <i class="fa-solid fa-money-bill"></i> Thanh toán
                                     </button>
+                                    @Html.AntiForgeryToken()
                                 }
                             </td>
                         </tr>
@@ -123,7 +136,7 @@
         </div>
         <div class="field">
             <label>Hạn thanh toán</label>
-            <input class="admin-input" name="DueDate" type="date" required />
+            <input class="admin-input" name="DueDate" type="date" required min="@DateTime.Today.ToString("yyyy-MM-dd")" />
         </div>
         <div class="field">
             <label>Mã tham chiếu</label>
@@ -147,12 +160,16 @@
 
             event.preventDefault();
             var debtId = payBtn.getAttribute('data-debt-id');
+            var paymentReference = payBtn.getAttribute('data-payment-reference');
+            var token = payBtn.parentElement.querySelector('input[name="__RequestVerificationToken"]');
             var amount = prompt('Nhập số tiền thanh toán:');
             
-            if (amount && !isNaN(amount)) {
+            if (amount && !isNaN(amount) && Number(amount) > 0) {
                 var formData = new FormData();
                 formData.append('debtId', debtId);
                 formData.append('paymentAmount', amount);
+                formData.append('paymentReference', paymentReference);
+                if (token) formData.append('__RequestVerificationToken', token.value);
                 
                 fetch('/Warehouse/ProcessPayment', {
                     method: 'POST',
@@ -171,6 +188,8 @@
                 .catch(function () {
                     alert('Không thể xử lý thanh toán. Vui lòng thử lại.');
                 });
+            } else if (amount !== null) {
+                alert('Vui lòng nhập số tiền hợp lệ lớn hơn 0.');
             }
         });
     </script>

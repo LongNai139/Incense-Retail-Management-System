@@ -7,10 +7,12 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
     public class StaffService : IStaffService
     {
         private readonly IStaffDAL _staffDAL;
+        private readonly IWarehouseService _warehouseService;
 
-        public StaffService(IStaffDAL staffDAL)
+        public StaffService(IStaffDAL staffDAL, IWarehouseService warehouseService)
         {
             _staffDAL = staffDAL;
+            _warehouseService = warehouseService;
         }
 
         public StaffDashboardData GetDashboardData()
@@ -108,6 +110,25 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                 Success = true,
                 Message = resultMessage,
                 InventoryChecks = inventoryChecks
+            };
+        }
+
+        public StaffOperationResult ProcessOrderPayment(int orderId, decimal paymentAmount, int? staffId, string reference)
+        {
+            if (paymentAmount <= 0)
+                return new StaffOperationResult { Message = "Số tiền thu phải lớn hơn 0." };
+
+            var debt = _warehouseService.GetCustomerDebtByOrderId(orderId);
+            if (debt == null)
+                return new StaffOperationResult { Message = "Đơn hàng chưa có khoản phải thu; hãy xác nhận giao hàng thành công trước." };
+
+            var result = _warehouseService.ProcessDebtPayment(debt.Id, paymentAmount, staffId, reference);
+            return new StaffOperationResult
+            {
+                Success = result,
+                Message = result
+                    ? $"Đã ghi nhận khoản thu cho đơn {FormatOrderCode(orderId)}."
+                    : "Không ghi nhận được khoản thu. Hãy kiểm tra số dư còn nợ và thử lại."
             };
         }
 

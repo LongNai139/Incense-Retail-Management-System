@@ -63,7 +63,7 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
                     IsDeleted = false,
                     Note = note?.Trim(),
                     PaymentMethod = paymentMethod,
-                    PaymentStatus = 0,
+                    PaymentStatus = paymentMethod == 1 ? 0 : 4,
 
                     // Voucher
                     VoucherId = appliedVoucherId,
@@ -105,7 +105,14 @@ namespace SV22T1080045.Shop.BusinessLayers.Services
 
         public List<OrderDetail> GetOrderDetails(int orderID) => _orderDAL.GetOrderDetails(orderID);
 
-        public bool UpdateStatus(int orderID, int status) => _orderDAL.UpdateStatus(orderID, status);
+        public bool UpdateStatus(int orderID, int status)
+        {
+            var order = _orderDAL.GetOrder(orderID);
+            if (order == null)
+                return false;
+
+            return _orderDAL.UpdateStatus(orderID, status);
+        }
 
         public bool MarkPaymentResult(
             int orderID,

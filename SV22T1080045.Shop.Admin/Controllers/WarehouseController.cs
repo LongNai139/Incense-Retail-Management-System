@@ -14,11 +14,13 @@ namespace SV22T1080045.Shop.Controllers
     {
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
+        private readonly IOrderService _orderService;
 
-        public WarehouseController(IWarehouseService warehouseService, IProductService productService)
+        public WarehouseController(IWarehouseService warehouseService, IProductService productService, IOrderService orderService)
         {
             _warehouseService = warehouseService;
             _productService = productService;
+            _orderService = orderService;
         }
 
         public IActionResult Index(int inventoryPage = 1)
@@ -280,9 +282,9 @@ namespace SV22T1080045.Shop.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Permission(PermissionConstants.ProcessPayment, PermissionConstants.CollectPayment, PermissionConstants.ManageSystem)]
-        public IActionResult ProcessPayment(int debtId, decimal paymentAmount)
+        public IActionResult ProcessPayment(int debtId, decimal paymentAmount, string? paymentReference)
         {
-            var result = _warehouseService.ProcessDebtPayment(debtId, paymentAmount);
+            var result = _warehouseService.ProcessDebtPayment(debtId, paymentAmount, reference: paymentReference);
             if (result)
             {
                 TempData["SuccessMessage"] = "Đã xử lý thanh toán thành công.";
@@ -292,6 +294,30 @@ namespace SV22T1080045.Shop.Controllers
                 TempData["ErrorMessage"] = "Không thể xử lý thanh toán.";
             }
             return RedirectToAction(nameof(CustomerDebts));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(PermissionConstants.ManageDebt, PermissionConstants.ManageSystem)]
+        public IActionResult CreateDebtFromOrder(int orderId)
+        {
+            var order = _orderService.GetOrder(orderId);
+            if (order == null || order.PaymentMethod != 1 || order.Status != 4 || order.CustomerId <= 0)
+            {
+                TempData["ErrorMessage"] = "Chỉ có thể tạo công nợ cho đơn COD đã hoàn thành.";
+                return RedirectToAction("Index", "Management");
+            }
+
+            var result = _warehouseService.CreateDebtFromOrder(orderId, order.CustomerId, order.FinalAmount);
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Đã tạo công nợ thành công.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Không thể tạo công nợ (có thể đã tồn tại).";
+            }
+            return RedirectToAction("Index", "Management");
         }
     }
 

@@ -1,4 +1,6 @@
 using Dapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using SV22T1080045.Shop.Abstractions.Interfaces;
@@ -495,6 +497,234 @@ namespace SV22T1080045.Shop.DataLayers.Implements
             return conn.Execute(
                 "UPDATE CustomerDebts SET IsDeleted = 1 WHERE Id = @Id",
                 new { Id = id }) > 0;
+        }
+
+        public CustomerDebt? GetCustomerDebtByOrderId(int orderId)
+        {
+            using var conn = _context.GetConnection();
+            return conn.QueryFirstOrDefault<CustomerDebt>(
+                "SELECT * FROM CustomerDebts WHERE OrderId = @OrderId AND IsDeleted = 0",
+                new { OrderId = orderId });
+        }
+
+        public bool CreateDebtFromOrder(CustomerDebt debt, CustomerDebtTransaction initialDebit)
+        {
+            if (debt.OrderId is not > 0 || debt.CustomerId <= 0 || debt.DebtAmount <= 0 ||
+                initialDebit.Amount != debt.DebtAmount || initialDebit.BalanceAfter != debt.DebtAmount)
+            {
+                return false;
+            }
+
+            var executionStrategy = _context.Database.CreateExecutionStrategy();
+            return executionStrategy.Execute(() =>
+            {
+                using var transaction = _context.Database.BeginTransaction(IsolationLevel.Serializable);
+                var connection = _context.Database.GetDbConnection();
+                var dbTransaction = transaction.GetDbTransaction();
+
+                try
+                {
+                    var orderIsValid = connection.QuerySingle<bool>(@"
+                        SELECT CONVERT(bit, CASE WHEN EXISTS
+                        (
+                            SELECT 1 FROM dbo.Orders WITH (UPDLOCK, HOLDLOCK)
+                            WHERE Id = @OrderId AND CustomerId = @CustomerId
+                              AND Status = 4 AND PaymentMethod = 1 AND IsDeleted = 0
+                        ) AND EXISTS
+                        (
+                            SELECT 1 FROM dbo.Customers
+                            WHERE Id = @CustomerId AND IsDeleted = 0
+                        ) THEN 1 ELSE 0 END)",
+                        new { OrderId = debt.OrderId.Value, debt.CustomerId }, dbTransaction);
+
+                    if (!orderIsValid)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+
+                    var debtAlreadyExists = connection.QueryFirstOrDefault<int?>(@"
+                        SELECT TOP (1) Id FROM dbo.CustomerDebts WITH (UPDLOCK, HOLDLOCK)
+                        WHERE OrderId = @OrderId",
+                        new { OrderId = debt.OrderId.Value }, dbTransaction);
+                    if (debtAlreadyExists.HasValue)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+
+                    var debtId = connection.QuerySingle<int>(@"
+                        INSERT INTO dbo.CustomerDebts
+                            (CustomerId, OrderId, OrderCode, OrderAmount, DebtAmount, PaidAmount, PaymentReference,
+                             DueDate, PaidDate, Status, Notes, CreatedTime, UpdatedTime, IsDeleted)
+                        VALUES
+                            (@CustomerId, @OrderId, @OrderCode, @OrderAmount, @DebtAmount, @PaidAmount, @PaymentReference,
+                             @DueDate, @PaidDate, @Status, @Notes, @CreatedTime, @UpdatedTime, @IsDeleted);
+                        SELECT CAST(SCOPE_IDENTITY() AS int);", debt, dbTransaction);
+
+                    connection.Execute(@"
+                        INSERT INTO dbo.CustomerDebtTransactions
+                            (CustomerDebtId, OrderId, TransactionType, Amount, BalanceAfter, Reference, Description,
+                             TransactionDate, CreatedTime, CreatedBy, IsDeleted)
+                        VALUES
+                            (@CustomerDebtId, @OrderId, N'DEBIT', @Amount, @BalanceAfter, @Reference, @Description,
+                             @TransactionDate, @CreatedTime, @CreatedBy, @IsDeleted);",
+                        new
+                        {
+                            CustomerDebtId = debtId,
+                            OrderId = debt.OrderId.Value,
+                            initialDebit.Amount,
+                            initialDebit.BalanceAfter,
+                            initialDebit.Reference,
+                            initialDebit.Description,
+                            initialDebit.TransactionDate,
+                            initialDebit.CreatedTime,
+                            initialDebit.CreatedBy,
+                            initialDebit.IsDeleted
+                        }, dbTransaction);
+
+                    transaction.Commit();
+                    return true;
+                }
+                catch (SqlException exception) when (IsUniqueConstraintViolation(exception))
+                {
+                    TryRollback(transaction);
+                    return false;
+                }
+                catch
+                {
+                    TryRollback(transaction);
+                    throw;
+                }
+            });
+        }
+
+        private static bool IsUniqueConstraintViolation(SqlException exception)
+        {
+            return exception.Number is 2601 or 2627;
+        }
+
+        private static void TryRollback(IDbContextTransaction transaction)
+        {
+            try
+            {
+                transaction.Rollback();
+            }
+            catch
+            {
+                // Preserve the original database exception; disposal also rolls back
+                // any transaction that is still active.
+            }
+        }
+
+        public List<CustomerDebtTransaction> ListDebtTransactions(int customerDebtId)
+        {
+            using var conn = _context.GetConnection();
+            return conn.Query<CustomerDebtTransaction>(@"
+                SELECT * FROM CustomerDebtTransactions
+                WHERE CustomerDebtId = @CustomerDebtId AND IsDeleted = 0
+                ORDER BY TransactionDate DESC", new { CustomerDebtId = customerDebtId }).ToList();
+        }
+
+        public int AddDebtTransaction(CustomerDebtTransaction transaction)
+        {
+            using var conn = _context.GetConnection();
+            return conn.ExecuteScalar<int>(@"
+                INSERT INTO CustomerDebtTransactions
+                    (CustomerDebtId, OrderId, TransactionType, Amount, BalanceAfter, Reference, Description,
+                     TransactionDate, CreatedTime, CreatedBy, IsDeleted)
+                VALUES
+                    (@CustomerDebtId, @OrderId, @TransactionType, @Amount, @BalanceAfter, @Reference, @Description,
+                     @TransactionDate, @CreatedTime, @CreatedBy, @IsDeleted);
+                SELECT CAST(SCOPE_IDENTITY() AS int);", transaction);
+        }
+
+        public bool ProcessDebtPayment(int debtId, decimal paymentAmount, int? staffId, string reference)
+        {
+            if (paymentAmount <= 0 || string.IsNullOrWhiteSpace(reference))
+                return false;
+
+            using var conn = _context.GetConnection();
+            using var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                var debt = conn.QueryFirstOrDefault<CustomerDebt>(@"
+                    SELECT * FROM CustomerDebts WITH (UPDLOCK, HOLDLOCK)
+                    WHERE Id = @DebtId AND IsDeleted = 0", new { DebtId = debtId }, transaction);
+                if (debt == null)
+                {
+                    transaction.Rollback();
+                    return false;
+                }
+
+                // A retried form submission with the same key is successful but does not
+                // add a second receipt.
+                var existingReceipt = conn.QueryFirstOrDefault<int?>(@"
+                    SELECT TOP (1) Id FROM CustomerDebtTransactions WITH (UPDLOCK, HOLDLOCK)
+                    WHERE CustomerDebtId = @DebtId AND Reference = @Reference
+                      AND TransactionType = N'CREDIT' AND IsDeleted = 0",
+                    new { DebtId = debtId, Reference = reference }, transaction);
+                if (existingReceipt.HasValue)
+                {
+                    transaction.Commit();
+                    return true;
+                }
+
+                var remaining = debt.DebtAmount - debt.PaidAmount;
+                if (remaining <= 0 || paymentAmount > remaining)
+                {
+                    transaction.Rollback();
+                    return false;
+                }
+
+                var newPaidAmount = debt.PaidAmount + paymentAmount;
+                var newBalance = debt.DebtAmount - newPaidAmount;
+                var now = DateTime.Now;
+                var newStatus = newBalance == 0
+                    ? "Paid"
+                    : newPaidAmount > 0
+                        ? "PartiallyPaid"
+                        : debt.DueDate.Date < now.Date ? "Overdue" : "Pending";
+
+                conn.Execute(@"
+                    UPDATE CustomerDebts
+                    SET PaidAmount = @PaidAmount, PaidDate = @PaidDate, Status = @Status,
+                        UpdatedTime = @UpdatedTime
+                    WHERE Id = @Id AND IsDeleted = 0;
+                    INSERT INTO CustomerDebtTransactions
+                        (CustomerDebtId, OrderId, TransactionType, Amount, BalanceAfter, Reference,
+                         Description, TransactionDate, CreatedTime, CreatedBy, IsDeleted)
+                    VALUES
+                        (@Id, @OrderId, N'CREDIT', @Amount, @BalanceAfter, @Reference,
+                         N'Thu tiền công nợ', @TransactionDate, @CreatedTime, @CreatedBy, 0);
+                    IF @OrderId IS NOT NULL
+                        UPDATE Orders SET PaymentStatus = CASE WHEN @BalanceAfter = 0 THEN 1 ELSE 3 END,
+                            PaidAt = CASE WHEN @BalanceAfter = 0 THEN @TransactionDate ELSE PaidAt END
+                        WHERE Id = @OrderId AND IsDeleted = 0;",
+                    new
+                    {
+                        Id = debt.Id,
+                        debt.OrderId,
+                        PaidAmount = newPaidAmount,
+                        PaidDate = newBalance == 0 ? now : debt.PaidDate,
+                        Status = newStatus,
+                        UpdatedTime = now,
+                        Amount = paymentAmount,
+                        BalanceAfter = newBalance,
+                        Reference = reference,
+                        TransactionDate = now,
+                        CreatedTime = now,
+                        CreatedBy = staffId
+                    }, transaction);
+
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 }

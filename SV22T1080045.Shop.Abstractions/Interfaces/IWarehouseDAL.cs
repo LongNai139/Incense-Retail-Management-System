@@ -14,7 +14,7 @@ namespace SV22T1080045.Shop.Abstractions.Interfaces
         List<ReimportOrderOption> ListOrdersForReimport();
         List<ReimportOrderLine> ListReimportOrderLines(int orderId);
         bool AddReimportTransaction(StockTransaction transaction, int orderId, int orderDetailId, out string error);
-        
+
         // Stock Inventory methods
         List<StockInventory> ListStockInventories();
         List<StockInventory> ListStockInventories(int page, int pageSize, out int totalCount);
@@ -29,8 +29,15 @@ namespace SV22T1080045.Shop.Abstractions.Interfaces
         // Customer Debt methods
         List<CustomerDebt> ListCustomerDebts(int? customerId);
         CustomerDebt? GetCustomerDebt(int id);
+        CustomerDebt? GetCustomerDebtByOrderId(int orderId);
+        bool CreateDebtFromOrder(CustomerDebt debt, CustomerDebtTransaction initialDebit);
         int AddCustomerDebt(CustomerDebt debt);
         bool UpdateCustomerDebt(CustomerDebt debt);
         bool DeleteCustomerDebt(int id);
+
+        // Customer Debt Transaction methods
+        List<CustomerDebtTransaction> ListDebtTransactions(int customerDebtId);
+        int AddDebtTransaction(CustomerDebtTransaction transaction);
+        bool ProcessDebtPayment(int debtId, decimal paymentAmount, int? staffId, string reference);
     }
 }

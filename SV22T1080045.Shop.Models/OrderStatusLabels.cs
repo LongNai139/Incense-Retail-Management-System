@@ -16,6 +16,8 @@ namespace SV22T1080045.Shop.Models
         {
             1 => "Đã thanh toán",
             2 => "Thanh toán thất bại",
+            3 => "Đã thanh toán một phần",
+            4 => "Chờ xác minh thanh toán",
             _ => "Chưa thanh toán"
         };
 
