@@ -9,12 +9,11 @@
 @{
     ViewData["Title"] = "Tổng quan";
 
-    var allProducts = Model.AllProducts ?? new List<ManagementProductRowViewModel>();
-    var bestSellers = allProducts.OrderByDescending(p => p.SoldCount ?? 0).Take(5).ToList();
-    var lowStockProducts = allProducts.Where(p => (p.Quantity ?? 0) > 0 && (p.Quantity ?? 0) <= 5).OrderBy(p => p.Quantity ?? 0).Take(5).ToList();
-    var outOfStockCount = allProducts.Count(p => (p.Quantity ?? 0) <= 0);
+    var bestSellers = Model.BestSellerProducts;
+    var lowStockProducts = Model.LowStockProducts;
+    var outOfStockCount = Model.OutOfStockCount;
     var revenueSummary = Model.RevenueSummary;
-    var bestRevenuePoint = Model.RevenuePoints.OrderByDescending(p => p.Revenue).FirstOrDefault();
+    var bestRevenuePoint = Model.BestRevenuePoint;
     var reportDateValue = Model.RevenueDate.ToString("yyyy-MM-dd");
     string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
     string FormatRange(DateTime start, DateTime end) => start.Date == end.AddDays(-1).Date
@@ -30,7 +29,7 @@
     <div>
         <div class="management-kicker">Precious Wood</div>
         <h1>Trang tổng quan</h1>
-        <p>Theo dõi doanh thu, xử lý đơn, chăm tồn kho và khách hàng trên cùng một khu vực quản trị.</p>
+        <p>Khoảng thời gian: <strong>@FormatRange(Model.RevenueRangeStart, Model.RevenueRangeEnd)</strong> • Doanh thu kỳ này: <strong>@FormatMoney(revenueSummary.Revenue)</strong> (@FormatPercent(revenueSummary.RevenueChangePercent) so với kỳ trước)</p>
     </div>
     <div class="management-actions">
         <button class="admin-btn" type="button" data-sound-toggle>
@@ -43,8 +42,8 @@
         </select>
         <input class="admin-input" data-sound-volume type="range" min="0" max="100" step="1" value="35" style="width: 160px;" />
         <a class="admin-btn primary" asp-controller="Management" asp-action="Products"><i class="fa-solid fa-plus"></i> Thêm sản phẩm</a>
-        <button class="admin-btn"><i class="fa-solid fa-file-import"></i> Import Excel</button>
-        <a class="admin-btn success" asp-controller="Management" asp-action="ExportRevenueReport" asp-route-reportPeriod="@Model.RevenuePeriod" asp-route-reportDate="@reportDateValue"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</a>
+        <button class="admin-btn ghost" disabled title="Tính năng đang phát triển"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+        <a class="admin-btn" asp-controller="Management" asp-action="ExportRevenueReport" asp-route-reportPeriod="@Model.RevenuePeriod" asp-route-reportDate="@reportDateValue"><i class="fa-solid fa-file-export"></i> Xuất báo cáo</a>
     </div>
 </section>
 
@@ -66,29 +65,25 @@
     </div>
 
     <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-icon revenue"><i class="fa-solid fa-coins"></i></div>
-            <div class="kpi-label">Doanh thu tổng cộng</div>
-            <div class="kpi-value">@FormatMoney(revenueSummary.TotalRevenue)</div>
-            <div class="kpi-note">Tổng doanh thu tất cả thời gian</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon revenue"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="kpi-card primary">
             <div class="kpi-label">Doanh thu kỳ này</div>
             <div class="kpi-value">@FormatMoney(revenueSummary.Revenue)</div>
             <div class="kpi-note">@FormatPercent(revenueSummary.RevenueChangePercent) so với kỳ trước</div>
         </div>
-        <div class="kpi-card">
-            <div class="kpi-icon orders"><i class="fa-solid fa-receipt"></i></div>
+        <div class="kpi-card secondary">
+            <div class="kpi-label">Doanh thu tổng</div>
+            <div class="kpi-value">@FormatMoney(revenueSummary.TotalRevenue)</div>
+            <div class="kpi-note">Tất cả thời gian</div>
+        </div>
+        <div class="kpi-card secondary">
             <div class="kpi-label">Tổng đơn hàng</div>
             <div class="kpi-value">@revenueSummary.OrderCount</div>
-            <div class="kpi-note">@revenueSummary.CompletedOrderCount đơn hoàn thành</div>
+            <div class="kpi-note">@revenueSummary.CompletedOrderCount hoàn thành</div>
         </div>
-        <div class="kpi-card">
-            <div class="kpi-icon customers"><i class="fa-solid fa-user-plus"></i></div>
-            <div class="kpi-label">Khách hàng mới</div>
+        <div class="kpi-card secondary">
+            <div class="kpi-label">Khách mới</div>
             <div class="kpi-value">@revenueSummary.NewCustomerCount</div>
-            <div class="kpi-note">@revenueSummary.GuestOrderCount đơn khách vãng lai</div>
+            <div class="kpi-note">@revenueSummary.GuestOrderCount khách vãng lai</div>
         </div>
     </div>
 
@@ -129,7 +124,15 @@
                         }
                         else
                         {
-                            <tr><td colspan="7">Chưa có đơn hàng trong database.</td></tr>
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fa-solid fa-receipt"></i></div>
+                                        <div class="empty-state-title">Chưa có đơn hàng</div>
+                                        <div class="empty-state-sub">Các đơn hàng của khách hàng sẽ hiển thị ở đây khi được tạo.</div>
+                                    </div>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -208,31 +211,22 @@
             <div class="donut-chart-container">
                 <div class="donut-chart">
                     @{
-                        var categoryData = bestSellers.GroupBy(p => p.CategoryId).Select(g => new {
-                            CategoryId = g.Key,
-                            CategoryName = Model.Categories.FirstOrDefault(c => c.Id == g.Key)?.CategoryName ?? $"Danh mục {g.Key}",
-                            Count = g.Sum(x => x.SoldCount ?? 0),
-                            Revenue = g.Sum(x => (x.SoldCount ?? 0) * x.PriceAfterDiscount)
-                        }).ToList();
-                        var totalQuantity = categoryData.Sum(c => c.Count);
-                        var totalRevenue = categoryData.Sum(c => c.Revenue);
-                        var colors = new[] { "#c9a961", "#8a6d28", "#d4b86a", "#a67c3d", "#b98b36", "#52745b" };
-                        var colorIndex = 0;
+                        var categoryData = Model.CategorySales;
+                        var totalRevenue = Model.CategorySalesTotalRevenue;
                     }
                     @if (categoryData.Any())
                     {
                         var conicGradient = "";
                         var currentPercentage = 0.0m;
 
-                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue))
+                        foreach (var category in categoryData)
                         {
-                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
-                            var color = colors[colorIndex % colors.Length];
+                            var percentage = category.RevenueShare;
+                            var color = category.Color;
                             var nextPercentage = currentPercentage + percentage;
 
                             conicGradient += $"{color} {currentPercentage}% {nextPercentage}%, ";
                             currentPercentage = nextPercentage;
-                            colorIndex++;
                         }
 
                         conicGradient = conicGradient.TrimEnd(',', ' ');
@@ -243,17 +237,20 @@
                     }
                     else
                     {
-                        <div class="donut-empty">Chưa có dữ liệu</div>
+                        <div class="empty-state" style="padding: var(--space-xl);">
+                            <div class="empty-state-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                            <div class="empty-state-title">Chưa có dữ liệu</div>
+                            <div class="empty-state-sub">Số liệu thống kê sẽ hiển thị khi có đủ dữ liệu.</div>
+                        </div>
                     }
                 </div>
                 <div class="donut-legend">
                     @if (categoryData.Any())
                     {
-                        colorIndex = 0;
-                        foreach (var category in categoryData.OrderByDescending(c => c.Revenue).Take(5))
+                        foreach (var category in categoryData.Take(5))
                         {
-                            var percentage = totalRevenue > 0 ? (category.Revenue / totalRevenue) * 100 : 0;
-                            var color = colors[colorIndex % colors.Length];
+                            var percentage = category.RevenueShare;
+                            var color = category.Color;
 
                             <div class="legend-item">
                                 <div class="legend-color" style="background: @color;"></div>
@@ -261,7 +258,6 @@
                                 <div class="legend-value">@percentage.ToString("0.1")%</div>
                             </div>
 
-                            colorIndex++;
                         }
                     }
                 </div>
@@ -313,16 +309,33 @@
                     datasets: [{
                         label: 'Doanh thu',
                         data: values,
-                        backgroundColor: 'rgba(201, 169, 97, 0.8)'
+                        backgroundColor: '#c9a961'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(45, 31, 20, 0.95)',
+                            borderColor: '#6b4f2e',
+                            borderWidth: 1,
+                            padding: 12,
+                            titleColor: '#f5e6c8',
+                            bodyColor: '#e8d9b8'
+                        }
+                    },
                     scales: {
-                        x: { ticks: { color: '#e8d9b5' }, grid: { color: 'rgba(255,255,255,.06)' } },
-                        y: { beginAtZero: true, ticks: { color: '#e8d9b5' }, grid: { color: 'rgba(255,255,255,.06)' } }
+                        x: {
+                            ticks: { color: '#e8d9b5', font: { size: 11 } },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#e8d9b5', font: { size: 11 } },
+                            grid: { display: false }
+                        }
                     }
                 }
             });

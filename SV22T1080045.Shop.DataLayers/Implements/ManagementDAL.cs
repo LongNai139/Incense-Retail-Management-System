@@ -71,99 +71,106 @@ namespace SV22T1080045.Shop.DataLayers.Implements
 
         public List<ManagementOrderData> ListRecentOrders(int take)
         {
-            var query = from o in _context.Orders
-                        join c in _context.Customers on o.CustomerId equals c.Id into customerGroup
-                        from c in customerGroup.DefaultIfEmpty()
-                        join d in _context.OrderDetails on o.Id equals d.OrderId into detailGroup
-                        from d in detailGroup.DefaultIfEmpty()
-                        where !o.IsDeleted
-                        group new { o, c, d } by new
-                        {
-                            o.Id,
-                            o.OrderDate,
-                            o.TotalAmount,
-                            o.Status,
-                            CustomerName = c != null && !string.IsNullOrWhiteSpace(c.CustomerName)
-                                ? c.CustomerName
-                                : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
-                            CustomerPhone = c != null && !string.IsNullOrWhiteSpace(c.Phone)
-                                ? c.Phone
-                                : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
-                            IsGuest = c == null || o.CustomerId <= 0
-                        } into g
-                        select new ManagementOrderData
-                        {
-                            Id = g.Key.Id,
-                            OrderDate = g.Key.OrderDate,
-                            TotalAmount = g.Key.TotalAmount,
-                            Status = g.Key.Status,
-                            CustomerName = g.Key.CustomerName,
-                            CustomerPhone = g.Key.CustomerPhone,
-                            IsGuest = g.Key.IsGuest,
-                            ItemCount = g.Sum(x => x.d != null ? x.d.Quantity : 0),
-                            ProductTypeCount = g.Count(x => x.d != null && x.d.ProductId > 0)
-                        };
+            // TỐI ƯU: Tối ưu query bằng cách lấy orders trước, sau đó tính counts trong memory
+            // để tránh GROUP BY phức tạp với nhiều JOIN
 
-            return query
+            var orders = _context.Orders
+                .AsNoTracking()
+                .Where(o => !o.IsDeleted)
                 .OrderByDescending(o => o.OrderDate)
                 .Take(take)
                 .ToList();
+
+            var orderIds = orders.Select(o => o.Id).ToList();
+
+            var orderDetails = _context.OrderDetails
+                .AsNoTracking()
+                .Where(d => orderIds.Contains(d.OrderId))
+                .ToList();
+
+            var customers = _context.Customers
+                .AsNoTracking()
+                .Where(c => orderIds.Contains(c.Id))
+                .ToDictionary(c => c.Id);
+
+            return orders.Select(o => {
+                var customer = customers.GetValueOrDefault(o.CustomerId);
+                var details = orderDetails.Where(d => d.OrderId == o.Id).ToList();
+
+                return new ManagementOrderData
+                {
+                    Id = o.Id,
+                    OrderDate = o.OrderDate,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    CustomerName = customer != null && !string.IsNullOrWhiteSpace(customer.CustomerName)
+                        ? customer.CustomerName
+                        : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
+                    CustomerPhone = customer != null && !string.IsNullOrWhiteSpace(customer.Phone)
+                        ? customer.Phone
+                        : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
+                    IsGuest = customer == null || o.CustomerId <= 0,
+                    ItemCount = details.Sum(d => d.Quantity),
+                    ProductTypeCount = details.Count(d => d.ProductId > 0)
+                };
+            }).OrderByDescending(o => o.OrderDate).ToList();
         }
 
         public (List<ManagementOrderData> Orders, int TotalCount) ListOrdersPaginated(int page, int pageSize, int? status = null)
         {
-            var baseQuery = from o in _context.Orders
-                            join c in _context.Customers on o.CustomerId equals c.Id into customerGroup
-                            from c in customerGroup.DefaultIfEmpty()
-                            join d in _context.OrderDetails on o.Id equals d.OrderId into detailGroup
-                            from d in detailGroup.DefaultIfEmpty()
-                            where !o.IsDeleted
-                            group new { o, c, d } by new
-                            {
-                                o.Id,
-                                o.OrderDate,
-                                o.TotalAmount,
-                                o.Status,
-                                CustomerName = c != null && !string.IsNullOrWhiteSpace(c.CustomerName)
-                                    ? c.CustomerName
-                                    : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
-                                CustomerPhone = c != null && !string.IsNullOrWhiteSpace(c.Phone)
-                                    ? c.Phone
-                                    : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
-                                IsGuest = c == null || o.CustomerId <= 0
-                            } into g
-                            select new
-                            {
-                                OrderData = new ManagementOrderData
-                                {
-                                    Id = g.Key.Id,
-                                    OrderDate = g.Key.OrderDate,
-                                    TotalAmount = g.Key.TotalAmount,
-                                    Status = g.Key.Status,
-                                    CustomerName = g.Key.CustomerName,
-                                    CustomerPhone = g.Key.CustomerPhone,
-                                    IsGuest = g.Key.IsGuest,
-                                    ItemCount = g.Sum(x => x.d != null ? x.d.Quantity : 0),
-                                    ProductTypeCount = g.Count(x => x.d != null && x.d.ProductId > 0)
-                                },
-                                g.Key.Status
-                            };
+            // TỐI ƯU: Tối ưu query bằng cách lấy orders trước, sau đó tính counts trong memory
+            var ordersQuery = _context.Orders
+                .AsNoTracking()
+                .Where(o => !o.IsDeleted);
 
             if (status.HasValue)
             {
-                baseQuery = baseQuery.Where(x => x.Status == status.Value);
+                ordersQuery = ordersQuery.Where(o => o.Status == status.Value);
             }
 
-            var totalCount = baseQuery.Count();
+            var totalCount = ordersQuery.Count();
 
-            var orders = baseQuery
-                .OrderByDescending(x => x.OrderData.OrderDate)
+            var orders = ordersQuery
+                .OrderByDescending(o => o.OrderDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(x => x.OrderData)
                 .ToList();
 
-            return (orders, totalCount);
+            var orderIds = orders.Select(o => o.Id).ToList();
+
+            var orderDetails = _context.OrderDetails
+                .AsNoTracking()
+                .Where(d => orderIds.Contains(d.OrderId))
+                .ToList();
+
+            var customers = _context.Customers
+                .AsNoTracking()
+                .Where(c => orderIds.Contains(c.Id))
+                .ToDictionary(c => c.Id);
+
+            var orderData = orders.Select(o => {
+                var customer = customers.GetValueOrDefault(o.CustomerId);
+                var details = orderDetails.Where(d => d.OrderId == o.Id).ToList();
+
+                return new ManagementOrderData
+                {
+                    Id = o.Id,
+                    OrderDate = o.OrderDate,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    CustomerName = customer != null && !string.IsNullOrWhiteSpace(customer.CustomerName)
+                        ? customer.CustomerName
+                        : (!string.IsNullOrWhiteSpace(o.ShippingName) ? o.ShippingName : "Guest"),
+                    CustomerPhone = customer != null && !string.IsNullOrWhiteSpace(customer.Phone)
+                        ? customer.Phone
+                        : (!string.IsNullOrWhiteSpace(o.ShippingPhone) ? o.ShippingPhone : ""),
+                    IsGuest = customer == null || o.CustomerId <= 0,
+                    ItemCount = details.Sum(d => d.Quantity),
+                    ProductTypeCount = details.Count(d => d.ProductId > 0)
+                };
+            }).OrderByDescending(o => o.OrderDate).ToList();
+
+            return (orderData, totalCount);
         }
 
         public List<CustomerManagementData> ListCustomers()

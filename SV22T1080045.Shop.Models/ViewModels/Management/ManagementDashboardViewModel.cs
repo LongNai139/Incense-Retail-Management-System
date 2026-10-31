@@ -8,6 +8,12 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
         public List<ManagementCategoryOptionViewModel> Categories { get; set; } = new();
         public List<ManagementUnitOptionViewModel> Units { get; set; } = new();
         public List<ManagementProductRowViewModel> AllProducts { get; set; } = new();
+        public List<ManagementProductRowViewModel> BestSellerProducts { get; set; } = new();
+        public List<ManagementProductRowViewModel> LowStockProducts { get; set; } = new();
+        public int OutOfStockCount { get; set; }
+        public List<CategorySalesSummaryViewModel> CategorySales { get; set; } = new();
+        public decimal CategorySalesTotalRevenue { get; set; }
+        public RevenuePointViewModel? BestRevenuePoint { get; set; }
         public List<ManagementProductRowViewModel> Products { get; set; } = new();
         public ProductEditViewModel ProductForm { get; set; } = new();
 
@@ -54,6 +60,16 @@ namespace SV22T1080045.Shop.Models.ViewModels.Management
     {
         public int Id { get; set; }
         public string CategoryName { get; set; } = "";
+    }
+
+    public class CategorySalesSummaryViewModel
+    {
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = "";
+        public int Quantity { get; set; }
+        public decimal Revenue { get; set; }
+        public decimal RevenueShare { get; set; }
+        public string Color { get; set; } = "#c9a961";
     }
 
     public class ManagementUnitOptionViewModel
