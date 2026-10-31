@@ -1,84 +1,128 @@
 @model SV22T1080045.Shop.Models.ProfileViewModel
 @{
-    ViewData["Title"] = "Trang cá nhân";
+    ViewData["Title"] = "Hồ sơ cá nhân";
 }
 
-<section class="container py-5">
-    <div class="row g-4">
-        <div class="col-lg-4">
-            <div class="p-4 rounded-4 h-100" style="background:#fff; border:1px solid #ead8c9;">
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                         style="width:64px;height:64px;background:#2b211c;color:#fff;font-size:26px;font-weight:700;">
-                        @((Model.CustomerName.FirstOrDefault() == default(char) ? 'K' : Model.CustomerName.First()).ToString().ToUpper())
+<div class="profile-page">
+    <div class="container-custom">
+        <div class="profile-layout">
+
+            <!-- SIDEBAR: THÔNG TIN TỔNG QUAN & MENU -->
+            <aside class="profile-sidebar">
+                <div class="profile-card">
+                    <div class="profile-user-head">
+                        <div class="profile-avatar">
+                            <div class="avatar-circle">
+                                @((Model.CustomerName.FirstOrDefault() == default(char) ? 'K' : Model.CustomerName.First()).ToString().ToUpper())
+                            </div>
+                        </div>
+                        <div class="profile-user-info">
+                            <h2 class="profile-name">@Model.CustomerName</h2>
+                            <p class="profile-phone">@Model.Phone</p>
+                            <span class="member-badge">Thành viên thân thiết</span>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="h4 fw-bold mb-1">@Model.CustomerName</h1>
-                        <div class="text-secondary small">@Model.Phone</div>
+
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">@Model.TotalOrders</div>
+                            <div class="stat-label">Tổng đơn hàng</div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-value">@Model.InTransitOrders</div>
+                            <div class="stat-label">Đang giao</div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-value">@Model.Points.ToString("N0")</div>
+                            <div class="stat-label">Điểm tích lũy</div>
+                        </div>
                     </div>
+
+                    <nav class="profile-nav">
+                        <a asp-controller="Account" asp-action="Profile" class="profile-nav-item active">
+                            <i class="fa-regular fa-user"></i>
+                            <span>Thông tin tài khoản</span>
+                        </a>
+                        <a asp-controller="MyOrders" asp-action="Index" class="profile-nav-item">
+                            <i class="fa-solid fa-box-archive"></i>
+                            <span>Lịch sử đơn hàng</span>
+                        </a>
+                        <a asp-controller="OrderLookup" asp-action="Index" class="profile-nav-item">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Tra cứu đơn hàng</span>
+                        </a>
+                        <a asp-controller="Account" asp-action="ChangePassword" class="profile-nav-item">
+                            <i class="fa-solid fa-key"></i>
+                            <span>Đổi mật khẩu</span>
+                        </a>
+                        <div class="nav-divider"></div>
+                        <a asp-controller="Account" asp-action="Logout" class="profile-nav-item logout">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </nav>
                 </div>
+            </aside>
 
-                <div class="d-grid gap-2">
-                    <a asp-controller="MyOrders" asp-action="Index" class="btn btn-dark rounded-pill">
-                        Đơn hàng của tôi
-                    </a>
-                    <a asp-controller="OrderLookup" asp-action="Index" class="btn btn-outline-dark rounded-pill">
-                        Tra cứu đơn (SĐT + OTP)
-                    </a>
-                    <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger rounded-pill">
-                        Đăng xuất
-                    </a>
+            <!-- MAIN CONTENT: FORM CHỈNH SỬA THÔNG TIN -->
+            <main class="profile-main">
+                <div class="profile-paper">
+                    <div class="profile-header">
+                        <h1 class="profile-title">Thông tin cá nhân</h1>
+                        <p class="profile-subtitle">Quản lý thông tin tài khoản và địa chỉ giao hàng mặc định.</p>
+                    </div>
+
+                    @if (TempData["ProfileSuccess"] != null)
+                    {
+                        <div class="alert-success">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>@TempData["ProfileSuccess"]</span>
+                        </div>
+                    }
+
+                    <form asp-controller="Account" asp-action="Profile" method="post" class="profile-form">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="error-summary"></div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label asp-for="CustomerName" class="form-label">Họ và tên <span class="required">*</span></label>
+                                <input asp-for="CustomerName" class="form-input" placeholder="Nhập họ và tên..." />
+                                <span asp-validation-for="CustomerName" class="form-error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                                <input asp-for="Phone" class="form-input readonly-input" readonly tabindex="-1" />
+                                <small class="form-hint">Số điện thoại dùng làm tài khoản đăng nhập (Không thể thay đổi)</small>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label asp-for="Email" class="form-label">Địa chỉ Email</label>
+                                <input asp-for="Email" class="form-input" placeholder="example@gmail.com" />
+                                <span asp-validation-for="Email" class="form-error"></span>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label asp-for="Address" class="form-label">Địa chỉ giao hàng mặc định</label>
+                                <textarea asp-for="Address" class="form-textarea" rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."></textarea>
+                                <span asp-validation-for="Address" class="form-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-footer">
+                            <a asp-controller="Home" asp-action="Index" class="btn-outline">Trở về trang chủ</a>
+                            <button type="submit" class="btn-primary">Lưu thay đổi</button>
+                        </div>
+                    </form>
                 </div>
-            </div>
-        </div>
+            </main>
 
-        <div class="col-lg-8">
-            <div class="p-4 rounded-4" style="background:#fff; border:1px solid #ead8c9;">
-                <h2 class="h4 fw-bold mb-3">Thông tin cá nhân</h2>
-                <p class="text-secondary mb-4">
-                    Địa chỉ cố định tại đây sẽ được ưu tiên điền sẵn khi thanh toán.
-                </p>
-
-                @if (TempData["ProfileSuccess"] != null)
-                {
-                    <div class="alert alert-success rounded-4">@TempData["ProfileSuccess"]</div>
-                }
-
-                <form asp-controller="Account" asp-action="Profile" method="post">
-                    @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label asp-for="CustomerName" class="form-label">Họ tên</label>
-                            <input asp-for="CustomerName" class="form-control" />
-                            <span asp-validation-for="CustomerName" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label asp-for="Phone" class="form-label">Số điện thoại</label>
-                            <input asp-for="Phone" class="form-control" readonly />
-                        </div>
-                        <div class="col-12">
-                            <label asp-for="Email" class="form-label">Email</label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
-                        <div class="col-12">
-                            <label asp-for="Address" class="form-label">Địa chỉ giao hàng cố định</label>
-                            <textarea asp-for="Address" class="form-control" rows="4"></textarea>
-                            <span asp-validation-for="Address" class="text-danger small"></span>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 d-flex gap-2">
-                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-dark rounded-pill">Về trang chủ</a>
-                        <button type="submit" class="btn btn-dark rounded-pill px-4">Lưu thông tin</button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

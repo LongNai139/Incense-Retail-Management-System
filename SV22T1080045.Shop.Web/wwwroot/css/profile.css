@@ -1,0 +1,341 @@
+﻿/* ==========================================
+   PROFILE PAGE STYLES - TRẦM HƯƠNG THEME
+   ========================================== */
+
+.profile-page-wrapper {
+    background-color: #F7F5F0;
+    min-height: calc(100vh - 100px);
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.profile-grid-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 850px) {
+    .profile-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* SIDEBAR CARD (BÊN TRÁI) */
+.profile-sidebar-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #EAE5D9;
+    box-shadow: 0 4px 16px rgba(44, 38, 35, 0.04);
+}
+
+.profile-head-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* FIX LỖI AVATAR BỊ MEÓ HÌNH OVAL */
+.avatar-circle-custom {
+    width: 76px;
+    height: 76px;
+    min-width: 76px;
+    min-height: 76px;
+    max-width: 76px;
+    max-height: 76px;
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+    background: #5C3A21;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(92, 58, 33, 0.15);
+}
+
+.profile-name-txt {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2C2623;
+    margin: 0 0 4px 0;
+}
+
+.profile-phone-txt {
+    font-size: 13px;
+    color: #8C827A;
+    margin: 0 0 10px 0;
+}
+
+.badge-member-tag {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    background: #F4EFEA;
+    color: #5C3A21;
+    border-radius: 20px;
+}
+
+/* BẢNG THỐNG KÊ (STATS GRID) */
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 12px 8px;
+    background: #FAF8F5;
+    border: 1px solid #EAE5D9;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-num {
+    font-size: 16px;
+    font-weight: 700;
+    color: #5C3A21;
+    line-height: 1.2;
+}
+
+.stat-lbl {
+    font-size: 10px;
+    color: #8C827A;
+    margin-top: 4px;
+    text-transform: uppercase;
+}
+
+/* MENU DỌC (VERTICAL NAVIGATION) */
+.profile-menu-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu-link-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    color: #4A423D;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+    .menu-link-item i {
+        width: 18px;
+        text-align: center;
+        color: #8C827A;
+    }
+
+    .menu-link-item:hover,
+    .menu-link-item.active-link {
+        background: #FAF7F2;
+        color: #5C3A21;
+        font-weight: 600;
+    }
+
+    .menu-link-item.active-link {
+        background: #F4EFEA;
+    }
+
+        .menu-link-item:hover i,
+        .menu-link-item.active-link i {
+            color: #5C3A21;
+        }
+
+.menu-divider-line {
+    height: 1px;
+    background: #EAE5D9;
+    margin: 6px 0;
+}
+
+.menu-link-item.logout-link {
+    color: #C0392B;
+}
+
+    .menu-link-item.logout-link i {
+        color: #C0392B;
+    }
+
+    .menu-link-item.logout-link:hover {
+        background: #FDF2F2;
+    }
+
+/* MAIN FORM CARD (BÊN PHẢI) */
+.profile-main-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid #EAE5D9;
+    box-shadow: 0 4px 16px rgba(44, 38, 35, 0.04);
+}
+
+.form-head-title {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #EAE5D9;
+}
+
+.title-txt {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2C2623;
+    margin: 0 0 6px 0;
+}
+
+.subtitle-txt {
+    font-size: 14px;
+    color: #8C827A;
+    margin: 0;
+}
+
+/* THÔNG BÁO */
+.alert-success-msg {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #eef7ed;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    color: #1e7e34;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.error-summary-msg {
+    color: #C0392B;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+/* FORM FIELDS GRID */
+.form-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 600px) {
+    .form-fields-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-group-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+    .form-group-item.full-col {
+        grid-column: 1 / -1;
+    }
+
+.form-label-txt {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2C2623;
+}
+
+.req-mark {
+    color: #C0392B;
+}
+
+.form-input-ctrl,
+.form-textarea-ctrl {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #E3DEC6;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2C2623;
+    background: #FFFFFF;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+    .form-input-ctrl:focus,
+    .form-textarea-ctrl:focus {
+        outline: none;
+        border-color: #5C3A21;
+        box-shadow: 0 0 0 3px rgba(92, 58, 33, 0.08);
+    }
+
+.disabled-input {
+    background: #F7F5F0 !important;
+    color: #8C827A !important;
+    border-color: #EAE5D9 !important;
+    cursor: not-allowed;
+}
+
+.form-hint-txt {
+    font-size: 12px;
+    color: #8C827A;
+}
+
+.form-field-err {
+    color: #C0392B;
+    font-size: 12px;
+}
+
+/* FOOTER BUTTONS */
+.form-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #EAE5D9;
+}
+
+.btn-submit-main {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #5C3A21;
+    color: #FFFFFF;
+    border: 1px solid #5C3A21;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn-submit-main:hover {
+        background: #3D261D;
+        border-color: #3D261D;
+    }
+
+.btn-back-link {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: transparent;
+    color: #4A423D;
+    border: 1px solid #EAE5D9;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+    .btn-back-link:hover {
+        background: #FAF7F2;
+    }

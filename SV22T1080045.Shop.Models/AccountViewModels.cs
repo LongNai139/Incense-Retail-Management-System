@@ -66,6 +66,10 @@ namespace SV22T1080045.Shop.Models
 
         [MaxLength(500)]
         public string? Address { get; set; }
+
+        public int TotalOrders { get; set; } = 0;
+        public int InTransitOrders { get; set; } = 0;
+        public int Points { get; set; } = 0;
     }
 
     public static class AccountViewModelExtensions
