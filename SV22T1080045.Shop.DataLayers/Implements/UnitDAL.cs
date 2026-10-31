@@ -32,5 +32,28 @@ namespace SV22T1080045.Shop.DataLayers.Implements
                 .AsNoTracking()
                 .FirstOrDefault(u => u.Id == id && !u.IsDeleted);
         }
+
+        public int Add(Unit unit)
+        {
+            _context.Units.Add(unit);
+            _context.SaveChanges();
+            return unit.Id;
+        }
+
+        public bool Update(Unit unit)
+        {
+            _context.Units.Update(unit);
+            return _context.SaveChanges() > 0;
+        }
+
+        public bool Delete(int id)
+        {
+            var unit = _context.Units.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+            if (unit == null)
+                return false;
+
+            unit.IsDeleted = true;
+            return _context.SaveChanges() > 0;
+        }
     }
 }
