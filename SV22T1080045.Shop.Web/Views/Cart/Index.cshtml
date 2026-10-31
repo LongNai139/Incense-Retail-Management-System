@@ -91,7 +91,7 @@
                                     <button type="button" class="qty-btn js-qty-minus" aria-label="Giảm số lượng">
                                         <i class="fa-solid fa-minus"></i>
                                     </button>
-                                    <input type="number" name="quantity" value="@item.Quantity" min="1" class="qty-input" />
+                                    <input type="number" name="quantity" value="@item.Quantity" min="1" max="99" class="qty-input" />
                                     <button type="button" class="qty-btn js-qty-plus" aria-label="Tăng số lượng">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
@@ -162,7 +162,7 @@
                     <div class="voucher-box">
                         <label class="voucher-label" for="cartVoucherCode">Mã giảm giá</label>
                         <div class="voucher-row">
-                            <input id="cartVoucherCode" class="commerce-input" type="text" placeholder="Nhập mã voucher" autocomplete="off" />
+                            <input id="cartVoucherCode" class="commerce-input" type="text" placeholder="Nhập mã voucher" autocomplete="off" maxlength="50" />
                             <button id="cartApplyVoucher" type="button" class="commerce-btn primary square voucher-apply-btn">Áp dụng</button>
                         </div>
                         <div id="cartVoucherOk" class="voucher-message ok"></div>
@@ -215,13 +215,22 @@
 
             document.querySelectorAll('.cart-qty-form').forEach(form => {
                 const input = form.querySelector('.qty-input');
+                const max = Number(input.max) || 99;
                 form.querySelector('.js-qty-minus')?.addEventListener('click', () => {
                     input.value = Math.max(1, Number(input.value || 1) - 1);
                     form.submit();
                 });
                 form.querySelector('.js-qty-plus')?.addEventListener('click', () => {
-                    input.value = Number(input.value || 1) + 1;
-                    form.submit();
+                    const newVal = Number(input.value || 1) + 1;
+                    if (newVal <= max) {
+                        input.value = newVal;
+                        form.submit();
+                    }
+                });
+                input.addEventListener('change', () => {
+                    let val = Number(input.value);
+                    if (val < 1) input.value = 1;
+                    if (val > max) input.value = max;
                 });
             });
 

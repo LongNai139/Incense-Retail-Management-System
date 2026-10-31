@@ -148,6 +148,7 @@ namespace SV22T1080045.Shop.Controllers
 
                 if (!momo.IsSuccess || string.IsNullOrWhiteSpace(momo.PayUrl))
                 {
+                    _orderService.MarkPaymentResult(orderId, 2, null, "MOMO", "CREATE_FAILED", null);
                     ModelState.AddModelError(string.Empty, momo.Message);
                     SetPaymentConfigFlags();
                     return View("Index", BuildViewModel(cart, input));

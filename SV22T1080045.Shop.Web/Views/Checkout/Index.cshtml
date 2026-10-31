@@ -57,7 +57,7 @@
                         </div>
                         <div>
                             <label asp-for="Input.ShippingPhone" class="form-label-soft">Số điện thoại</label>
-                            <input asp-for="Input.ShippingPhone" class="commerce-input" placeholder="0901234567" autocomplete="tel" />
+                            <input asp-for="Input.ShippingPhone" class="commerce-input" placeholder="0901234567" autocomplete="tel" pattern="[0-9]{10}" maxlength="10" />
                             <span asp-validation-for="Input.ShippingPhone"></span>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                         <div>
                             <label asp-for="Input.VoucherCode" class="form-label-soft">Mã giảm giá</label>
                             <div class="voucher-row">
-                                <input asp-for="Input.VoucherCode" class="commerce-input" placeholder="Nhập mã voucher" autocomplete="off" />
+                                <input asp-for="Input.VoucherCode" class="commerce-input" placeholder="Nhập mã voucher" autocomplete="off" maxlength="50" />
                                 <button id="applyVoucherBtn" type="button" class="commerce-btn primary square">Áp dụng</button>
                             </div>
                             <div id="checkoutVoucherOk" class="voucher-message ok"></div>
@@ -284,6 +284,12 @@
                 if (!agree?.checked) {
                     event.preventDefault();
                     alert('Vui lòng xác nhận thông tin trước khi đặt hàng.');
+                    return;
+                }
+                const phone = document.querySelector('[name="Input.ShippingPhone"]');
+                if (phone && phone.value && !/^[0-9]{10}$/.test(phone.value)) {
+                    event.preventDefault();
+                    alert('Số điện thoại phải có 10 chữ số.');
                 }
             });
 
