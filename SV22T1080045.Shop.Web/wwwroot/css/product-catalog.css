@@ -2,32 +2,6 @@
     background: var(--bg);
 }
 
-.catalog-breadcrumb {
-    background: var(--warm-50);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 0;
-}
-
-.catalog-breadcrumb-inner {
-    align-items: center;
-    color: var(--ink-4);
-    display: flex;
-    font-size: 13px;
-    gap: 8px;
-    margin: 0 auto;
-    max-width: 1280px;
-    padding: 0 32px;
-}
-
-.catalog-breadcrumb-inner a {
-    color: var(--ink-3);
-    text-decoration: none;
-}
-
-.catalog-breadcrumb-inner span:last-child {
-    color: var(--ink-3);
-}
-
 .catalog-shell {
     align-items: start;
     display: grid;

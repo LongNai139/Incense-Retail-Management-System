@@ -194,8 +194,8 @@
 
             <div class="share-row">
                 <span>Chia sẻ:</span>
-                <button type="button" class="share-btn"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
-                <button type="button" class="share-btn"><i class="fa-solid fa-comment"></i> Zalo</button>
+                <button type="button" class="share-btn" disabled title="Tính năng đang phát triển"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
+                <button type="button" class="share-btn" disabled title="Tính năng đang phát triển"><i class="fa-solid fa-comment"></i> Zalo</button>
                 <button type="button" class="share-btn" id="copyLinkBtn"><i class="fa-solid fa-link"></i> Copy link</button>
             </div>
 
@@ -277,10 +277,10 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Đánh giá của bạn</label>
-                    <div class="star-picker" id="starPicker">
+                    <div class="star-picker" id="starPicker" role="radiogroup" aria-label="Đánh giá sao">
                         @for (var i = 1; i <= 5; i++)
                         {
-                            <span onclick="setRating(@i)" data-v="@i">★</span>
+                            <span onclick="setRating(@i)" data-v="@i" role="radio" aria-label="@i sao" aria-checked="false">★</span>
                         }
                     </div>
                 </div>

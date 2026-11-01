@@ -25,14 +25,14 @@
 }
 
 <div class="catalog-page">
-    <div class="catalog-breadcrumb">
-        <div class="catalog-breadcrumb-inner">
+    <div class="breadcrumb">
+        <div class="breadcrumb-inner">
             <a asp-controller="Home" asp-action="Index">Trang chủ</a>
             <span>›</span>
             <span>Sản phẩm</span>
             @if (!string.IsNullOrWhiteSpace(selectedCategory))
             {
-                <span>·</span>
+                <span>›</span>
                 <span>@selectedCategory</span>
             }
         </div>
