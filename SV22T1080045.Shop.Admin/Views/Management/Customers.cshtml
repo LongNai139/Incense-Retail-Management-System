@@ -36,7 +36,10 @@
     <div class="customers-layout">
         <div class="customers-main">
             <div class="customer-search">
-                <input class="admin-input" type="search" id="customerSearchInput" placeholder="Tìm khách theo tên, SĐT, email..." autocomplete="off" />
+                <div class="input-group">
+                    <input class="admin-input" type="search" id="customerSearchInput" placeholder="Tìm khách theo tên, SĐT, email..." autocomplete="off" />
+                    <button class="admin-btn" type="button" aria-label="Tìm kiếm"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
             </div>
             <div class="admin-table-wrap">
                 <table class="admin-table">
@@ -68,7 +71,15 @@
                         }
                         else
                         {
-                            <tr><td colspan="6">Chưa có khách hàng trong database.</td></tr>
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fa-solid fa-users"></i></div>
+                                        <div class="empty-state-title">Chưa có khách hàng</div>
+                                        <div class="empty-state-sub">Thông tin khách hàng sẽ hiển thị ở đây khi có đơn hàng được tạo.</div>
+                                    </div>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -118,6 +129,9 @@
                                 <div class="contact-action-btn" title="Gửi tin nhắn" data-contact-action="message"><i class="fa-solid fa-message"></i></div>
                                 <div class="contact-action-btn" title="Xem địa chỉ" data-contact-action="address"><i class="fa-solid fa-location-dot"></i></div>
                             </div>
+                            <div class="customer-note" style="margin-top: 8px; font-size: 11px; color: var(--cream-dim);">
+                                <i class="fa-solid fa-info-circle"></i> Các nút liên hệ sẽ được tích hợp trong tương lai
+                            </div>
                         </div>
                         <div class="customer-history-section">
                             <div class="section-title">Lịch sử mua hàng</div>
@@ -136,7 +150,11 @@
                                 }
                                 else
                                 {
-                                    <div class="item-meta">Khách hàng này chưa có lịch sử mua hàng.</div>
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                                        <div class="empty-state-title">Chưa có lịch sử mua hàng</div>
+                                        <div class="empty-state-sub">Khách hàng này chưa có đơn hàng nào.</div>
+                                    </div>
                                 }
                             </div>
                             @if (Model.SelectedCustomer.OrderCount > 3)
@@ -147,7 +165,11 @@
                     }
                     else
                     {
-                        <div class="item-meta">Chọn một khách hàng để xem chi tiết.</div>
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fa-solid fa-user"></i></div>
+                            <div class="empty-state-title">Chọn khách hàng</div>
+                            <div class="empty-state-sub">Bấm vào một khách hàng trong danh sách để xem chi tiết.</div>
+                        </div>
                     }
                 </div>
             </div>
@@ -196,7 +218,7 @@
             });
 
             if (!data.history || data.history.length === 0) {
-                historyList.innerHTML = '<div class="item-meta">Khách hàng này chưa có lịch sử mua hàng.</div>';
+                historyList.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="empty-state-title">Chưa có lịch sử mua hàng</div><div class="empty-state-sub">Khách hàng này chưa có đơn hàng nào.</div></div>';
                 return;
             }
 
@@ -249,7 +271,7 @@
                 .then(renderCustomerHistory)
                 .catch(function () {
                     if (historyList) {
-                        historyList.innerHTML = '<div class="item-meta">Không tải được lịch sử mua hàng. Vui lòng thử lại.</div>';
+                        historyList.innerHTML = '<div class="error-state"><div class="error-state-icon"><i class="fa-solid fa-triangle-exclamation"></i></i><div class="error-state-content"><div class="error-state-title">Không tải được dữ liệu</div><div class="error-state-message">Vui lòng thử lại sau.</div></div><button class="error-state-action" onclick="loadCustomerHistory(' + customerId + ')">Thử lại</button></div>';
                     }
                 })
                 .finally(function () {

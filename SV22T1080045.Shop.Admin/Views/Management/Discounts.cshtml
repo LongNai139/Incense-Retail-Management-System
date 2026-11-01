@@ -50,7 +50,11 @@
         }
         else
         {
-            <div class="item-meta">Chưa có mã giảm giá nào.</div>
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fa-solid fa-tag"></i></div>
+                <div class="empty-state-title">Chưa có mã giảm giá</div>
+                <div class="empty-state-sub">Tạo mã giảm giá để thu hút khách hàng mới.</div>
+            </div>
         }
     </div>
 
@@ -106,7 +110,15 @@
                     }
                     else
                     {
-                        <tr><td colspan="6">Chưa có mã giảm giá nào.</td></tr>
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon"><i class="fa-solid fa-tags"></i></div>
+                                    <div class="empty-state-title">Chưa có mã giảm giá</div>
+                                    <div class="empty-state-sub">Danh sách mã giảm giá sẽ hiển thị ở đây.</div>
+                                </div>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>

@@ -1,6 +1,5 @@
 @model SV22T1080045.Shop.Models.ViewModels.Staff.StaffDashboardViewModel
 @using System.Globalization
-@using SV22T1080045.Shop.Controllers
 
 @{
     ViewData["Title"] = "Dashboard";
@@ -8,8 +7,6 @@
     var vi = CultureInfo.GetCultureInfo("vi-VN");
     string Money(decimal value) => value.ToString("N0", vi) + "đ";
     string DateTimeText(DateTime value) => value.ToString("dd/MM HH:mm", vi);
-    string ProductStatusClass(int quantity) => quantity <= 0 ? "staff-status-failed" : quantity < 5 ? "staff-status-pending" : "staff-status-done";
-    string ProductStatusText(int quantity) => quantity <= 0 ? "Hết hàng" : quantity < 5 ? "Sắp hết" : "Đủ hàng";
 }
 
 <section class="staff-topbar">
@@ -90,7 +87,7 @@
                                             <td><a href="#order-@order.Id">@order.OrderCode</a></td>
                                             <td>@order.CustomerName</td>
                                             <td>@Money(order.TotalAmount)</td>
-                                            <td><span class="staff-status @StaffController.StatusClass(order.Status)">@StaffController.StatusText(order.Status)</span></td>
+                                            <td><span class="staff-status @order.StatusClass">@order.StatusText</span></td>
                                             <td>@DateTimeText(order.OrderDate)</td>
                                         </tr>
                                     }

@@ -1,7 +1,8 @@
 /* ═══════════════════════════════════════════════════════
-   DESIGN TOKENS
+   DESIGN TOKENS - UNIFIED SYSTEM
 ═══════════════════════════════════════════════════════ */
 :root {
+    /* Brand Colors - Light Theme (Storefront) */
     --ink:        #1C1209;
     --ink-2:      #3D2B1A;
     --ink-3:      #6B4F35;
@@ -20,11 +21,82 @@
     --border-2:   rgba(60,35,10,.22);
     --shadow:     0 2px 24px rgba(60,35,10,.08);
     --shadow-lg:  0 8px 48px rgba(60,35,10,.14);
+    
+    /* Dark Theme Colors (Admin/Staff/Warehouse) */
+    --wood-deepest: #1a1209;
+    --wood-darker: #2d1f14;
+    --wood-dark: #3d2b1c;
+    --wood-medium: #5c4028;
+    --wood-light: #7a5a38;
+    --wood-lighter: #9c7a52;
+    --gold-bright: #d4b86a;
+    --gold-primary: #c9a961;
+    --gold-secondary: #8a6d28;
+    --gold-accent: #d4b86a;
+    --cream-warm: #f5e6c8;
+    --cream-soft: #e8d9b8;
+    --cream-dim: #c9b896;
+    --border-wood: #6b4f2e;
+    --border-gold: rgba(201, 169, 97, 0.35);
+    --shadow-wood: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-gold: 0 4px 20px rgba(201, 169, 97, 0.15);
+    --glow-gold: 0 0 20px rgba(201, 169, 97, 0.25);
+    
+    /* Semantic Colors */
+    --color-success: #52745b;
+    --color-success-bg: rgba(82, 116, 91, 0.2);
+    --color-success-border: rgba(82, 116, 91, 0.3);
+    --color-warning: #c9a961;
+    --color-warning-bg: rgba(201, 169, 97, 0.2);
+    --color-warning-border: rgba(201, 169, 97, 0.3);
+    --color-danger: #a94f45;
+    --color-danger-bg: rgba(169, 79, 69, 0.2);
+    --color-danger-border: rgba(169, 79, 69, 0.3);
+    --color-info: #506c83;
+    --color-info-bg: rgba(80, 108, 131, 0.2);
+    --color-info-border: rgba(80, 108, 131, 0.3);
+    
+    /* Typography */
     --serif:      'Cormorant Garamond', Georgia, serif;
     --sans:       'Be Vietnam Pro', sans-serif;
-    --radius:     12px;
-    --radius-lg:  20px;
+    --font-xs:    11px;
+    --font-sm:    12px;
+    --font-base:  14px;
+    --font-lg:    16px;
+    --font-xl:    18px;
+    --font-2xl:   20px;
+    --font-3xl:   24px;
+    --font-4xl:   30px;
+    
+    /* Spacing */
+    --space-xs:   4px;
+    --space-sm:   8px;
+    --space-md:   12px;
+    --space-lg:   16px;
+    --space-xl:   24px;
+    --space-2xl:  32px;
+    --space-3xl:  48px;
+    
+    /* Border Radius */
+    --radius-sm:  4px;
+    --radius-md:  8px;
+    --radius-lg:  12px;
+    --radius-xl:  16px;
+    --radius-2xl: 20px;
+    --radius-full: 999px;
+    
+    /* Transitions */
+    --transition-fast: .15s cubic-bezier(.4,0,.2,1);
     --transition: .25s cubic-bezier(.4,0,.2,1);
+    --transition-slow: .35s cubic-bezier(.4,0,.2,1);
+    
+    /* Z-index */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal: 1040;
+    --z-popover: 1050;
+    --z-tooltip: 1060;
   }
 /* ═══════════════════════════════════════════════════════
    RESET & BASE

@@ -129,6 +129,92 @@
     min-width: 160px;
 }
 
+.system-admin-grid {
+    margin-bottom: 18px;
+}
+
+.system-role-admin-list,
+.system-permission-catalog {
+    display: grid;
+    gap: 12px;
+}
+
+.system-role-admin-row,
+.system-permission-catalog-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(201, 169, 97, 0.18);
+}
+
+.system-role-edit-form,
+.system-permission-edit-form {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(3, minmax(120px, 1fr)) auto auto;
+    gap: 10px;
+    align-items: end;
+}
+
+.system-permission-edit-form {
+    grid-template-columns: minmax(130px, 0.8fr) repeat(3, minmax(140px, 1fr)) auto;
+}
+
+.system-permission-panel,
+.system-user-permission-panel {
+    margin-bottom: 18px;
+}
+
+.system-permission-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.system-permission-module {
+    min-width: 0;
+    border: 1px solid rgba(201, 169, 97, 0.28);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.system-permission-module legend {
+    padding: 0 6px;
+    color: #e8d9b8;
+    font-weight: 600;
+}
+
+.system-permission-option {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(201, 169, 97, 0.12);
+}
+
+.system-permission-option span {
+    display: grid;
+    gap: 3px;
+}
+
+.system-permission-option code,
+.system-permission-option small,
+.system-user-permission-panel code {
+    color: #a89878;
+    overflow-wrap: anywhere;
+}
+
+.system-permission-option small {
+    font-size: 12px;
+}
+
+.system-user-permission-panel .admin-table .admin-select,
+.system-user-permission-panel .admin-table .admin-input {
+    min-width: 150px;
+}
+
 .role-badge.role-staff {
     background: rgba(82, 116, 91, 0.2);
     color: #52745b;
@@ -137,7 +223,13 @@
 
 @media (max-width: 1100px) {
     .system-grid,
-    .system-role-grid {
+    .system-role-grid,
+    .system-permission-groups {
+        grid-template-columns: 1fr;
+    }
+
+    .system-role-edit-form,
+    .system-permission-edit-form {
         grid-template-columns: 1fr;
     }
 }

@@ -16,7 +16,6 @@
     var productForm = Model.ProductForm ?? new ProductEditViewModel();
     var categoryMap = categories.ToDictionary(c => c.Id, c => c.CategoryName);
     var unitMap = units.ToDictionary(u => u.Id, u => u.UnitName);
-    string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + "đ";
     string CategoryName(int categoryId) => categoryMap.TryGetValue(categoryId, out var name) ? name : "Chưa phân loại";
     string UnitName(int unitId) => unitMap.TryGetValue(unitId, out var name) ? name : $"ID {unitId}";
 }
@@ -25,11 +24,11 @@
     <div>
         <div class="management-kicker">Precious Wood</div>
         <h1>Quản lý sản phẩm</h1>
-        <p>Quản lý thông tin sản phẩm, tồn kho, giá bán và hình ảnh.</p>
+        <p>@products.Count / @Model.ProductTotalCount sản phẩm • @Model.ProductPage / @Model.ProductTotalPages trang</p>
     </div>
     <div class="management-actions">
-        <button class="admin-btn primary" type="button" id="openProductModalBtn"><i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
-        <button class="admin-btn"><i class="fa-solid fa-file-excel"></i> Import Excel</button>
+        <button class="admin-btn primary" type="button" id="openProductModalBtn">Thêm sản phẩm mới</button>
+        <button class="admin-btn ghost" disabled title="Tính năng đang phát triển">Import Excel</button>
     </div>
 </section>
 
@@ -56,8 +55,8 @@
             <option value="low-stock" selected="@(Model.ProductStatus == "low-stock" ? "selected" : null)">Sắp hết</option>
             <option value="out-of-stock" selected="@(Model.ProductStatus == "out-of-stock" ? "selected" : null)">Hết hàng</option>
         </select>
-        <button class="admin-btn" type="submit"><i class="fa-solid fa-filter"></i> Lọc</button>
-        <a class="admin-btn" asp-controller="Management" asp-action="Products"><i class="fa-solid fa-xmark"></i> Xóa lọc</a>
+        <button class="admin-btn" type="submit">Lọc</button>
+        <a class="admin-btn" asp-controller="Management" asp-action="Products">Xóa lọc</a>
     </form>
 
     <div class="admin-table-wrap">
@@ -107,9 +106,9 @@
                             <td>@quantity @UnitName(item.UnitId)</td>
                             <td><span class="status-badge @statusClass">@statusText</span></td>
                             <td>
-                                <button class="action-btn" type="button" data-action="edit" data-product-id="@item.Id"><i class="fa-solid fa-pen"></i></button>
-                                <button class="action-btn delete-btn" type="button" data-action="delete" data-product-id="@item.Id"><i class="fa-solid fa-trash"></i></button>
-                                <button class="action-btn" type="button" data-action="view" data-product-id="@item.Id"><i class="fa-solid fa-eye"></i></button>
+                                <button class="action-btn" type="button" data-action="edit" data-product-id="@item.Id" title="Chỉnh sửa sản phẩm"><i class="fa-solid fa-pen"></i></button>
+                                <button class="action-btn delete-btn" type="button" data-action="delete" data-product-id="@item.Id" title="Xóa sản phẩm"><i class="fa-solid fa-trash"></i></button>
+                                <button class="action-btn" type="button" data-action="view" data-product-id="@item.Id" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></button>
                             </td>
                         </tr>
                     }
@@ -117,7 +116,16 @@
                 else
                 {
                     <tr>
-                        <td colspan="7">Chưa có sản phẩm trong dữ liệu.</td>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="empty-state-icon"><i class="fa-solid fa-box-open"></i></div>
+                                <div class="empty-state-title">Chưa có sản phẩm</div>
+                                <div class="empty-state-sub">Hãy thêm sản phẩm mới để bắt đầu quản lý kho hàng.</div>
+                                <a class="empty-state-action" id="openProductModalBtn">
+                                    <i class="fa-solid fa-plus"></i> Thêm sản phẩm mới
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                 }
             </tbody>
